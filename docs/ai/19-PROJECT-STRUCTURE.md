@@ -1,0 +1,10 @@
+src/
+ app/
+ features/
+ shared/
+ services/
+ repositories/
+ hooks/
+ pages/
+ routes/
+ types/
