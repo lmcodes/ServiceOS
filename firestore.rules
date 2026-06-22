@@ -1,0 +1,176 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // Helper Functions
+    // ==========================================
+
+    // Checks if the user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Extracts tenantId claim from Auth token
+    function userTenantId() {
+      return request.auth.token.tenantId;
+    }
+
+    // Extracts role claim from Auth token
+    function userRole() {
+      return request.auth.token.role;
+    }
+
+    // Extracts assigned branchIds from Auth token
+    function userBranches() {
+      return request.auth.token.branchIds;
+    }
+
+    // Verifies the user belongs to the specified tenant
+    function belongsToTenant(tenantId) {
+      return isAuth() && userTenantId() == tenantId;
+    }
+
+    // Role verification helpers
+    function isOwner() {
+      return isAuth() && userRole() == 'owner';
+    }
+
+    // Admin includes Owner permissions as well
+    function isAdmin() {
+      return isAuth() && (userRole() == 'admin' || userRole() == 'owner');
+    }
+
+    function isManager() {
+      return isAuth() && userRole() == 'manager';
+    }
+
+    function isStaff() {
+      return isAuth() && userRole() == 'staff';
+    }
+
+    function isOwnerOrAdmin(tenantId) {
+      return belongsToTenant(tenantId) && isAdmin();
+    }
+
+    // Verifies access to a specific branch
+    function hasBranchAccess(tenantId, branchId) {
+      return belongsToTenant(tenantId) && (
+        isAdmin() || 
+        (isManager() && branchId in userBranches()) || 
+        (isStaff() && branchId in userBranches())
+      );
+    }
+
+    // ==========================================
+    // Collection Rules
+    // ==========================================
+
+    // 1. Tenants Collection
+    match /tenants/{tenantId} {
+      allow read: if belongsToTenant(tenantId);
+      allow create: if isAuth(); // allowed for onboarding
+      allow update: if isOwnerOrAdmin(tenantId);
+      allow delete: if false; // soft delete only
+    }
+
+    // 2. Subscriptions Collection
+    match /subscriptions/{tenantId} {
+      allow read: if belongsToTenant(tenantId);
+      allow write: if false; // Managed by stripe webhook cloud functions only
+    }
+
+    // 3. Users Collection
+    match /users/{userId} {
+      allow read: if belongsToTenant(resource.data.tenantId);
+      allow create: if isAuth() && request.resource.data.id == request.auth.uid; // users can initialize their own profile
+      allow update: if belongsToTenant(resource.data.tenantId) && (
+        isOwnerOrAdmin(resource.data.tenantId) || 
+        request.auth.uid == userId
+      );
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId);
+    }
+
+    // 4. Branches Collection
+    match /branches/{branchId} {
+      allow read: if true; // Public displays and QR queue join sheets read branches
+      allow create: if isOwnerOrAdmin(request.resource.data.tenantId);
+      allow update: if isOwnerOrAdmin(resource.data.tenantId) || 
+                      (belongsToTenant(resource.data.tenantId) && isManager() && branchId in userBranches());
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId);
+
+      // dailyMetrics subcollection
+      match /dailyMetrics/{dateStr} {
+        allow read, write: if hasBranchAccess(resource.data.tenantId, branchId);
+      }
+    }
+
+    // 5. Services Collection
+    match /services/{serviceId} {
+      allow read: if true; // Public QR needs to fetch active services
+      allow create, update: if isOwnerOrAdmin(request.resource.data.tenantId);
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId);
+    }
+
+    // 6. Resources Collection
+    match /resources/{resourceId} {
+      allow read: if belongsToTenant(resource.data.tenantId);
+      allow create, update, delete: if isOwnerOrAdmin(request.resource.data.tenantId);
+    }
+
+    // 7. Workflows Collection
+    match /workflows/{workflowId} {
+      allow read: if belongsToTenant(resource.data.tenantId);
+      allow create, update, delete: if isOwnerOrAdmin(request.resource.data.tenantId);
+
+      // stages subcollection
+      match /stages/{stageId} {
+        allow read: if belongsToTenant(resource.data.tenantId);
+        allow create, update, delete: if isOwnerOrAdmin(request.resource.data.tenantId);
+      }
+    }
+
+    // 8. Queues Collection
+    match /queues/{queueItemId} {
+      allow read: if true; // Public status checks and display screens read queues
+      allow create: if true; // Public customer self-checkin creates queues
+      
+      // Update logic (state transitions / cancellations)
+      allow update: if 
+        // 1. Authenticated staff with branch access can edit queue status
+        hasBranchAccess(resource.data.tenantId, resource.data.branchId) ||
+        // 2. Customers can cancel their own WAITING ticket
+        (request.resource.data.status == 'CANCELLED' && 
+         resource.data.status == 'WAITING' &&
+         request.resource.data.tenantId == resource.data.tenantId &&
+         request.resource.data.branchId == resource.data.branchId &&
+         request.resource.data.queueNumber == resource.data.queueNumber);
+         
+      allow delete: if false; // soft delete only
+    }
+
+    // 9. Appointments Collection
+    match /appointments/{appointmentId} {
+      allow read: if belongsToTenant(resource.data.tenantId) || 
+                   (isAuth() && request.auth.token.email == resource.data.customerEmail); // staff or booked customer
+      allow create: if true; // Public customer self-booking
+      allow update: if belongsToTenant(resource.data.tenantId) || 
+                      (request.resource.data.status == 'CANCELLED' && 
+                       resource.data.status == 'CONFIRMED' &&
+                       request.resource.data.customerEmail == resource.data.customerEmail);
+      allow delete: if false;
+    }
+
+    // 10. Notifications Collection
+    match /notifications/{notificationId} {
+      allow read: if belongsToTenant(resource.data.tenantId);
+      allow write: if false; // System triggers write notifications
+    }
+
+    // 11. Audit Logs (Read-only for owner/admin, created by backend)
+    match /auditLogs/{logId} {
+      allow read: if isOwnerOrAdmin(resource.data.tenantId);
+      allow write: if false; // Enforced system-only creation to prevent client spoofing
+    }
+  }
+}
