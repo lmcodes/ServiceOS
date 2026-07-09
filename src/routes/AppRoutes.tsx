@@ -8,6 +8,11 @@ import AuthLayout from '@/layouts/AuthLayout';
 import PublicLayout from '@/layouts/PublicLayout';
 import DisplayLayout from '@/layouts/DisplayLayout';
 
+// Auth Feature
+import LoginForm from '@/features/auth/components/LoginForm';
+import SignupForm from '@/features/auth/components/SignupForm';
+import ForgotPasswordForm from '@/features/auth/components/ForgotPasswordForm';
+
 // Mock Skeleton Pages (Not implementing business logic)
 const MockLanding: React.FC = () => (
   <div className="text-center py-12">
@@ -26,57 +31,7 @@ const MockLanding: React.FC = () => (
   </div>
 );
 
-const MockLogin: React.FC = () => (
-  <div>
-    <h3 className="text-xl font-bold text-white text-center mb-6">Sign in to your account</h3>
-    <div className="space-y-4">
-      <p className="text-xs text-slate-400 text-center leading-relaxed">
-        Verify routing state transitions by clicking below to mock authenticate as different roles.
-      </p>
-      <div className="grid grid-cols-2 gap-2.5">
-        <button
-          onClick={() => {
-            // In a real app we'd trigger signInWithEmailAndPassword.
-            // For now, we simulate by prompting the user or doing nothing.
-            // But we keep the UI clean.
-            alert('Mock Login: In production, configure environment variables in .env');
-          }}
-          className="w-full py-2 px-3 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold transition-all text-center"
-        >
-          Mock Owner Auth
-        </button>
-        <Link
-          to="/dashboard/queues"
-          className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-all text-center block"
-        >
-          Skip to Dashboard
-        </Link>
-      </div>
-      <div className="text-center mt-6">
-        <Link to="/signup" className="text-xs text-brand-500 hover:underline">
-          Don't have an account? Sign up
-        </Link>
-      </div>
-    </div>
-  </div>
-);
 
-const MockSignup: React.FC = () => (
-  <div>
-    <h3 className="text-xl font-bold text-white text-center mb-6">Create your workspace</h3>
-    <p className="text-xs text-slate-400 text-center mb-6 leading-relaxed">
-      Complete self-service registration to onboard branches.
-    </p>
-    <div className="space-y-4">
-      <Link
-        to="/login"
-        className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-all text-center block"
-      >
-        Already have an account? Sign in
-      </Link>
-    </div>
-  </div>
-);
 
 const MockQRJoin: React.FC = () => (
   <div className="glass-panel p-6 rounded-2xl">
@@ -249,14 +204,39 @@ export const AppRoutes: React.FC = () => {
 
       {/* Auth Pages */}
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={<MockLogin />} />
-        <Route path="/signup" element={<MockSignup />} />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/signup" element={<SignupForm />} />
+        <Route path="/forgot-password" element={<ForgotPasswordForm />} />
       </Route>
+
+      {/* Onboarding (new user — no role/claims yet) */}
+      <Route
+        path="/onboarding"
+        element={
+          <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+            <div className="glass-panel p-8 rounded-2xl max-w-md w-full text-center">
+              <div className="w-12 h-12 rounded-xl bg-brand-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/25">
+                <span className="font-extrabold text-white text-xl">S</span>
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">ยินดีต้อนรับ! 🎉</h2>
+              <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+                บัญชีของคุณถูกสร้างเรียบร้อยแล้ว<br />
+                <span className="text-brand-400 font-semibold">Step TS-01b</span> — หน้า Onboarding Form จะถูกสร้างใน Step ถัดไป
+              </p>
+              <div className="p-3 bg-success/10 border border-success/20 rounded-lg">
+                <p className="text-xs text-success font-medium">✅ Firebase Auth สร้างสำเร็จ</p>
+                <p className="text-xs text-slate-400 mt-1">Tenant doc กำลังถูก sync ใน Firestore</p>
+              </div>
+            </div>
+          </div>
+        }
+      />
 
       {/* Public TV Display Screen */}
       <Route element={<DisplayLayout />}>
         <Route path="/display/:branchId" element={<MockTVDisplay />} />
       </Route>
+
 
       {/* Protected Dashboard Pages */}
       <Route

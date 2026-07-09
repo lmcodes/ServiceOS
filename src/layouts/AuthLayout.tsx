@@ -5,9 +5,14 @@ import { useAuth } from '@/context/AuthContext';
 export const AuthLayout: React.FC = () => {
   const { user, loading } = useAuth();
 
-  // If already authenticated and custom claims (role) are resolved, redirect directly to dashboard
+  // If authenticated and has role → go to dashboard
   if (!loading && user && user.role) {
     return <Navigate to="/dashboard/queues" replace />;
+  }
+
+  // If authenticated but no role yet (new user, claims not injected) → go to onboarding
+  if (!loading && user && !user.role) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return (
