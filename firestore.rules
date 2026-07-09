@@ -68,9 +68,9 @@ service cloud.firestore {
 
     // 1. Tenants Collection
     match /tenants/{tenantId} {
-      allow read: if belongsToTenant(tenantId);
-      allow create: if isAuth(); // allowed for onboarding
-      allow update: if isOwnerOrAdmin(tenantId);
+      allow read: if belongsToTenant(tenantId) || (isAuth() && request.auth.uid == tenantId);
+      allow create: if isAuth() && request.auth.uid == tenantId; // allowed for onboarding
+      allow update: if isOwnerOrAdmin(tenantId) || (isAuth() && request.auth.uid == tenantId);
       allow delete: if false; // soft delete only
     }
 

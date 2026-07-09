@@ -8,7 +8,7 @@ import {
   updateProfile,
   AuthError,
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/config/firebase';
 
 const googleProvider = new GoogleAuthProvider();
@@ -139,3 +139,56 @@ export async function sendPasswordReset(
 export async function logOut(): Promise<void> {
   await signOut(auth);
 }
+
+export interface OnboardingData {
+  name: string;
+  businessType: 'restaurant' | 'clinic' | 'salon' | 'repair_shop' | 'service_center';
+  phone: string;
+  timezone: string;
+}
+
+export async function completeOnboarding(
+  tenantId: string,
+  data: OnboardingData,
+  email?: string
+): Promise<{ error: string | null }> {
+  try {
+    const tenantRef = doc(db, 'tenants', tenantId);
+    const tenantSnap = await getDoc(tenantRef);
+
+    if (!tenantSnap.exists()) {
+      // If tenant doc is missing (e.g. pre-existing users or Google Auth setup delay), create a new one
+      await setDoc(tenantRef, {
+        name: data.name,
+        businessType: data.businessType,
+        ownerId: tenantId,
+        email: email || '',
+        phone: data.phone,
+        status: 'active',
+        settings: {
+          timezone: data.timezone,
+          locale: 'th',
+          currency: 'THB',
+          dateFormat: 'DD/MM/YYYY',
+        },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } else {
+      // If it exists, update only the onboarding details to keep settings intact
+      await updateDoc(tenantRef, {
+        name: data.name,
+        businessType: data.businessType,
+        phone: data.phone,
+        status: 'active',
+        'settings.timezone': data.timezone,
+        updatedAt: serverTimestamp(),
+      });
+    }
+    return { error: null };
+  } catch (err) {
+    console.error('[OnboardingError]', err);
+    return { error: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง' };
+  }
+}
+

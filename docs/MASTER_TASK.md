@@ -1,6 +1,6 @@
 # ServiceOS — Master Task Tracker
 
-> Last Updated: 2026-07-09 | Stack: React + Vite + TypeScript + TailwindCSS + Firebase
+> Last Updated: 2026-07-10 | Stack: React + Vite + TypeScript + TailwindCSS + Firebase
 
 ---
 
@@ -81,6 +81,10 @@
 > - [x] **Spinner หมุนไม่หยุด**: `createInitialTenantDoc` ใช้ `await setDoc()` → Firestore rules block → Promise hang → แก้ไขเป็น fire-and-forget (ไม่ await)
 > - [x] **Login ไม่ได้**: `AuthLayout` redirect เฉพาะตอนมี `user.role` — user ใหม่ยังไม่มี claims → เพิ่ม redirect ไป `/onboarding` ถ้าไม่มี role
 > - [x] **Error handling**: เพิ่ม try/catch รอบ `mutateAsync` ในทุก form component
+> 
+> > **🐛 Bug Fixes ที่แก้ไข (2026-07-10):**
+> > - [x] **Onboarding: No document to update**: ฟังก์ชัน `completeOnboarding` ล้มเหลวหากไม่พบเอกสารของ tenant เก่าหรือเกิดดีเลย์ตอนสร้างบัญชี → ปรับปรุงใช้ `getDoc` เช็คก่อน หากไม่มีให้สร้างใหม่ด้วย `setDoc` พร้อมใส่ค่าเริ่มต้น
+> > - [x] **Onboarding: โหลดค้างหน้าเดิมหลังบันทึกสำเร็จ**: เพราะยังไม่มีระบบ Custom Claims (TS-02) ใน Local ทำให้หน้าคิวเด้งกลับไปที่ Onboarding เสมอ → เพิ่ม Development Fallback ใน `AuthContext` ให้ดึงข้อมูลสิทธิ์จาก Firestore โดยตรงเมื่อไม่มีเคลมใน Token
 
 ### TS-01 · หน้า Signup & Login (Self-Service Registration)
 
@@ -126,11 +130,11 @@
 ---
 
 ### TS-01b · Onboarding Form (Tenant Profile Setup)
-- [ ] สร้าง route `/onboarding`
-- [ ] สร้าง `src/features/auth/components/OnboardingForm.tsx`
-  - [ ] Input: Business Name, Business Type (dropdown), Phone, Timezone
-  - [ ] อัปเดต `/tenants/{uid}` doc
-  - [ ] redirect → `/dashboard` เมื่อสำเร็จ
+- [x] สร้าง route `/onboarding`
+- [x] สร้าง `src/features/auth/components/OnboardingForm.tsx`
+  - [x] Input: Business Name, Business Type (dropdown), Phone, Timezone
+  - [x] อัปเดต `/tenants/{uid}` doc
+  - [x] redirect → `/dashboard` เมื่อสำเร็จ
 
 **🧪 ทดสอบ:** หลัง signup ครั้งแรก → กรอก business name → redirect dashboard → ข้อมูลปรากฏใน Firestore
 
@@ -147,7 +151,7 @@
 - [ ] Deploy functions ไปยัง Firebase
 
 #### Frontend
-- [ ] `ProtectedRoute` ใช้ claims จาก `AuthContext` ตรวจสอบ role ก่อน render
+- [x] `ProtectedRoute` ใช้ claims จาก `AuthContext` ตรวจสอบ role ก่อน render
 - [ ] `DashboardLayout` ซ่อน/แสดง nav items ตาม role:
   - `staff`: เห็นแค่ Queues
   - `manager`: เห็น Queues + Branches
@@ -454,7 +458,7 @@
 | Phase | ชื่อ | สถานะ | ความคืบหน้า |
 |---|---|---|---|
 | 0 | Foundation | ✅ เสร็จแล้ว | 100% |
-| 1 | Auth & Tenant | 🔄 กำลังดำเนินการ | 60% (TS-01 ✅, TS-01b ⬜, TS-02 ⬜) |
+| 1 | Auth & Tenant | 🔄 กำลังดำเนินการ | 80% (TS-01 ✅, TS-01b ✅, TS-02 ⬜) |
 | 2 | Branch & Services | ⬜ ยังไม่เริ่ม | 0% |
 | 3 | Queue & Staff Console | ⬜ ยังไม่เริ่ม | 0% |
 | 4 | TV Display & Deploy | ⬜ ยังไม่เริ่ม | 0% |

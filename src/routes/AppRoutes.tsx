@@ -12,6 +12,7 @@ import DisplayLayout from '@/layouts/DisplayLayout';
 import LoginForm from '@/features/auth/components/LoginForm';
 import SignupForm from '@/features/auth/components/SignupForm';
 import ForgotPasswordForm from '@/features/auth/components/ForgotPasswordForm';
+import OnboardingForm from '@/features/auth/components/OnboardingForm';
 
 // Mock Skeleton Pages (Not implementing business logic)
 const MockLanding: React.FC = () => (
@@ -210,27 +211,7 @@ export const AppRoutes: React.FC = () => {
       </Route>
 
       {/* Onboarding (new user — no role/claims yet) */}
-      <Route
-        path="/onboarding"
-        element={
-          <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
-            <div className="glass-panel p-8 rounded-2xl max-w-md w-full text-center">
-              <div className="w-12 h-12 rounded-xl bg-brand-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/25">
-                <span className="font-extrabold text-white text-xl">S</span>
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2">ยินดีต้อนรับ! 🎉</h2>
-              <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-                บัญชีของคุณถูกสร้างเรียบร้อยแล้ว<br />
-                <span className="text-brand-400 font-semibold">Step TS-01b</span> — หน้า Onboarding Form จะถูกสร้างใน Step ถัดไป
-              </p>
-              <div className="p-3 bg-success/10 border border-success/20 rounded-lg">
-                <p className="text-xs text-success font-medium">✅ Firebase Auth สร้างสำเร็จ</p>
-                <p className="text-xs text-slate-400 mt-1">Tenant doc กำลังถูก sync ใน Firestore</p>
-              </div>
-            </div>
-          </div>
-        }
-      />
+      <Route path="/onboarding" element={<OnboardingForm />} />
 
       {/* Public TV Display Screen */}
       <Route element={<DisplayLayout />}>

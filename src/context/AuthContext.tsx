@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '@/config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/config/firebase';
 
 export type UserRole = 'owner' | 'admin' | 'manager' | 'staff';
 
@@ -32,13 +33,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const tokenResult = await currentUser.getIdTokenResult(true);
     const claims = tokenResult.claims;
     
+    let role = (claims.role as UserRole) || null;
+    let tenantId = (claims.tenantId as string) || null;
+    const branchIds = (claims.branchIds as string[]) || [];
+
+    // Development Fallback: If claims are missing, check if a tenant document exists in Firestore
+    if (!role || !tenantId) {
+      try {
+        const tenantRef = doc(db, 'tenants', currentUser.uid);
+        const tenantSnap = await getDoc(tenantRef);
+        if (tenantSnap.exists()) {
+          const tenantData = tenantSnap.data();
+          if (tenantData.status === 'active') {
+            role = 'owner';
+            tenantId = currentUser.uid;
+          }
+        }
+      } catch (error) {
+        console.warn('[AuthContext] Dev fallback claims fetch failed:', error);
+      }
+    }
+    
     return {
       uid: currentUser.uid,
       email: currentUser.email,
       displayName: currentUser.displayName,
-      role: (claims.role as UserRole) || null,
-      tenantId: (claims.tenantId as string) || null,
-      branchIds: (claims.branchIds as string[]) || [],
+      role,
+      tenantId,
+      branchIds,
     };
   };
 

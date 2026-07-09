@@ -37,7 +37,7 @@ export interface Tenant {
     currency: string; // e.g. "THB"
     dateFormat: string; // e.g. "DD/MM/YYYY"
   };
-  status: 'active' | 'suspended' | 'cancelled';
+  status: 'pending_onboarding' | 'active' | 'suspended' | 'cancelled';
   subscriptionId?: string;
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
