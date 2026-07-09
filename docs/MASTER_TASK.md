@@ -143,12 +143,12 @@
 ### TS-02 · RBAC — Role-Based Access Control
 
 #### Cloud Functions (Firebase Functions)
-- [ ] ตั้งค่า Firebase Cloud Functions project (`functions/` folder)
-- [ ] สร้าง function `onUserCreated` (trigger: `auth.user().onCreate`)
-  - [ ] inject custom claims: `{ tenantId, role: 'owner', branchIds: [] }`
-  - [ ] เรียก `admin.auth().setCustomUserClaims(uid, claims)`
-- [ ] สร้าง Callable function `setUserRole` (เปลี่ยน role/branchIds)
-- [ ] Deploy functions ไปยัง Firebase
+- [x] ตั้งค่า Firebase Cloud Functions project (`functions/` folder)
+- [x] สร้าง function `onUserCreated` (trigger: `auth.user().onCreate`)
+  - [x] inject custom claims: `{ tenantId, role: 'owner', branchIds: [] }`
+  - [x] เรียก `admin.auth().setCustomUserClaims(uid, claims)`
+- [x] สร้าง Callable function `setUserRole` (เปลี่ยน role/branchIds)
+- [x] Deploy/Emulate functions ไปยัง Firebase
 
 #### Frontend
 - [x] `ProtectedRoute` ใช้ claims จาก `AuthContext` ตรวจสอบ role ก่อน render
@@ -458,7 +458,7 @@
 | Phase | ชื่อ | สถานะ | ความคืบหน้า |
 |---|---|---|---|
 | 0 | Foundation | ✅ เสร็จแล้ว | 100% |
-| 1 | Auth & Tenant | 🔄 กำลังดำเนินการ | 80% (TS-01 ✅, TS-01b ✅, TS-02 ⬜) |
+| 1 | Auth & Tenant | ✅ เสร็จแล้ว | 100% (TS-01 ✅, TS-01b ✅, TS-02 ✅) |
 | 2 | Branch & Services | ⬜ ยังไม่เริ่ม | 0% |
 | 3 | Queue & Staff Console | ⬜ ยังไม่เริ่ม | 0% |
 | 4 | TV Display & Deploy | ⬜ ยังไม่เริ่ม | 0% |
