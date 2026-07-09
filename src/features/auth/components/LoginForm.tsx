@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
 import { useLogin } from '@/features/auth/hooks/useLogin';
+import { useTranslation } from '@/context/LanguageContext';
 
 // ─── Validation Schema ─────────────────────────────────────────────────────────
 const loginSchema = z.object({
-  email: z.string().email('รูปแบบอีเมลไม่ถูกต้อง'),
-  password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
+  email: z.string().email(),
+  password: z.string().min(6),
 });
 
 type LoginFields = z.infer<typeof loginSchema>;
@@ -53,11 +54,11 @@ const InputField: React.FC<InputFieldProps> = ({
   id, label, type, value, onChange, error, icon, placeholder, rightElement, autoComplete,
 }) => (
   <div>
-    <label htmlFor={id} className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+    <label htmlFor={id} className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
       {label}
     </label>
     <div className="relative">
-      <span className="absolute inset-y-0 left-3 flex items-center text-slate-500">
+      <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
         {icon}
       </span>
       <input
@@ -68,9 +69,9 @@ const InputField: React.FC<InputFieldProps> = ({
         onChange={onChange}
         autoComplete={autoComplete}
         placeholder={placeholder}
-        className={`w-full bg-slate-900 border ${
-          error ? 'border-danger/50 focus:border-danger' : 'border-slate-700 focus:border-brand-500'
-        } text-white placeholder-slate-600 text-sm rounded-lg py-2.5 pl-9 pr-${rightElement ? '10' : '3'} 
+        className={`w-full bg-white dark:bg-slate-900 border ${
+          error ? 'border-danger/50 focus:border-danger' : 'border-slate-200 dark:border-slate-700 focus:border-brand-500'
+        } text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm rounded-lg py-2.5 pl-9 pr-${rightElement ? '10' : '3'} 
         outline-none transition-all duration-200 focus:ring-1 ${
           error ? 'focus:ring-danger/30' : 'focus:ring-brand-500/30'
         }`}
@@ -91,6 +92,7 @@ const InputField: React.FC<InputFieldProps> = ({
 // ─── LoginForm ─────────────────────────────────────────────────────────────────
 export const LoginForm: React.FC = () => {
   const { emailMutation, googleMutation } = useLogin();
+  const { t, locale } = useTranslation();
 
   const [fields, setFields] = useState<LoginFields>({ email: '', password: '' });
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -116,7 +118,11 @@ export const LoginForm: React.FC = () => {
       const errors: FieldErrors = {};
       parsed.error.errors.forEach((err) => {
         const key = err.path[0] as keyof LoginFields;
-        errors[key] = err.message;
+        if (key === 'email') {
+          errors.email = locale === 'th' ? 'รูปแบบอีเมลไม่ถูกต้อง' : 'Invalid email format';
+        } else if (key === 'password') {
+          errors.password = locale === 'th' ? 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' : 'Password must be at least 6 characters';
+        }
       });
       setFieldErrors(errors);
       return;
@@ -126,7 +132,7 @@ export const LoginForm: React.FC = () => {
       const result = await emailMutation.mutateAsync(fields);
       if (result.error) setServerError(result.error);
     } catch {
-      setServerError('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      setServerError(t('errorConnection'));
     }
   };
 
@@ -136,7 +142,7 @@ export const LoginForm: React.FC = () => {
       const result = await googleMutation.mutateAsync();
       if (result.error) setServerError(result.error);
     } catch {
-      setServerError('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      setServerError(t('errorConnection'));
     }
   };
 
@@ -144,8 +150,10 @@ export const LoginForm: React.FC = () => {
 
   return (
     <div>
-      <h3 className="text-xl font-bold text-white text-center mb-1">เข้าสู่ระบบ</h3>
-      <p className="text-xs text-slate-500 text-center mb-6">ยินดีต้อนรับกลับ กรุณาเข้าสู่ระบบเพื่อดำเนินการ</p>
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-1">{locale === 'th' ? 'เข้าสู่ระบบ' : 'Sign In'}</h3>
+      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">
+        {locale === 'th' ? 'ยินดีต้อนรับกลับ กรุณาเข้าสู่ระบบเพื่อดำเนินการ' : 'Welcome back, please sign in to continue'}
+      </p>
 
       {/* Server Error Banner */}
       {serverError && (
@@ -158,7 +166,7 @@ export const LoginForm: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <InputField
           id="email"
-          label="อีเมล"
+          label={t('emailLabel')}
           type="email"
           value={fields.email}
           onChange={handleChange}
@@ -170,7 +178,7 @@ export const LoginForm: React.FC = () => {
 
         <InputField
           id="password"
-          label="รหัสผ่าน"
+          label={t('passwordLabel')}
           type={showPassword ? 'text' : 'password'}
           value={fields.password}
           onChange={handleChange}
@@ -182,8 +190,8 @@ export const LoginForm: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="text-slate-500 hover:text-slate-300 transition-colors"
-              aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+              className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-350 transition-colors"
+              aria-label={showPassword ? (locale === 'th' ? 'ซ่อนรหัสผ่าน' : 'Hide password') : (locale === 'th' ? 'แสดงรหัสผ่าน' : 'Show password')}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -193,9 +201,9 @@ export const LoginForm: React.FC = () => {
         <div className="flex justify-end">
           <Link
             to="/forgot-password"
-            className="text-xs text-brand-500 hover:text-brand-400 transition-colors"
+            className="text-xs text-brand-600 dark:text-brand-500 hover:text-brand-500 dark:hover:text-brand-400 font-medium transition-colors"
           >
-            ลืมรหัสผ่าน?
+            {t('forgotPasswordLink')}
           </Link>
         </div>
 
@@ -212,17 +220,19 @@ export const LoginForm: React.FC = () => {
           ) : (
             <LogIn className="w-4 h-4" />
           )}
-          {emailMutation.isPending ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+          {emailMutation.isPending ? t('loading') : t('loginButton')}
         </button>
       </form>
 
       {/* Divider */}
       <div className="relative my-5">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-800" />
+          <div className="w-full border-t border-slate-200 dark:border-slate-800" />
         </div>
         <div className="relative flex justify-center">
-          <span className="px-3 bg-slate-800/70 text-xs text-slate-500 rounded">หรือ</span>
+          <span className="px-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm text-xs text-slate-500 rounded">
+            {locale === 'th' ? 'หรือ' : 'or'}
+          </span>
         </div>
       </div>
 
@@ -232,23 +242,23 @@ export const LoginForm: React.FC = () => {
         id="login-google-btn"
         onClick={handleGoogle}
         disabled={isLoading}
-        className="w-full flex items-center justify-center py-2.5 px-4 bg-slate-800 hover:bg-slate-700 
-        disabled:opacity-50 disabled:cursor-not-allowed border border-slate-700 text-slate-200 rounded-lg 
+        className="w-full flex items-center justify-center py-2.5 px-4 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-750 
+        disabled:opacity-50 disabled:cursor-not-allowed border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg 
         text-sm font-medium transition-all duration-200"
       >
         {googleMutation.isPending ? (
-          <div className="w-4 h-4 border-2 border-slate-500 border-t-slate-200 rounded-full animate-spin mr-2" />
+          <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin mr-2" />
         ) : (
           <GoogleIcon />
         )}
-        {googleMutation.isPending ? 'กำลังเชื่อมต่อ...' : 'เข้าสู่ระบบด้วย Google'}
+        {googleMutation.isPending ? t('loading') : t('googleSignIn')}
       </button>
 
       {/* Sign Up Link */}
       <p className="mt-6 text-center text-xs text-slate-500">
-        ยังไม่มีบัญชี?{' '}
-        <Link to="/signup" className="text-brand-500 hover:text-brand-400 font-semibold transition-colors">
-          สมัครใช้งานฟรี
+        {t('noAccount')}{' '}
+        <Link to="/signup" className="text-brand-600 dark:text-brand-500 hover:text-brand-500 dark:hover:text-brand-400 font-semibold transition-colors">
+          {t('signUpLink')}
         </Link>
       </p>
     </div>

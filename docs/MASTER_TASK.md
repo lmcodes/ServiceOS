@@ -140,6 +140,19 @@
 
 ---
 
+### TS-01c · Multi-Language and Theme Setup (Sprint 1 Addon)
+- [x] ตั้งค่า class-based dark mode ใน `tailwind.config.js`
+- [x] สร้าง translation dictionary ไฟล์ `src/shared/translations.ts` (รองรับ TH/EN)
+- [x] สร้าง `src/context/LanguageContext.tsx` และ `src/context/ThemeContext.tsx`
+- [x] สร้างปุ่มเลือกภาษาและธีม `SettingsSwitcher.tsx` (ลอยอยู่มุมขวาบน)
+- [x] อัปเดต `AuthLayout.tsx`, `LoginForm.tsx`, `SignupForm.tsx`, `ForgotPasswordForm.tsx`, `OnboardingForm.tsx` ให้มีสไตล์ Mobile-First, รองรับ Dark/Light Mode และสลับภาษาได้ทันที
+
+**🧪 ทดสอบ:**
+1. เข้าหน้า Login/Signup/ForgotPassword/Onboarding → ตรวจสอบการแสดงผลและสลับธีม/ภาษาได้โดยตรง
+2. การตั้งค่าภาษาและธีมจะบันทึกใน LocalStorage และคงอยู่ระหว่างเปลี่ยนหน้า
+
+---
+
 ### TS-02 · RBAC — Role-Based Access Control
 
 #### Cloud Functions (Firebase Functions)
@@ -458,7 +471,7 @@
 | Phase | ชื่อ | สถานะ | ความคืบหน้า |
 |---|---|---|---|
 | 0 | Foundation | ✅ เสร็จแล้ว | 100% |
-| 1 | Auth & Tenant | ✅ เสร็จแล้ว | 100% (TS-01 ✅, TS-01b ✅, TS-02 ✅) |
+| 1 | Auth & Tenant | ✅ เสร็จแล้ว | 100% (TS-01 ✅, TS-01b ✅, TS-01c ✅, TS-02 ✅) |
 | 2 | Branch & Services | ⬜ ยังไม่เริ่ม | 0% |
 | 3 | Queue & Staff Console | ⬜ ยังไม่เริ่ม | 0% |
 | 4 | TV Display & Deploy | ⬜ ยังไม่เริ่ม | 0% |

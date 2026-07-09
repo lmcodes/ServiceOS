@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from '@/context/AuthContext';
 import { TenantProvider } from '@/context/TenantContext';
+import { LanguageProvider } from '@/context/LanguageContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import AppRoutes from '@/routes/AppRoutes';
 
 // Initialize React Query client
@@ -21,11 +23,15 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <TenantProvider>
-            <AppRoutes />
-          </TenantProvider>
-        </AuthProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <TenantProvider>
+                <AppRoutes />
+              </TenantProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </LanguageProvider>
       </BrowserRouter>
       {/* Devtools helper (only active during development compilation) */}
       <ReactQueryDevtools initialIsOpen={false} />
