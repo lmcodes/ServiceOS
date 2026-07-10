@@ -142,17 +142,17 @@ export const QueueConsolePage: React.FC = () => {
   // Action handers
   const handleCallNext = async () => {
     if (!counter.trim()) {
-      alert(t('queues.selectCounterAlert'));
+      alert(t('pages.queues.selectCounterAlert'));
       return;
     }
     try {
       const nextTicket = await actions.callNext.mutateAsync(counter);
       if (!nextTicket) {
-        alert(t('queues.noWaitingTickets'));
+        alert(t('pages.queues.noWaitingTickets'));
       }
     } catch (err: any) {
       console.error('Failed to call next ticket:', err);
-      alert(err.message || 'Call next failed');
+      alert(err.message || t('common.errorConnection'));
     }
   };
 
@@ -181,7 +181,7 @@ export const QueueConsolePage: React.FC = () => {
     return (
       <div className="flex justify-center items-center py-24">
         <Loader2 className="w-8 h-8 text-brand-600 animate-spin" />
-        <span className="ml-3 text-sm text-slate-500 font-medium">Loading console configuration...</span>
+        <span className="ml-3 text-sm text-slate-500 font-medium">{t('pages.queues.loadingConsole')}</span>
       </div>
     );
   }
@@ -198,10 +198,10 @@ export const QueueConsolePage: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <ConciergeBell className="w-5.5 h-5.5 text-brand-655" />
-            Queues Management Console
+            {t('pages.queues.consoleTitle')}
           </h2>
           <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">
-            Manage your branch check-in registrations, call next customers, and monitor daily progress.
+            {t('pages.queues.consoleSubtitle')}
           </p>
         </div>
 
@@ -209,13 +209,13 @@ export const QueueConsolePage: React.FC = () => {
           {/* Counter Selector */}
           <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-750 px-3 py-1.5 rounded-xl">
             <span className="text-xs font-semibold text-slate-550 dark:text-slate-400 whitespace-nowrap">
-              {t('queues.counterLabel')}
+              {t('pages.queues.counterLabel')}
             </span>
             <input
               type="text"
               value={counter}
               onChange={(e) => setCounter(e.target.value)}
-              placeholder={t('queues.counterPlaceholder')}
+              placeholder={t('pages.queues.counterPlaceholder')}
               className="w-16 px-2 py-0.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20 text-center"
             />
           </div>
@@ -248,7 +248,7 @@ export const QueueConsolePage: React.FC = () => {
             ) : (
               <ConciergeBell className="w-4 h-4" />
             )}
-            <span>{t('queues.callNext')}</span>
+            <span>{t('pages.queues.callNext')}</span>
           </button>
         </div>
       </div>
@@ -259,7 +259,7 @@ export const QueueConsolePage: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
             <span className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider">
-              {t('queues.waitingCount')}
+              {t('pages.queues.waitingCount')}
             </span>
             <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
               {waitingTickets.length}
@@ -274,7 +274,7 @@ export const QueueConsolePage: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
             <span className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider">
-              {t('queues.servingCount')}
+              {t('pages.queues.servingCount')}
             </span>
             <p className="text-2xl font-black text-emerald-650 mt-1">
               {servingTickets.length}
@@ -289,7 +289,7 @@ export const QueueConsolePage: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
             <span className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider">
-              {t('queues.completedToday')}
+              {t('pages.queues.completedToday')}
             </span>
             <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
               {completedCount}
@@ -304,7 +304,7 @@ export const QueueConsolePage: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
             <span className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider">
-              No Shows (Today)
+              {t('pages.queues.noShowsCount')}
             </span>
             <p className="text-2xl font-black text-red-600 dark:text-red-500 mt-1">
               {noShowCount}
@@ -331,10 +331,10 @@ export const QueueConsolePage: React.FC = () => {
               }`}
             >
               {tab === 'all'
-                ? t('queues.tabAll')
+                ? t('pages.queues.tabAll')
                 : tab === 'waiting'
-                ? t('queues.tabWaiting')
-                : t('queues.tabServing')}
+                ? t('pages.queues.tabWaiting')
+                : t('pages.queues.tabServing')}
             </button>
           ))}
         </div>
@@ -344,26 +344,26 @@ export const QueueConsolePage: React.FC = () => {
           {loadingTickets ? (
             <div className="flex justify-center items-center py-16">
               <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
-              <span className="ml-2.5 text-xs text-slate-500 font-medium">Syncing active queue board...</span>
+              <span className="ml-2.5 text-xs text-slate-500 font-medium">{t('pages.queues.syncingBoard')}</span>
             </div>
           ) : displayedTickets.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-400">
               <Inbox className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-3" />
-              <p className="text-sm font-semibold">{t('queues.noTickets')}</p>
+              <p className="text-sm font-semibold">{t('pages.queues.noTickets')}</p>
               <p className="text-xs text-slate-450 dark:text-slate-550 mt-1">
-                There are no tickets matching this tab.
+                {t('pages.queues.noTicketsDesc')}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayedTickets.map((ticket) => {
-                const serviceName = services[ticket.serviceId]?.name || 'Unknown Service';
+                const serviceName = services[ticket.serviceId]?.name || t('pages.queues.unknownService');
                 const waitMins = getWaitDurationMinutes(ticket.createdAt);
 
                 return (
                   <div
                     key={ticket.id}
-                    className={`bg-white dark:bg-slate-950 border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between ${
+                    className={`bg-white dark:bg-slate-955 border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between ${
                       ticket.status === 'CALLED'
                         ? 'border-amber-300 dark:border-amber-900 bg-amber-50/5 dark:bg-amber-955/5 animate-pulse'
                         : ticket.status === 'SERVING'
@@ -381,7 +381,7 @@ export const QueueConsolePage: React.FC = () => {
                         {/* Time duration indicator */}
                         <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-450 dark:text-slate-500">
                           <Clock className="w-3.5 h-3.5" />
-                          <span>{t('queues.waitingDuration', { count: waitMins })}</span>
+                          <span>{t('pages.queues.waitingDuration', { count: waitMins })}</span>
                         </div>
                       </div>
 
@@ -430,12 +430,12 @@ export const QueueConsolePage: React.FC = () => {
 
                     {/* Operational Action Buttons */}
                     <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-end gap-2.5">
-                                           {/* WAITING status Actions */}
+                      {/* WAITING status Actions */}
                       {ticket.status === 'WAITING' && (
                         <button
                           onClick={() => {
                             if (!counter.trim()) {
-                              alert(t('queues.selectCounterAlert'));
+                              alert(t('pages.queues.selectCounterAlert'));
                               return;
                             }
                             actions.callSpecific.mutate({ ticketId: ticket.id, counter });
@@ -444,7 +444,7 @@ export const QueueConsolePage: React.FC = () => {
                           className="flex-1 py-1.5 px-3 bg-brand-50 dark:bg-brand-950/20 text-brand-655 hover:bg-brand-100 dark:hover:bg-brand-900/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-colors"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
-                          <span>{t('queues.actionCall')}</span>
+                          <span>{t('pages.queues.actionCall')}</span>
                         </button>
                       )}
 
@@ -455,28 +455,28 @@ export const QueueConsolePage: React.FC = () => {
                             onClick={() => actions.noShow.mutate(ticket.id)}
                             disabled={actions.noShow.isPending}
                             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-200"
-                            title={t('queues.actionNoShow')}
+                            title={t('pages.queues.actionNoShow')}
                           >
                             <UserX className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => {
                               if (!counter.trim()) {
-                                alert(t('queues.selectCounterAlert'));
+                                alert(t('pages.queues.selectCounterAlert'));
                                 return;
                               }
                               actions.recall.mutate({ ticketId: ticket.id, counter });
                             }}
                             disabled={actions.recall.isPending}
                             className="p-2 text-slate-400 hover:text-brand-655 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-brand-200"
-                            title={t('queues.actionRecall')}
+                            title={t('pages.queues.actionRecall')}
                           >
                             <RotateCcw className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => {
                               if (!counter.trim()) {
-                                alert(t('queues.selectCounterAlert'));
+                                alert(t('pages.queues.selectCounterAlert'));
                                 return;
                               }
                               actions.startServing.mutate({ ticketId: ticket.id, counter });
@@ -485,7 +485,7 @@ export const QueueConsolePage: React.FC = () => {
                             className="flex-1 py-1.5 px-3 bg-emerald-650 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-transform"
                           >
                             <Play className="w-3.5 h-3.5 fill-current" />
-                            <span>{t('queues.actionStart')}</span>
+                            <span>{t('pages.queues.actionStart')}</span>
                           </button>
                         </>
                       )}
@@ -496,8 +496,8 @@ export const QueueConsolePage: React.FC = () => {
                           <button
                             onClick={() => actions.noShow.mutate(ticket.id)}
                             disabled={actions.noShow.isPending}
-                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-200"
-                            title={t('queues.actionNoShow')}
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                            title={t('pages.queues.actionNoShow')}
                           >
                             <UserX className="w-4 h-4" />
                           </button>
@@ -507,7 +507,7 @@ export const QueueConsolePage: React.FC = () => {
                             className="flex-1 py-1.5 px-3 bg-emerald-655 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-transform shadow-md shadow-emerald-500/10"
                           >
                             <Check className="w-4 h-4" />
-                            <span>{t('queues.actionComplete')}</span>
+                            <span>{t('pages.queues.actionComplete')}</span>
                           </button>
                         </>
                       )}
