@@ -94,8 +94,12 @@ export const DashboardLayout: React.FC = () => {
           {/* Logo & Header */}
           <div className="flex items-center justify-between mb-8 px-2">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-lg bg-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                <span className="font-extrabold text-white text-lg tracking-wider">S</span>
+              <div className="w-9 h-9 rounded-lg bg-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/20 overflow-hidden">
+                {tenant?.logo ? (
+                  <img src={tenant.logo} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-extrabold text-white text-lg tracking-wider">S</span>
+                )}
               </div>
               <div>
                 <h1 className="font-bold text-base text-slate-900 dark:text-white tracking-tight leading-none">ServiceOS</h1>

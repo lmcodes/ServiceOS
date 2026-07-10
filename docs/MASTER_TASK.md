@@ -394,11 +394,11 @@
 ## ⚙️ PHASE 5 — Settings & Tenant Profile
 
 ### SET-01 · Tenant Settings Page
-- [ ] `SettingsPage.tsx` (`/dashboard/settings`) — owner only:
-  - [ ] แก้ไข Business Name, Logo (upload to Storage), Timezone
-  - [ ] Subscription info section (plan, usage)
-  - [ ] Danger Zone: "Cancel Subscription"
-- [ ] `uploadLogo()` → Firebase Storage + อัปเดต `/tenants/{id}` doc
+- [x] `SettingsPage.tsx` (`/dashboard/settings`) — owner only:
+  - [x] แก้ไข Business Name, Logo (upload to Storage), Timezone
+  - [x] Subscription info section (plan, usage)
+  - [x] Danger Zone: "Cancel Subscription"
+- [x] `uploadLogo()` → Firebase Storage + อัปเดต `/tenants/{id}` doc
 
 **🧪 ทดสอบ:** Upload logo → ปรากฏใน Dashboard sidebar
 
