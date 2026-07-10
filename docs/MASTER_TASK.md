@@ -355,14 +355,14 @@
 ---
 
 ### TV-02 · Staff Management (Invite Staff)
-- [ ] `StaffListPage.tsx` (`/dashboard/staff`):
-  - [ ] ตาราง staff members: ชื่อ, Email, Role, Branch assignments
-  - [ ] ปุ่ม "Invite Staff" → Modal form (email, role, branch assignment)
-- [ ] `inviteStaffRepository.ts`:
-  - [ ] สร้าง `/users/{uid}` doc กับ status `invited`
-  - [ ] เรียก Cloud Function เพื่อ set custom claims
-  - [ ] ส่ง invite email (Firebase Email Link หรือ Cloud Function)
-- [ ] ปุ่ม "Edit Role" + "Deactivate"
+- [x] `StaffListPage.tsx` (`/dashboard/staff`):
+  - [x] ตาราง staff members: ชื่อ, Email, Role, Branch assignments
+  - [x] ปุ่ม "Invite Staff" → Modal form (email, role, branch assignment)
+- [x] `inviteStaffRepository.ts`:
+  - [x] สร้าง `/users/{uid}` doc กับ status `invited`
+  - [x] เรียก Cloud Function เพื่อ set custom claims
+  - [x] ส่ง invite email (Firebase Email Link หรือ Cloud Function)
+- [x] ปุ่ม "Edit Role" + "Deactivate"
 
 **🧪 ทดสอบ:**
 1. กด "Invite" ใส่ email → รับ invite email

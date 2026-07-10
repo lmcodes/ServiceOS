@@ -22,6 +22,7 @@ import JoinPage from '@/features/queues/components/JoinPage';
 import TicketStatusPage from '@/features/queues/components/TicketStatusPage';
 import QueueConsolePage from '@/features/queues/components/QueueConsolePage';
 import { DisplayPage } from '@/features/queues/components/DisplayPage';
+import StaffListPage from '@/features/staff/components/StaffListPage';
 
 
 // Mock Skeleton Pages (Not implementing business logic)
@@ -62,25 +63,12 @@ const MockAppointments: React.FC = () => {
 };
 
 
-const MockStaff: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.staff.title')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.staff.subtitle')}</p>
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
-        {t('pages.staff.placeholder')}
-      </div>
-    </div>
-  );
-};
-
 const MockSettings: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div>
       <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.settings.title')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.settings.subtitle')}</p>
+      <p className="text-sm text-slate-605 dark:text-slate-400 mb-6">{t('pages.settings.subtitle')}</p>
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
         {t('pages.settings.placeholder')}
       </div>
@@ -150,7 +138,7 @@ export const AppRoutes: React.FC = () => {
           path="staff" 
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin']}>
-              <MockStaff />
+              <StaffListPage />
             </ProtectedRoute>
           } 
         />

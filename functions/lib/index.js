@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setUserRole = exports.onUserCreated = void 0;
+exports.inviteStaff = exports.setUserRole = exports.onUserCreated = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const https_1 = require("firebase-functions/v2/https");
+const firestore_1 = require("firebase-admin/firestore");
 admin.initializeApp();
 const db = admin.firestore();
 /**
@@ -92,7 +93,7 @@ exports.setUserRole = (0, https_1.onCall)(async (request) => {
         await targetUserDocRef.update({
             role,
             branchIds: branchIds || [],
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
         });
         console.log(`[setUserRole] Successfully updated role for ${targetUid} by caller ${callerUid}:`, newClaims);
         return { success: true };
@@ -103,6 +104,87 @@ exports.setUserRole = (0, https_1.onCall)(async (request) => {
             throw error;
         }
         throw new https_1.HttpsError('internal', 'Internal error occurred while setting user role.');
+    }
+});
+/**
+ * 3. HTTPS Callable Function: inviteStaff
+ * Allows owners/admins to invite team members by creating their Firebase Auth account
+ * and writing a document to the Firestore users collection with 'invited' status.
+ */
+exports.inviteStaff = (0, https_1.onCall)(async (request) => {
+    // Ensure the caller is authenticated
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+    const callerUid = request.auth.uid;
+    const callerClaims = request.auth.token;
+    const callerTenantId = callerClaims.tenantId;
+    const callerRole = callerClaims.role;
+    // Only owner or admin can invite staff
+    if (callerRole !== 'owner' && callerRole !== 'admin') {
+        throw new https_1.HttpsError('permission-denied', 'Only owners or admins can invite staff.');
+    }
+    const { email, role, branchIds, name } = request.data;
+    if (!email || !role) {
+        throw new https_1.HttpsError('invalid-argument', 'Missing email or role parameter.');
+    }
+    // Validate role values
+    const validRoles = ['admin', 'manager', 'staff'];
+    if (!validRoles.includes(role)) {
+        throw new https_1.HttpsError('invalid-argument', 'Invalid role value.');
+    }
+    try {
+        let userRecord;
+        let isNewUser = false;
+        // Check if the user already exists in Firebase Auth
+        try {
+            userRecord = await admin.auth().getUserByEmail(email);
+        }
+        catch (err) {
+            if (err.code === 'auth/user-not-found') {
+                // Create user in Auth
+                userRecord = await admin.auth().createUser({
+                    email,
+                    displayName: name || '',
+                });
+                isNewUser = true;
+            }
+            else {
+                throw err;
+            }
+        }
+        const targetUid = userRecord.uid;
+        // Set custom claims for the invited/existing user
+        const newClaims = {
+            tenantId: callerTenantId,
+            role,
+            branchIds: branchIds || [],
+        };
+        await admin.auth().setCustomUserClaims(targetUid, newClaims);
+        // Sync/Create state in Firestore users collection
+        const userDocRef = db.collection('users').doc(targetUid);
+        await userDocRef.set({
+            id: targetUid,
+            name: name || '',
+            email,
+            role,
+            branchIds: branchIds || [],
+            tenantId: callerTenantId,
+            status: 'invited',
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
+        });
+        // Generate secure password reset/invite link
+        const inviteLink = await admin.auth().generatePasswordResetLink(email);
+        console.log(`[inviteStaff] Successfully invited user ${targetUid} by caller ${callerUid}`);
+        return { success: true, uid: targetUid, inviteLink, isNewUser };
+    }
+    catch (error) {
+        console.error('[inviteStaff] Error inviting staff:', error);
+        if (error instanceof https_1.HttpsError) {
+            throw error;
+        }
+        throw new https_1.HttpsError('internal', error.message || 'Failed to invite staff.');
     }
 });
 //# sourceMappingURL=index.js.map
