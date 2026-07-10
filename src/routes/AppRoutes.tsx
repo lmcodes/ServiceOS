@@ -15,6 +15,11 @@ import SignupForm from '@/features/auth/components/SignupForm';
 import ForgotPasswordForm from '@/features/auth/components/ForgotPasswordForm';
 import OnboardingForm from '@/features/auth/components/OnboardingForm';
 
+// Real Feature Components
+import BranchListPage from '@/features/branches/components/BranchListPage';
+import ServiceListPage from '@/features/services/components/ServiceListPage';
+
+
 // Mock Skeleton Pages (Not implementing business logic)
 const MockLanding: React.FC = () => {
   const { t } = useTranslation();
@@ -172,31 +177,6 @@ const MockAppointments: React.FC = () => {
   );
 };
 
-const MockBranches: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.branches.title')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.branches.subtitle')}</p>
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
-        {t('pages.branches.placeholder')}
-      </div>
-    </div>
-  );
-};
-
-const MockServices: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.services.title')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.services.subtitle')}</p>
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
-        {t('pages.services.placeholder')}
-      </div>
-    </div>
-  );
-};
 
 const MockStaff: React.FC = () => {
   const { t } = useTranslation();
@@ -268,7 +248,7 @@ export const AppRoutes: React.FC = () => {
           path="branches" 
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
-              <MockBranches />
+              <BranchListPage />
             </ProtectedRoute>
           } 
         />
@@ -278,7 +258,7 @@ export const AppRoutes: React.FC = () => {
           path="services" 
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin']}>
-              <MockServices />
+              <ServiceListPage />
             </ProtectedRoute>
           } 
         />

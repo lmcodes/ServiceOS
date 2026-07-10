@@ -192,26 +192,26 @@
 ### QC-01a · Branch Management
 
 #### Repository
-- [ ] สร้าง `src/features/branches/repository/branchRepository.ts`
-  - [ ] `getBranches(tenantId)` — real-time listener
-  - [ ] `createBranch(tenantId, data)`
-  - [ ] `updateBranch(branchId, data)`
-  - [ ] `deleteBranch(branchId)` (soft delete: status → 'inactive')
-  - [ ] เพิ่ม Firestore Security Rules สำหรับ `/branches`
+- [x] สร้าง `src/features/branches/repository/branchRepository.ts`
+  - [x] `getBranches(tenantId)` — real-time listener
+  - [x] `createBranch(tenantId, data)`
+  - [x] `updateBranch(branchId, data)`
+  - [x] `deleteBranch(branchId)` (soft delete: status → 'inactive')
+  - [x] เพิ่ม Firestore Security Rules สำหรับ `/branches`
 
 #### Hooks
-- [ ] `src/features/branches/hooks/useBranches.ts` (useQuery/useRealtime)
-- [ ] `src/features/branches/hooks/useCreateBranch.ts` (useMutation)
-- [ ] `src/features/branches/hooks/useUpdateBranch.ts` (useMutation)
+- [x] `src/features/branches/hooks/useBranches.ts` (useQuery/useRealtime)
+- [x] `src/features/branches/hooks/useCreateBranch.ts` (useMutation)
+- [x] `src/features/branches/hooks/useUpdateBranch.ts` (useMutation)
 
 #### Components & Pages
-- [ ] `BranchListPage.tsx` — แสดง branch cards, ปุ่ม "Add Branch"
-- [ ] `BranchForm.tsx` — Modal/Drawer form:
-  - [ ] Input: Name, Code, Address, Phone, Email
-  - [ ] Operating Hours picker (วัน + open/close time)
-  - [ ] Timezone dropdown
-  - [ ] Validation ด้วย `zod`
-- [ ] เชื่อมกับ `/dashboard/branches` route
+- [x] `BranchListPage.tsx` — แสดง branch cards, ปุ่ม "Add Branch"
+- [x] `BranchForm.tsx` — Modal/Drawer form:
+  - [x] Input: Name, Code, Address, Phone, Email
+  - [x] Operating Hours picker (วัน + open/close time)
+  - [x] Timezone dropdown
+  - [x] Validation ด้วย `zod`
+- [x] เชื่อมกับ `/dashboard/branches` route
 
 **🧪 ทดสอบ:**
 1. สร้าง branch ใหม่ → ปรากฏในรายการ + Firestore
@@ -223,20 +223,20 @@
 ### QC-01b · Service Management
 
 #### Repository
-- [ ] สร้าง `src/features/services/repository/serviceRepository.ts`
-  - [ ] `getServices(branchId)` — real-time listener
-  - [ ] `createService(branchId, data)`
-  - [ ] `updateService(serviceId, data)`
-  - [ ] `toggleServiceActive(serviceId, isActive)`
+- [x] สร้าง `src/features/services/repository/serviceRepository.ts`
+  - [x] `getServices(branchId)` — real-time listener
+  - [x] `createService(branchId, data)`
+  - [x] `updateService(serviceId, data)`
+  - [x] `toggleServiceActive(serviceId, isActive)`
 
 #### Components & Pages
-- [ ] `ServiceListPage.tsx` — ตาราง services per branch, toggle Active/Inactive
-- [ ] `ServiceForm.tsx` — Modal form:
-  - [ ] Input: Name, Description, Category, Estimated Duration (นาที)
-  - [ ] Max Concurrent, Requires Resource toggle
-  - [ ] Custom Fields builder (เพิ่ม/ลบ field แบบ dynamic)
-  - [ ] Validation ด้วย `zod`
-- [ ] เชื่อมกับ `/dashboard/services` route
+- [x] `ServiceListPage.tsx` — ตาราง services per branch, toggle Active/Inactive
+- [x] `ServiceForm.tsx` — Modal form:
+  - [x] Input: Name, Description, Category, Estimated Duration (นาที)
+  - [x] Max Concurrent, Requires Resource toggle
+  - [x] Custom Fields builder (เพิ่ม/ลบ field แบบ dynamic)
+  - [x] Validation ด้วย `zod`
+- [x] เชื่อมกับ `/dashboard/services` route
 
 **🧪 ทดสอบ:**
 1. สร้าง service "General Consultation" duration 15 นาที → ปรากฏในรายการ
@@ -246,12 +246,12 @@
 ---
 
 ### QC-01c · QR Code Generation
-- [ ] ติดตั้ง library generate QR (เช่น `qrcode.react`)
-- [ ] สร้าง `QRPosterModal.tsx` — แสดง QR code ของ branch
-  - [ ] URL format: `https://[domain]/join/{branchId}`
-  - [ ] ปุ่ม "Download QR" (export เป็น PNG)
-  - [ ] ปุ่ม "Print Poster"
-- [ ] เพิ่มปุ่ม "QR Code" ในหน้า Branch detail
+- [x] ติดตั้ง library generate QR (เช่น `qrcode.react`)
+- [x] สร้าง `QRPosterModal.tsx` — แสดง QR code ของ branch
+  - [x] URL format: `https://[domain]/join/{branchId}`
+  - [x] ปุ่ม "Download QR" (export เป็น PNG)
+  - [x] ปุ่ม "Print Poster"
+- [x] เพิ่มปุ่ม "QR Code" ในหน้า Branch detail
 
 **🧪 ทดสอบ:**
 1. กด "QR Code" → Modal โชว์ QR image
