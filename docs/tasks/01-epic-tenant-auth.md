@@ -54,20 +54,27 @@
 - **Task ID**: `TS-01c`
 - **Estimated Complexity**: Medium (5 story points)
 - **Dependencies**: `TS-01`
-- **Description**: Set up i18n dictionary and Theme Context to enable reactive translation and theme changes.
+- **Description**: Set up react-i18next and Theme Context to enable reactive translation and theme changes. The i18n system uses `react-i18next` as the sole standard — no custom context or flat dictionary allowed.
 
 #### Subtasks
 - [x] Set up class-based dark mode in Tailwind configuration.
-- [x] Create translation dictionary `src/shared/translations.ts` supporting TH/EN.
-- [x] Build `LanguageContext` and `ThemeContext` providers.
-- [x] Implement floating and inline `SettingsSwitcher` components.
-- [x] Update all layouts (`AuthLayout`, `DashboardLayout`, `PublicLayout`, `DisplayLayout`) to support light/dark modes and multi-language keys.
-- [x] Refactor all mock routes and skeleton pages to be fully translated and responsive.
+- [x] Install `react-i18next`, `i18next`, `i18next-browser-languagedetector`.
+- [x] Create `src/config/i18n.ts` — initialize i18next with LanguageDetector (localStorage key: `locale`).
+- [x] Create `src/locales/th/translation.json` and `src/locales/en/translation.json` with namespaced keys.
+- [x] Build `ThemeContext` provider for dark/light mode toggling.
+- [x] Implement floating and inline `SettingsSwitcher` components using `i18n.changeLanguage()`.
+- [x] Update all layouts (`AuthLayout`, `DashboardLayout`, `PublicLayout`, `DisplayLayout`) to use `useTranslation` from react-i18next.
+- [x] Refactor all auth components (`LoginForm`, `SignupForm`, `ForgotPasswordForm`, `OnboardingForm`) — replace all inline ternaries with `t()` namespaced keys.
+- [x] Refactor all mock routes and skeleton pages in `AppRoutes.tsx` to use `t()` with i18next interpolation `{{var}}`.
+- [x] Remove legacy `src/context/LanguageContext.tsx` and `src/shared/translations.ts`.
 
 #### Acceptance Criteria
 - Users can switch between Thai and English instantly, with translations updating React components on the fly.
 - Users can toggle dark/light mode with CSS colors updating smoothly.
-- Settings are persisted in `localStorage`.
+- Language preference is persisted in `localStorage` (key: `locale`) via i18next-browser-languagedetector.
+- **Zero inline ternaries**: No component uses `locale === 'th' ? '...' : '...'` pattern.
+- **Zero custom context**: `useTranslation` is always imported from `react-i18next`, never from a local file.
+- All translation keys follow namespaced dot-notation: `namespace.key` (e.g. `login.emailLabel`).
 
 ---
 

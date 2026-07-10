@@ -1,6 +1,6 @@
 # ServiceOS — AI Development Rules & Standards
 
-> Version: 1.0 | Last Updated: 2026-06-22 | Target: All AI Coding Agents
+> Version: 1.1 | Last Updated: 2026-07-10 | Target: All AI Coding Agents
 
 This document defines the code patterns, architectural layers, naming conventions, and testing strategies that all AI assistants (Gemini, Claude, GPT, Cursor, Windsurf) must follow when contributing to ServiceOS.
 
@@ -21,6 +21,7 @@ This document defines the code patterns, architectural layers, naming convention
 - **CSS classes**: Tailwind standard classes. Avoid inline styles unless calculating dynamic layout bounds.
 - **Firestore collections**: camelCase plural (e.g. `queues`, `appointments`).
 - **Enums**: Upper snake case (e.g. `WAITING`, `CALLED`, `SERVING`).
+- **Translation keys**: Namespaced dot-notation (e.g. `login.emailLabel`, `pages.queues.title`). Never use flat keys.
 
 ---
 
@@ -56,7 +57,94 @@ Follow semantic commit formatting:
 
 ---
 
-## 4. Testing Standards
+## 4. Internationalization (i18n) Standards
+
+> **ข้อกำหนดบังคับ**: ServiceOS ใช้ **react-i18next** เป็นมาตรฐานเดียวสำหรับ Multi-Language ทั้งระบบ ห้ามสร้าง Custom Context หรือ translation dictionary ทดแทน
+
+### 4.1 Library Stack
+- **`react-i18next`** — React integration hooks (`useTranslation`)
+- **`i18next`** — Core i18n engine
+- **`i18next-browser-languagedetector`** — ตรวจจับภาษาจาก localStorage และ browser
+
+### 4.2 File Structure
+```
+src/
+├── config/
+│   └── i18n.ts               # Initialize i18next (import นี้ใน App.tsx)
+└── locales/
+    ├── th/
+    │   └── translation.json  # Thai translations
+    └── en/
+        └── translation.json  # English translations
+```
+
+### 4.3 Key Naming Convention
+ใช้ **namespace dot-notation** จัดกลุ่มตาม feature/section:
+```json
+{
+  "common": { "loading": "กำลังโหลด..." },
+  "login": { "title": "เข้าสู่ระบบ", "emailLabel": "อีเมล" },
+  "pages": {
+    "queues": { "title": "บอร์ดควบคุมคิว" }
+  }
+}
+```
+
+### 4.4 Usage Rules
+
+**✅ ถูกต้อง — ใช้ `useTranslation` จาก react-i18next:**
+```tsx
+import { useTranslation } from 'react-i18next';
+
+const MyComponent: React.FC = () => {
+  const { t } = useTranslation();
+  return <h1>{t('login.title')}</h1>;
+};
+```
+
+**✅ ถูกต้อง — สลับภาษาด้วย `i18n.changeLanguage()`:**
+```tsx
+const { i18n } = useTranslation();
+i18n.changeLanguage('en');
+```
+
+**✅ ถูกต้อง — Interpolation ด้วย `{{variable}}`:**
+```json
+{ "peopleAhead": "มีอีก {{count}} คิวก่อนคุณ" }
+```
+```tsx
+t('pages.ticketStatus.peopleAhead', { count: 3 })
+```
+
+**❌ ห้ามสร้าง Custom LanguageContext:**
+```tsx
+// ห้ามทำแบบนี้
+const LanguageContext = createContext(...);
+export const useTranslation = () => useContext(LanguageContext);
+```
+
+**❌ ห้าม Inline ternary:**
+```tsx
+// ห้ามทำแบบนี้
+locale === 'th' ? 'เข้าสู่ระบบ' : 'Sign In'
+```
+
+**❌ ห้าม Flat translation object:**
+```tsx
+// ห้ามสร้าง translations.ts dictionary แบบ flat
+export const translations = { th: { loginTitle: '...' } };
+```
+
+### 4.5 Adding New Features with Translations
+เมื่อสร้าง feature ใหม่ที่มี UI text:
+1. เพิ่ม keys ลงใน `src/locales/th/translation.json` ก่อน
+2. เพิ่ม keys เดียวกันลงใน `src/locales/en/translation.json`
+3. ใช้ `t('namespace.key')` ใน component
+4. ห้ามใช้ hardcoded Thai/English string ใน JSX โดยตรง
+
+---
+
+## 5. Testing Standards
 
 - **Unit Tests**: Implement tests using Vitest/Jest for services and utility helpers.
 - **Component Tests**: Test core components using React Testing Library.

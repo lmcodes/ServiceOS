@@ -1,6 +1,6 @@
 # ServiceOS — UI Component & Styling Design
 
-> Version: 1.0 | Last Updated: 2026-06-22 | Status: Draft
+> Version: 1.1 | Last Updated: 2026-07-10 | Status: Active
 
 ---
 
@@ -55,7 +55,61 @@ To maintain real-time queue states while avoiding unnecessary API reads, Service
 
 ---
 
-## 3. Design System Tokens (Tailwind CSS)
+## 3. Internationalization (i18n)
+
+> **ข้อกำหนดบังคับ**: ระบบ Multi-Language ทั้งหมดใช้ **react-i18next** เป็นมาตรฐานเดียว — ดูรายละเอียดใน [AI_DEVELOPMENT_RULES.md § 4](../../AI_DEVELOPMENT_RULES.md)
+
+### โครงสร้างไฟล์
+
+```
+src/
+├── config/
+│   └── i18n.ts               # i18next initialization (import ใน App.tsx)
+└── locales/
+    ├── th/
+    │   └── translation.json  # Thai translations — แบ่ง namespace ตาม feature
+    └── en/
+        └── translation.json  # English translations
+```
+
+### Pattern ที่ใช้ในทุก Component
+
+```tsx
+// ✅ ถูกต้อง
+import { useTranslation } from 'react-i18next';
+
+const MyPage: React.FC = () => {
+  const { t } = useTranslation();
+  return <h1>{t('pages.queues.title')}</h1>;
+};
+
+// ✅ สลับภาษา
+const { i18n } = useTranslation();
+i18n.changeLanguage('en'); // persist ใน localStorage โดยอัตโนมัติ
+
+// ✅ Interpolation
+t('pages.ticketStatus.peopleAhead', { count: 3, mins: 10 })
+// → JSON: { "peopleAhead": "มีอีก {{count}} คิวก่อนคุณ • รอประมาณ {{mins}} นาที" }
+```
+
+### Key Namespace Structure
+
+| Namespace | ใช้สำหรับ |
+|-----------|----------|
+| `common.*` | Shared labels: `loading`, `or`, `errorConnection`, `sending` |
+| `validation.*` | Form validation errors |
+| `passwordStrength.*` | Password strength labels |
+| `auth.*` | Generic auth UI labels |
+| `login.*` | Login page specific |
+| `signup.*` | Signup page specific |
+| `forgotPassword.*` | Forgot password page |
+| `onboarding.*` | Onboarding form + business types |
+| `dashboard.*` | Sidebar nav, topbar |
+| `pages.*` | Mock/skeleton page content per route |
+
+---
+
+## 4. Design System Tokens (Tailwind CSS)
 
 The UI uses a dark-mode-first, premium interface. The theme tokens are integrated into the CSS configuration:
 

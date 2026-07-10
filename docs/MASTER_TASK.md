@@ -18,7 +18,7 @@
 
 ### P0-01 · Project Scaffolding
 - [x] สร้างโปรเจกต์ด้วย Vite + React + TypeScript
-- [x] ติดตั้ง dependencies หลัก (react-router-dom, @tanstack/react-query, firebase, zod, lucide-react, date-fns)
+- [x] ติดตั้ง dependencies หลัก (react-router-dom, @tanstack/react-query, firebase, zod, lucide-react, date-fns, **react-i18next**, i18next, i18next-browser-languagedetector)
 - [x] ตั้งค่า TailwindCSS + PostCSS
 - [x] ตั้งค่า ESLint + Prettier
 - [x] ตั้งค่า tsconfig.json (path alias `@/` → `src/`)
@@ -142,16 +142,21 @@
 
 ### TS-01c · Multi-Language and Theme Setup (Sprint 1 Addon)
 - [x] ตั้งค่า class-based dark mode ใน `tailwind.config.js`
-- [x] สร้าง translation dictionary ไฟล์ `src/shared/translations.ts` (รองรับ TH/EN)
-- [x] สร้าง `src/context/LanguageContext.tsx` และ `src/context/ThemeContext.tsx`
-- [x] สร้างปุ่มเลือกภาษาและธีม `SettingsSwitcher.tsx` (ลอยอยู่มุมขวาบน)
-- [x] อัปเดต `AuthLayout.tsx`, `LoginForm.tsx`, `SignupForm.tsx`, `ForgotPasswordForm.tsx`, `OnboardingForm.tsx` ให้มีสไตล์ Mobile-First, รองรับ Dark/Light Mode และสลับภาษาได้ทันที
-- [x] อัปเดตโครงสร้าง Layout หลักทั้งหมด (`DashboardLayout.tsx`, `DisplayLayout.tsx`, `PublicLayout.tsx`) เพื่อรองรับปุ่มสลับภาษาและธีม Dark/Light Mode อย่างสมบูรณ์
-- [x] อัปเดตหน้าโครงร่าง (Mock Skeleton Pages) ใน `AppRoutes.tsx` ให้ดึงข้อมูลภาษาจาก dictionary ของระบบ (TH/EN) และรองรับการสลับธีม
+- [x] ติดตั้ง `react-i18next`, `i18next`, `i18next-browser-languagedetector`
+- [x] สร้าง `src/config/i18n.ts` — initialize i18next + LanguageDetector (persist ใน localStorage key: `locale`)
+- [x] สร้าง `src/locales/th/translation.json` และ `src/locales/en/translation.json` แบบ namespace dot-notation
+- [x] สร้าง `src/context/ThemeContext.tsx` — dark/light mode toggle
+- [x] สร้าง `SettingsSwitcher.tsx` — ใช้ `i18n.changeLanguage()` สลับภาษา
+- [x] อัปเดต `AuthLayout.tsx`, `DashboardLayout.tsx`, `PublicLayout.tsx`, `DisplayLayout.tsx` ให้ใช้ `useTranslation` จาก react-i18next
+- [x] Refactor `LoginForm.tsx`, `SignupForm.tsx`, `ForgotPasswordForm.tsx`, `OnboardingForm.tsx` — ลบ inline ternary ออกทั้งหมด ใช้ `t('namespace.key')` แทน
+- [x] Refactor Mock Skeleton Pages ใน `AppRoutes.tsx` ใช้ i18next interpolation `{{var}}`
+- [x] ลบ `src/context/LanguageContext.tsx` และ `src/shared/translations.ts` ออกจาก codebase
 
 **🧪 ทดสอบ:**
-1. เข้าหน้า Login/Signup/ForgotPassword/Onboarding/Dashboard/Public/Display → ตรวจสอบการแสดงผลและสลับธีม/ภาษาได้โดยตรง
-2. การตั้งค่าภาษาและธีมจะบันทึกใน LocalStorage และคงอยู่ระหว่างเปลี่ยนหน้า
+1. เข้าหน้า Login/Signup/Dashboard/Public/Display → สลับภาษา TH/EN ได้ทันที
+2. Reload หน้า → ภาษาและธีมที่เลือกยังคงอยู่ (persist ใน localStorage)
+3. ไม่มี `locale === 'th' ? '...' : '...'` เหลืออยู่ในโค้ด
+4. `useTranslation` import มาจาก `react-i18next` ทุกไฟล์
 
 ---
 
