@@ -1,0 +1,240 @@
+# คู่มือการใช้งานระบบ ServiceOS (SaaS Smart Queue System)
+
+คู่มือนี้จัดทำขึ้นเพื่ออธิบายโครงสร้างระบบ การติดตั้งเพื่อการพัฒนา และวิธีการใช้งานระบบ **ServiceOS** ทั้งในมุมมองของนักพัฒนา (Developers) และผู้ใช้งานทั่วไป (Owners/Admins/Staff) อย่างละเอียด
+
+---
+
+## 📌 สารบัญ
+1. [ภาพรวมของระบบ (System Overview)](#1-ภาพรวมของระบบ-system-overview)
+2. [ฟังก์ชันการทำงานหลัก (Core Features)](#2-ฟังก์ชันการทำงานหลัก-core-features)
+3. [ขั้นตอนการติดตั้งและทดสอบภายในเครื่อง (Local Development Setup)](#3-ขั้นตอนการติดตั้งและทดสอบภายในเครื่อง-local-development-setup)
+4. [คู่มือการใช้งานสำหรับธุรกิจ (User Manual for Business)](#4-คู่มือการใช้งานสำหรับธุรกิจ-user-manual-for-business)
+5. [การจำลองระบบด้วย Firebase Emulator (Option B)](#5-การจำลองระบบด้วย-firebase-emulator)
+6. [การขึ้นระบบจริงบนเซิร์ฟเวอร์คลาวด์ (Production Deployment Guide)](#6-การขึ้นระบบจริงบนเซิร์ฟเวอร์คลาวด์-production-deployment-guide)
+7. [การแก้ไขปัญหาเบื้องต้น (Troubleshooting)](#7-การแก้ไขปัญหาเบื้องต้น-troubleshooting)
+8. [แผนผังเส้นทางและ URL ของระบบ (Route Map & URL Reference)](#8-แผนผังเส้นทางและ-url-ของระบบ-route-map--url-reference)
+
+---
+
+## 1. ภาพรวมของระบบ (System Overview)
+
+**ServiceOS** เป็นแพลตฟอร์ม SaaS สำหรับบริหารจัดการคิวอัจฉริยะ (Smart Queue) ที่รองรับการทำงานแบบ Multi-Tenant (หลายธุรกิจในระบบเดียว) รองรับการสลับภาษา (ไทย/อังกฤษ) และสลับธีม (Light/Dark Mode) โดยทำงานร่วมกับระบบฐานข้อมูลแบบ Real-time ของ Firebase (Firestore) และคลาวด์ฟังก์ชันในการจัดสรรระดับสิทธิ์ผู้ใช้
+
+### เทคโนโลยีที่เลือกใช้ (Tech Stack)
+* **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, i18next (Multi-language)
+* **Backend:** Firebase Authentication, Cloud Firestore (Real-time DB), Firebase Storage (อัปโหลดโลโก้), Firebase Cloud Functions (v2)
+
+---
+
+## 2. ฟังก์ชันการทำงานหลัก (Core Features)
+
+### 2.1 ระบบตรวจสอบสิทธิ์ (Authentication & Role-Based Access Control)
+ระบบแบ่งสิทธิ์การใช้งานออกเป็น 4 ระดับอย่างเข้มงวดผ่าน Custom Claims บนคลาวด์:
+1. **Owner (เจ้าของธุรกิจ):** เข้าถึงได้ทุกเมนู รวมถึงการตั้งค่าบัญชีบริษัท การยกเลิก/สมัครสมาชิก จัดการรายชื่อพนักงานทั้งหมด
+2. **Admin (ผู้ดูแลระบบ):** สามารถจัดการสาขา บริการ และพนักงานในระดับรองลงมาได้ แต่เข้าถึง Danger Zone หรือการเงินไม่ได้
+3. **Manager (ผู้จัดการสาขา):** จัดการคิว จัดการบริการ และดูแลสาขาเฉพาะที่ได้รับมอบหมายได้เท่านั้น
+4. **Staff (พนักงานทั่วไป):** สามารถใช้งานหน้าจอคอนโซลเรียกคิว (Queue Console) เพื่อกดเรียก/รับบริการ/ยกเลิกคิวเฉพาะสาขาตนเองได้เท่านั้น
+
+### 2.2 ระบบจัดการพนักงาน (Staff Management)
+- **Invite Staff:** ลงทะเบียนอีเมลพนักงานใหม่ ระบบจะจดจำข้อมูลลง Firestore และสุ่ม Generate ลิงก์คำเชิญ (Password Reset Link) เพื่อให้ส่งต่อพนักงานตั้งรหัสผ่านเอง
+- **Deactivate/Suspend:** สามารถกดยกเลิกการทำงานหรือปิดกั้นพนักงานชั่วคราวได้ทันที
+
+### 2.3 ระบบเรียกคิว & TV Display
+- **Front Console:** สำหรับพนักงานกดเรียกคิวถัดไป (Call Next), เรียกซ้ำ (Recall), หรือบันทึกคิวเสีย (No-Show)
+- **TV Display Page:** ทำงานร่วมกับ Firestore Snapshot แสดงคิวล่าสุดที่ถูกเรียกแบบ Real-time พร้อมเล่นสัญญาณเสียงแจ้งเตือน (Ding Audio Effect)
+
+---
+
+## 3. ขั้นตอนการติดตั้งและทดสอบภายในเครื่อง (Local Development Setup)
+
+### 3.1 ความต้องการของระบบ (Prerequisites)
+1. **Node.js** v20 หรือสูงกว่า
+2. **Java Runtime Environment (JRE)** (ตั้งแต่รุ่น 8 ขึ้นไป) สำหรับใช้รัน Firebase Emulator
+3. **Firebase CLI** ติดตั้งผ่าน global: `npm install -g firebase-tools`
+
+### 3.2 ขั้นตอนการติดตั้ง
+1. ทำการโคลนโปรเจกต์และติดตั้ง Package ฝั่ง Client:
+   ```bash
+   npm install
+   ```
+2. ติดตั้ง Package ในโฟลเดอร์ Functions:
+   ```bash
+   cd functions
+   npm install
+   cd ..
+   ```
+3. กำหนดค่าสภาพแวดล้อมโดยคัดลอกไฟล์ `.env.example` ไปเป็น `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+---
+
+## 4. คู่มือการใช้งานสำหรับธุรกิจ (User Manual for Business)
+
+### ขั้นตอนที่ 1: การสมัครใช้งานและ Onboarding
+1. เข้าไปที่หน้าแรก กดปุ่ม **"Go to Login"** แล้วคลิกเลือก **"Sign Up"**
+2. กรอกข้อมูลส่วนตัวเพื่อลงทะเบียนบัญชี Owner คนแรก
+3. ระบบจะนำเข้าสู่ฟอร์ม **Onboarding** เพื่อตั้งชื่อธุรกิจ (Business Name) และเลือกภาษาเริ่มต้น
+
+### ขั้นตอนที่ 2: การสร้างสาขา (Create Branches)
+1. ไปที่เมนู **Branches** ในแถบเมนูด้านซ้าย
+2. กดปุ่ม **"Create Branch"** กรอกชื่อสาขา ที่อยู่ เบอร์โทรติดต่อ แล้วกดบันทึก
+3. บันทึกข้อมูลเรียบร้อย สาขาจะแสดงในตารางแบบ Real-time
+
+### ขั้นตอนที่ 3: การกำหนดบริการ (Create Services)
+1. ไปที่เมนู **Services**
+2. กดปุ่ม **"Create Service"**
+3. ตั้งชื่อบริการ (เช่น *บริการรับฝากของ, ปรึกษาแพทย์*) เลือกคำนำหน้าคิว (Queue Prefix เช่น `A`, `B`)
+4. สามารถเพิ่มฟิลด์ที่ต้องการให้ลูกค้ากรอกเพิ่มเติม (Custom Fields) ได้ เช่น เบอร์สมาชิก, เลขทะเบียนรถ
+
+### ขั้นตอนที่ 4: การสแกนจองคิวและเรียกคิว
+1. ในหน้าสาขา จะมีสัญลักษณ์ **QR Code** สำหรับให้ลูกค้าใช้งาน
+2. ลูกค้าทำการสแกน QR Code เพื่อเข้าสู่หน้าลงทะเบียนคิวผ่านมือถือ
+3. เมื่อกดยืนยัน จะได้รับเลขคิวแสดงบนหน้าจอทันที
+4. พนักงานเปิดหน้า **Queue Console** แล้วกดปุ่ม **"Call Next"** เพื่อเรียกผู้รับบริการ
+
+### ขั้นตอนที่ 5: การเพิ่มพนักงานและส่งคำเชิญใช้งาน (Staff Onboarding & Invitation Flow)
+กระบวนการลงทะเบียนพนักงานใหม่เข้าระบบมีขั้นตอนดังนี้:
+
+#### 1. สำหรับเจ้าของธุรกิจ (Owner / Admin) - ผู้ส่งคำเชิญ:
+1. ล็อกอินเข้าสู่ระบบแดชบอร์ดหลังบ้าน
+2. ไปที่เมนู **"พนักงาน" (Staff)** ที่แถบเมนูด้านซ้าย หรือลิงก์ `http://localhost:3000/dashboard/staff`
+3. คลิกปุ่ม **"เพิ่มพนักงาน" (Add Staff / Invite Staff)** สีม่วงขวาบน
+4. กรอกฟอร์มรายละเอียดพนักงาน:
+   * **อีเมล (Email):** อีเมลสำหรับเข้าสู่ระบบของพนักงาน
+   * **ชื่อ-นามสกุล (Full Name):** ชื่อที่แสดงในระบบ
+   * **สิทธิ์การเข้าใช้งาน (Role):** พนักงานทั่วไป (Staff), ผู้จัดการสาขา (Manager), ผู้ดูแลระบบ (Admin)
+   * **สาขาที่ปฏิบัติการ (Branches):** ติ๊กเลือกสาขาที่พนักงานมีสิทธิ์ดูแลหรือเรียกคิวได้
+5. กดปุ่ม **"ส่งคำเชิญ" (Send Invite)**
+6. ระบบจะดำเนินการสร้างผู้ใช้ในฐานข้อมูลและแสดง **"ลิงก์สำหรับตั้งรหัสผ่าน/เชิญใช้งาน"** บนหน้าจอป๊อปอัป
+7. กดปุ่ม **"คัดลอกลิงก์" (Copy Link)** เพื่อคัดลอก และส่งลิงก์ดังกล่าวให้พนักงานผ่านช่องทางต่าง ๆ (เช่น LINE, Email หรือแชทส่วนตัว)
+
+#### 2. สำหรับพนักงานคนใหม่ - ผู้รับสิทธิ์:
+1. นำลิงก์ที่ได้ไปเปิดในเว็บเบราว์เซอร์
+2. หน้าเว็บจะพาไปยังหน้าตั้งค่ารหัสผ่านใหม่ของ Firebase (Reset Password Screen)
+3. ให้กำหนดรหัสผ่านสำหรับการใช้งานระบบของตนเองแล้วกดยืนยัน
+4. เมื่อกดยืนยันแล้ว พนักงานสามารถเข้าสู่ระบบผ่านหน้าล็อกอินปกติ `http://localhost:3000/login` ด้วยอีเมลและรหัสผ่านใหม่เพื่อเริ่มทำงานตามสิทธิ์สาขาที่ได้รับมอบหมายได้ทันที
+
+---
+
+## 5. การจำลองระบบด้วย Firebase Emulator
+
+หากยังไม่มีการเปิดใช้ Blaze Plan บนโครงการจริงของ Firebase คุณสามารถรันระบบหลังบ้านจำลองทั้งหมดในเครื่องแบบออฟไลน์ได้ดังนี้:
+
+### 5.1 ตรวจสอบการเปิดใช้ Emulator
+ในไฟล์ `.env.local` ต้องกำหนดค่าการเชื่อมต่อเป็นแบบจำลอง:
+```env
+VITE_USE_FIREBASE_EMULATOR=true
+```
+
+### 5.2 การเริ่มใช้งาน
+1. คอมไพล์ตัวคลาวด์ฟังก์ชันก่อนเสมอ:
+   ```bash
+   npm run build --prefix functions
+   ```
+2. สตาร์ทตัวระบบจำลอง Firebase:
+   ```bash
+   npx firebase emulators:start
+   ```
+3. รันเว็บแอปพลิเคชันฝั่ง Client:
+   ```bash
+   npm run dev
+   ```
+4. เปิดหน้าต่างจำลองหลังบ้าน (Firebase Emulator Suite UI) ได้ที่ [http://localhost:4000](http://localhost:4000) เพื่อจัดการแก้ไขข้อมูล ดึงคิว หรือสังเกตประวัติล็อกอินของผู้ใช้ทดสอบ
+
+---
+
+## 6. การขึ้นระบบจริงบนเซิร์ฟเวอร์คลาวด์ (Production Deployment Guide)
+
+เมื่อทำการทดสอบในเครื่องจนเป็นที่พอใจและต้องการนำขึ้นใช้งานจริงบนคลาวด์:
+
+### 6.1 อัปเกรดเป็น Blaze Plan
+* เข้าสู่ [Firebase Console](https://console.firebase.google.com/)
+* เลือกโครงการ `service-os-3c62c` -> กดปุ่ม **Upgrade** ที่มุมซ้ายล่าง -> เลือก **Blaze (Pay-as-you-go)**
+
+### 6.2 การ Deploy ระบบหลังบ้าน (Cloud Functions & Firestore Rules)
+1. รันคำสั่งคอมไพล์โค้ดฝั่ง Functions:
+   ```bash
+   npm run build --prefix functions
+   ```
+2. สั่ง Deploy ส่วนของ Database Rules และ Cloud Functions:
+   ```bash
+   npx firebase deploy --only firestore,storage,functions
+   ```
+
+### 6.3 การ Deploy เว็บแอปพลิเคชัน (Hosting)
+1. บิวด์โปรเจกต์ Client ให้พร้อมสำหรับ Production:
+   ```bash
+   npm run build
+   ```
+2. อัปโหลดขึ้น Firebase Hosting:
+   ```bash
+   npx firebase deploy --only hosting
+   ```
+3. ระบบจะให้ URL ใช้งานจริงของแอปพลิเคชันมาแสดงบนคอนโซลเมื่อสำเร็จ
+
+---
+
+## 7. การแก้ไขปัญหาเบื้องต้น (Troubleshooting)
+
+#### 🔴 ปัญหา: ขึ้นข้อผิดพลาด "Could not spawn `java -version`"
+* **สาเหตุ:** ตัวรัน Firebase Emulator ในเครื่องของคุณต้องการโปรแกรม Java ในการช่วยทำงาน
+* **ทางแก้:** ให้ทำการติดตั้ง Java Runtime ในเครื่องของคุณ
+  * *Ubuntu/Debian:* `sudo apt update && sudo apt install default-jre -y`
+  * *Windows/Mac:* ดาวน์โหลดและติดตั้ง JDK จากเว็บ oracle/openjdk
+
+#### 🔴 ปัญหา: ขึ้นข้อผิดพลาด "Port 8080 is not open on localhost, could not start Firestore Emulator"
+* **สาเหตุ:** มีโปรแกรมจำลอง Firebase เก่าค้างอยู่ หรือมีบริการอื่นจองพอร์ต `8080` (หรือพอร์ตอื่น ๆ เช่น `9099`, `5001`) อยู่ก่อนแล้ว
+* **ทางแก้:**
+  * ปิดโปรแกรมจำลองตัวเก่า หรือหา PID ของโปรเซสที่ใช้พอร์ตดังกล่าวแล้วกดปิด (Kill)
+  * *Linux/Mac:* ค้นหาด้วย `lsof -i :8080` และปิดด้วย `kill -9 <PID>`
+
+#### 🔴 ปัญหา: ส่งคำเชิญพนักงาน (Invite Staff) แล้วขึ้นข้อความแจ้งเตือนสีแดงว่า `internal`
+* **สาเหตุ:** คุณกำลังรันฝั่ง Client เชื่อมต่อกับ Firebase ตัวจริง แต่ Cloud Functions ของคุณยังไม่ได้ถูก Deploy ขึ้นไป หรือเกิดจากการที่โปรเจกต์ยังไม่ได้เปิดใช้ Blaze Plan
+* **ทางแก้:** ตรวจสอบให้แน่ใจว่าไฟล์ `.env.local` มีการตั้งค่า `VITE_USE_FIREBASE_EMULATOR=true` หากต้องการทดสอบในเครื่อง หรือทำการอัปเกรดเป็น Blaze Plan และรัน Deploy Functions ขึ้นจริงตามคู่มือในหัวข้อที่ 6 ครับ
+
+---
+
+## 8. แผนผังเส้นทางและ URL ของระบบ (Route Map & URL Reference)
+
+ด้านล่างนี้เป็นรายการหน้าจอและพอร์ตเชื่อมต่อทั้งหมดเมื่อใช้งานหรือทดสอบระบบภายในเครื่อง (`http://localhost:3000` สำหรับ Client และ `http://localhost:4000` สำหรับ Emulator)
+
+### 8.1 หน้าจอภายนอกสำหรับลูกค้า (Public Customer Pages)
+* **หน้าแรกแนะนำบริการ (Landing Page):**
+  * `http://localhost:3000/`
+* **หน้าจอสำหรับลูกค้าสแกนรับคิวสาขา (Customer Join Queue):**
+  * `http://localhost:3000/join/:branchId`
+  * *ตัวอย่าง:* `http://localhost:3000/join/FAviu2Ju1mK3Y3Ctgx7G`
+* **หน้าจอเช็คสถานะคิวของตนเองแบบ Real-time (Ticket Status):**
+  * `http://localhost:3000/status/:ticketId`
+  * *ตัวอย่าง:* `http://localhost:3000/status/ticket-abc-123`
+
+### 8.2 หน้าจอระบบทีวีรวมและงานตรวจสอบสิทธิ์ (TV Display & Authentication)
+* **หน้าจอแสดงผลคิวสำหรับเปิดออกจอทีวีส่วนกลางสาขา (TV Queue Display):**
+  * `http://localhost:3000/display/:branchId`
+  * *ตัวอย่าง:* `http://localhost:3000/display/FAviu2Ju1mK3Y3Ctgx7G`
+* **หน้าเข้าสู่ระบบ (Login Page):**
+  * `http://localhost:3000/login`
+* **หน้าสมัครสมาชิกธุรกิจ (Sign Up Page):**
+  * `http://localhost:3000/signup`
+* **หน้ากู้คืนรหัสผ่าน (Forgot Password Page):**
+  * `http://localhost:3000/forgot-password`
+* **หน้าแนะนำการตั้งค่าแรกเข้าของธุรกิจใหม่ (Onboarding Page):**
+  * `http://localhost:3000/onboarding`
+
+### 8.3 หน้าจอควบคุมแดชบอร์ดหลังบ้าน (Protected Dashboard Pages)
+*(ต้องล็อกอินเข้าสู่ระบบและมีบทบาท/สิทธิ์การเข้าใช้งานที่เกี่ยวข้อง)*
+* **หน้าจอหลักสำหรับเรียกคิวพนักงาน (Queue Console Page):**
+  * `http://localhost:3000/dashboard/queues`
+* **หน้าจัดการข้อมูลและรายชื่อสาขา (Branch List Page):**
+  * `http://localhost:3000/dashboard/branches` *(สิทธิ์เข้าใช้: Owner, Admin, Manager)*
+* **หน้าจัดการประเภทกลุ่มบริการหลัก (Service List Page):**
+  * `http://localhost:3000/dashboard/services` *(สิทธิ์เข้าใช้: Owner, Admin)*
+* **หน้าจัดการรายชื่อและสิทธิ์พนักงานพนักงาน (Staff Management Page):**
+  * `http://localhost:3000/dashboard/staff` *(สิทธิ์เข้าใช้: Owner, Admin)*
+* **หน้าตั้งค่าข้อมูลบัญชีธุรกิจหลัก (Settings Page - Mock):**
+  * `http://localhost:3000/dashboard/settings` *(สิทธิ์เข้าใช้: Owner)*
+* **หน้าจัดการนัดหมายคิวล่วงหน้า (Appointments Page - Mock):**
+  * `http://localhost:3000/dashboard/appointments`
+
