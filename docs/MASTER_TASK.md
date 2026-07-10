@@ -335,16 +335,16 @@
 ### TV-01 · Public Display Screen
 
 #### Repository
-- [ ] `getDisplayData(branchId)` — real-time listener (CALLED + WAITING list)
+- [x] `getDisplayData(branchId)` — real-time listener (CALLED + WAITING list)
 
 #### Components & Pages
-- [ ] `DisplayPage.tsx` (`/display/:branchId`):
-  - [ ] Layout 2 columns: "Now Calling" (ใหญ่) + "Waiting List"
-  - [ ] "Now Calling" box: เลขคิว flash animation + เสียง ding
-  - [ ] "Waiting List": แสดง ticket ที่รอต่อไป (max 8 รายการ)
-  - [ ] Footer: ชื่อสาขา + เวลา real-time clock
-  - [ ] รองรับ Full Screen (ปุ่ม fullscreen หรือ auto on load)
-  - [ ] ดึง branch info แสดงชื่อสาขา + logo
+- [x] `DisplayPage.tsx` (`/display/:branchId`):
+  - [x] Layout 2 columns: "Now Calling" (ใหญ่) + "Waiting List"
+  - [x] "Now Calling" box: เลขคิว flash animation + เสียง ding
+  - [x] "Waiting List": แสดง ticket ที่รอต่อไป (max 8 รายการ)
+  - [x] Footer: ชื่อสาขา + เวลา real-time clock
+  - [x] รองรับ Full Screen (ปุ่ม fullscreen หรือ auto on load)
+  - [x] ดึง branch info แสดงชื่อสาขา + logo
 
 **🧪 ทดสอบ:**
 1. เปิดหน้า `/display/{branchId}` บน TV browser

@@ -20,26 +20,26 @@ export function useQueueActions(branchId: string | null | undefined) {
   };
 
   const callNextMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (counter?: string) => {
       if (!branchId) throw new Error('No branch selected');
       if (!user?.uid) throw new Error('Unauthenticated staff');
-      return callNextTicket(branchId, user.uid);
+      return callNextTicket(branchId, user.uid, counter);
     },
     onSuccess: () => invalidate()
   });
 
   const callSpecificMutation = useMutation({
-    mutationFn: (ticketId: string) => {
+    mutationFn: ({ ticketId, counter }: { ticketId: string; counter?: string }) => {
       if (!user?.uid) throw new Error('Unauthenticated staff');
-      return callSpecificTicket(ticketId, user.uid);
+      return callSpecificTicket(ticketId, user.uid, counter);
     },
     onSuccess: () => invalidate()
   });
 
   const startServingMutation = useMutation({
-    mutationFn: (ticketId: string) => {
+    mutationFn: ({ ticketId, counter }: { ticketId: string; counter?: string }) => {
       if (!user?.uid) throw new Error('Unauthenticated staff');
-      return startServingTicket(ticketId, user.uid);
+      return startServingTicket(ticketId, user.uid, counter);
     },
     onSuccess: () => invalidate()
   });
@@ -59,8 +59,8 @@ export function useQueueActions(branchId: string | null | undefined) {
   });
 
   const recallMutation = useMutation({
-    mutationFn: (ticketId: string) => {
-      return recallTicket(ticketId);
+    mutationFn: ({ ticketId, counter }: { ticketId: string; counter?: string }) => {
+      return recallTicket(ticketId, counter);
     },
     onSuccess: () => invalidate()
   });

@@ -224,6 +224,7 @@ export interface QueueItem {
   workflowHistory: WorkflowHistoryEntry[];
   assignedResourceId?: string;
   calledByUserId?: string;
+  calledByCounter?: string;
   calledAt?: FirestoreTimestamp;
   calledCount: number;
   servingStartedAt?: FirestoreTimestamp;

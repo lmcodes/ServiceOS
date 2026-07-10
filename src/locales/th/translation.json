@@ -126,7 +126,10 @@
       "waitingCustomers": "ลูกค้าที่รอเรียก",
       "activeServing": "กำลังให้บริการ",
       "avgWaitTime": "เวลารอเฉลี่ย",
-      "callNextAlert": "เริ่มเรียกคิวถัดไปแล้ว"
+      "callNextAlert": "เริ่มเรียกคิวถัดไปแล้ว",
+      "counterLabel": "ช่องบริการ",
+      "counterPlaceholder": "เช่น 1",
+      "selectCounterAlert": "กรุณาระบุเลขช่องบริการก่อนเรียกคิว"
     },
     "appointments": {
       "title": "ตารางการนัดหมาย",

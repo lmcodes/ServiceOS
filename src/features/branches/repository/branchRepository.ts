@@ -7,7 +7,8 @@ import {
   addDoc, 
   updateDoc, 
   serverTimestamp,
-  getDocs
+  getDocs,
+  getDoc
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { Branch } from '@/types/firestore';
@@ -127,4 +128,39 @@ export async function updateBranch(branchId: string, input: UpdateBranchInput): 
  */
 export async function deleteBranch(branchId: string): Promise<void> {
   await updateBranch(branchId, { status: 'inactive' });
+}
+
+/**
+ * Get a single branch statically by ID
+ */
+export async function getBranchById(branchId: string): Promise<Branch | null> {
+  const branchRef = doc(db, BRANCHES_COLLECTION, branchId);
+  const snap = await getDoc(branchRef);
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Branch;
+}
+
+/**
+ * Subscribe to a single branch in real-time
+ */
+export function subscribeBranch(
+  branchId: string,
+  onNext: (branch: Branch | null) => void,
+  onError: (error: Error) => void
+) {
+  const branchRef = doc(db, BRANCHES_COLLECTION, branchId);
+  return onSnapshot(
+    branchRef,
+    (snap) => {
+      if (!snap.exists()) {
+        onNext(null);
+      } else {
+        onNext({ id: snap.id, ...snap.data() } as Branch);
+      }
+    },
+    (error) => {
+      console.error('[subscribeBranch]', error);
+      onError(error);
+    }
+  );
 }

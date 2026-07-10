@@ -21,6 +21,7 @@ import ServiceListPage from '@/features/services/components/ServiceListPage';
 import JoinPage from '@/features/queues/components/JoinPage';
 import TicketStatusPage from '@/features/queues/components/TicketStatusPage';
 import QueueConsolePage from '@/features/queues/components/QueueConsolePage';
+import { DisplayPage } from '@/features/queues/components/DisplayPage';
 
 
 // Mock Skeleton Pages (Not implementing business logic)
@@ -44,48 +45,6 @@ const MockLanding: React.FC = () => {
   );
 };
 
-
-
-const MockTVDisplay: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="flex-1 flex flex-col justify-between h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-        <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300">{t('pages.qrJoin.mockBranchName')} ({t('pages.tvDisplay.title')})</h2>
-        <span className="text-2xl font-extrabold text-brand-600 dark:text-brand-500">ServiceOS</span>
-      </div>
-
-      {/* TV Screen Grid */}
-      <div className="grid grid-cols-2 gap-8 my-8 flex-1">
-        {/* Called Box */}
-        <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 flex flex-col justify-between items-center text-center shadow-sm">
-          <span className="text-sm font-bold text-warning uppercase tracking-widest">{t('pages.tvDisplay.nowCallingLabel')}</span>
-          <h1 className="text-[120px] font-black text-warning leading-none animate-pulse">A-041</h1>
-          <span className="text-xl text-slate-700 dark:text-slate-400 font-semibold">{t('pages.tvDisplay.proceedToCounter', { counter: 3 })}</span>
-        </div>
-
-        {/* Waiting list */}
-        <div className="bg-white/50 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800/50 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-widest text-center">{t('pages.tvDisplay.waitingListLabel')}</h3>
-          <div className="grid grid-cols-2 gap-3 text-center">
-            {['A-042', 'A-043', 'A-044', 'B-012', 'A-045'].map((num, i) => (
-              <div key={num} className={`p-4 rounded-xl font-bold text-2xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 ${i === 0 ? 'text-slate-900 dark:text-white border-brand-500/30' : 'text-slate-450 dark:text-slate-500'}`}>
-                {num}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Footer ticker */}
-      <div className="border-t border-slate-200 dark:border-slate-800 pt-4 flex items-center justify-between text-slate-550 dark:text-slate-500 text-sm font-medium">
-        <span>{t('pages.tvDisplay.haveTicketReady')}</span>
-        <span>{new Date().toLocaleTimeString()}</span>
-      </div>
-    </div>
-  );
-};
 
 
 
@@ -151,7 +110,7 @@ export const AppRoutes: React.FC = () => {
 
       {/* Public TV Display Screen */}
       <Route element={<DisplayLayout />}>
-        <Route path="/display/:branchId" element={<MockTVDisplay />} />
+        <Route path="/display/:branchId" element={<DisplayPage />} />
       </Route>
 
 

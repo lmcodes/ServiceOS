@@ -213,7 +213,11 @@ export function subscribeWaitingAheadCount(
 /**
  * Call the next waiting ticket in line (highest priority, oldest sequence number)
  */
-export async function callNextTicket(branchId: string, staffUserId: string): Promise<QueueItem | null> {
+export async function callNextTicket(
+  branchId: string, 
+  staffUserId: string, 
+  counter?: string
+): Promise<QueueItem | null> {
   // 1. Find oldest WAITING ticket
   const q = query(
     collection(db, QUEUES_COLLECTION),
@@ -247,6 +251,7 @@ export async function callNextTicket(branchId: string, staffUserId: string): Pro
     const updatePayload = {
       status: 'CALLED',
       calledByUserId: staffUserId,
+      calledByCounter: counter || '',
       calledAt: serverTimestamp(),
       calledCount: nextCalledCount,
       updatedAt: serverTimestamp()
@@ -262,7 +267,11 @@ export async function callNextTicket(branchId: string, staffUserId: string): Pro
 /**
  * Manually call a specific waiting ticket
  */
-export async function callSpecificTicket(ticketId: string, staffUserId: string): Promise<void> {
+export async function callSpecificTicket(
+  ticketId: string, 
+  staffUserId: string, 
+  counter?: string
+): Promise<void> {
   const docRef = doc(db, QUEUES_COLLECTION, ticketId);
   await runTransaction(db, async (transaction) => {
     const snapRead = await transaction.get(docRef);
@@ -275,6 +284,7 @@ export async function callSpecificTicket(ticketId: string, staffUserId: string):
     transaction.update(docRef, {
       status: 'CALLED',
       calledByUserId: staffUserId,
+      calledByCounter: counter || '',
       calledAt: serverTimestamp(),
       calledCount: nextCalledCount,
       updatedAt: serverTimestamp()
@@ -285,11 +295,16 @@ export async function callSpecificTicket(ticketId: string, staffUserId: string):
 /**
  * Start serving a called ticket
  */
-export async function startServingTicket(ticketId: string, staffUserId: string): Promise<void> {
+export async function startServingTicket(
+  ticketId: string, 
+  staffUserId: string, 
+  counter?: string
+): Promise<void> {
   const docRef = doc(db, QUEUES_COLLECTION, ticketId);
   await updateDoc(docRef, {
     status: 'SERVING',
     calledByUserId: staffUserId,
+    calledByCounter: counter || '',
     servingStartedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
@@ -322,7 +337,7 @@ export async function markNoShow(ticketId: string): Promise<void> {
 /**
  * Recall a called ticket (repeats sound notification/voice recall)
  */
-export async function recallTicket(ticketId: string): Promise<void> {
+export async function recallTicket(ticketId: string, counter?: string): Promise<void> {
   const docRef = doc(db, QUEUES_COLLECTION, ticketId);
   await runTransaction(db, async (transaction) => {
     const snapRead = await transaction.get(docRef);
@@ -333,9 +348,41 @@ export async function recallTicket(ticketId: string): Promise<void> {
     const nextCalledCount = (currentData.calledCount || 0) + 1;
 
     transaction.update(docRef, {
+      calledByCounter: counter || '',
       calledAt: serverTimestamp(),
       calledCount: nextCalledCount,
       updatedAt: serverTimestamp()
     });
   });
+}
+
+/**
+ * Subscribe to the active display queue items (status WAITING or CALLED) in real-time
+ */
+export function subscribeDisplayQueues(
+  branchId: string,
+  onNext: (items: QueueItem[]) => void,
+  onError: (error: Error) => void
+) {
+  const q = query(
+    collection(db, QUEUES_COLLECTION),
+    where('branchId', '==', branchId),
+    where('status', 'in', ['WAITING', 'CALLED']),
+    orderBy('sequenceNumber', 'asc')
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const items: QueueItem[] = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ id: docSnap.id, ...docSnap.data() } as QueueItem);
+      });
+      onNext(items);
+    },
+    (error) => {
+      console.error('[subscribeDisplayQueues]', error);
+      onError(error);
+    }
+  );
 }

@@ -27,11 +27,17 @@ export const QueueConsolePage: React.FC = () => {
   const { t } = useTranslation();
 
   // State
+  const [counter, setCounter] = useState(() => localStorage.getItem('serviceos_staff_counter') || '');
   const [branches, setBranches] = useState<Branch[]>([]);
   const [services, setServices] = useState<Record<string, Service>>({});
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'all' | 'waiting' | 'serving' | 'completed'>('all');
   const [loadingBranches, setLoadingBranches] = useState(true);
+
+  // Sync counter to localStorage
+  useEffect(() => {
+    localStorage.setItem('serviceos_staff_counter', counter);
+  }, [counter]);
 
   // Daily statistics
   const [completedCount, setCompletedCount] = useState(0);
@@ -135,8 +141,12 @@ export const QueueConsolePage: React.FC = () => {
 
   // Action handers
   const handleCallNext = async () => {
+    if (!counter.trim()) {
+      alert(t('queues.selectCounterAlert'));
+      return;
+    }
     try {
-      const nextTicket = await actions.callNext.mutateAsync();
+      const nextTicket = await actions.callNext.mutateAsync(counter);
       if (!nextTicket) {
         alert(t('queues.noWaitingTickets'));
       }
@@ -195,7 +205,21 @@ export const QueueConsolePage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto justify-end">
+          {/* Counter Selector */}
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-750 px-3 py-1.5 rounded-xl">
+            <span className="text-xs font-semibold text-slate-550 dark:text-slate-400 whitespace-nowrap">
+              {t('queues.counterLabel')}
+            </span>
+            <input
+              type="text"
+              value={counter}
+              onChange={(e) => setCounter(e.target.value)}
+              placeholder={t('queues.counterPlaceholder')}
+              className="w-16 px-2 py-0.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20 text-center"
+            />
+          </div>
+
           {/* Branch selector */}
           {branches.length > 1 && (
             <div className="relative flex-1 sm:flex-initial">
@@ -406,11 +430,16 @@ export const QueueConsolePage: React.FC = () => {
 
                     {/* Operational Action Buttons */}
                     <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-end gap-2.5">
-                      
-                      {/* WAITING status Actions */}
+                                           {/* WAITING status Actions */}
                       {ticket.status === 'WAITING' && (
                         <button
-                          onClick={() => actions.callSpecific.mutate(ticket.id)}
+                          onClick={() => {
+                            if (!counter.trim()) {
+                              alert(t('queues.selectCounterAlert'));
+                              return;
+                            }
+                            actions.callSpecific.mutate({ ticketId: ticket.id, counter });
+                          }}
                           disabled={actions.callSpecific.isPending}
                           className="flex-1 py-1.5 px-3 bg-brand-50 dark:bg-brand-950/20 text-brand-655 hover:bg-brand-100 dark:hover:bg-brand-900/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-colors"
                         >
@@ -425,13 +454,19 @@ export const QueueConsolePage: React.FC = () => {
                           <button
                             onClick={() => actions.noShow.mutate(ticket.id)}
                             disabled={actions.noShow.isPending}
-                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-200"
                             title={t('queues.actionNoShow')}
                           >
                             <UserX className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => actions.recall.mutate(ticket.id)}
+                            onClick={() => {
+                              if (!counter.trim()) {
+                                alert(t('queues.selectCounterAlert'));
+                                return;
+                              }
+                              actions.recall.mutate({ ticketId: ticket.id, counter });
+                            }}
                             disabled={actions.recall.isPending}
                             className="p-2 text-slate-400 hover:text-brand-655 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-brand-200"
                             title={t('queues.actionRecall')}
@@ -439,7 +474,13 @@ export const QueueConsolePage: React.FC = () => {
                             <RotateCcw className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => actions.startServing.mutate(ticket.id)}
+                            onClick={() => {
+                              if (!counter.trim()) {
+                                alert(t('queues.selectCounterAlert'));
+                                return;
+                              }
+                              actions.startServing.mutate({ ticketId: ticket.id, counter });
+                            }}
                             disabled={actions.startServing.isPending}
                             className="flex-1 py-1.5 px-3 bg-emerald-650 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-transform"
                           >

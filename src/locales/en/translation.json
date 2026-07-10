@@ -126,7 +126,10 @@
       "waitingCustomers": "Waiting Customers",
       "activeServing": "Active Serving",
       "avgWaitTime": "Avg Wait Time",
-      "callNextAlert": "Call Next action triggered"
+      "callNextAlert": "Call Next action triggered",
+      "counterLabel": "Counter",
+      "counterPlaceholder": "e.g. 1",
+      "selectCounterAlert": "Please set your Counter number first."
     },
     "appointments": {
       "title": "Appointment Schedule",
