@@ -266,25 +266,25 @@
 ### QC-02 · Customer QR Self Check-In
 
 #### Repository
-- [ ] สร้าง `src/features/queues/repository/queueRepository.ts`
-  - [ ] `createQueueItem(branchId, serviceId, customerData)` — Firestore transaction increment counter
-  - [ ] `getQueueItemById(ticketId)` — real-time listener
-  - [ ] `cancelQueueItem(ticketId)`
+- [x] สร้าง `src/features/queues/repository/queueRepository.ts`
+  - [x] `createQueueItem(branchId, serviceId, customerData)` — Firestore transaction increment counter
+  - [x] `getQueueItemById(ticketId)` — real-time listener
+  - [x] `cancelQueueItem(ticketId)`
 
 #### Components & Pages
-- [ ] `JoinPage.tsx` (`/join/:branchId`) — Public page:
-  - [ ] ดึง branch info + active services
-  - [ ] แสดง service selector cards
-  - [ ] Form: Customer Name (required), Phone (optional)
-  - [ ] Custom Fields ตาม service config
-  - [ ] Firestore transaction: increment `currentQueueNumber` → สร้าง `QueueItem` status `WAITING`
-  - [ ] redirect → `/status/{ticketId}`
-- [ ] `TicketStatusPage.tsx` (`/status/:ticketId`) — Public page:
-  - [ ] real-time listener แสดงเลขคิว (e.g. "A-042")
-  - [ ] แสดงจำนวนคนที่รออยู่หน้า + estimated wait time
-  - [ ] ปุ่ม "Cancel Ticket"
-  - [ ] แสดง status badge (WAITING / CALLED / SERVING / COMPLETED)
-  - [ ] เล่น sound alert เมื่อ status เปลี่ยนเป็น CALLED
+- [x] `JoinPage.tsx` (`/join/:branchId`) — Public page:
+  - [x] ดึง branch info + active services
+  - [x] แสดง service selector cards
+  - [x] Form: Customer Name (required), Phone (optional)
+  - [x] Custom Fields ตาม service config
+  - [x] Firestore transaction: increment `currentQueueNumber` → สร้าง `QueueItem` status `WAITING`
+  - [x] redirect → `/status/{ticketId}`
+- [x] `TicketStatusPage.tsx` (`/status/:ticketId`) — Public page:
+  - [x] real-time listener แสดงเลขคิว (e.g. "A-042")
+  - [x] แสดงจำนวนคนที่รออยู่หน้า + estimated wait time
+  - [x] ปุ่ม "Cancel Ticket"
+  - [x] แสดง status badge (WAITING / CALLED / SERVING / COMPLETED)
+  - [x] เล่น sound alert เมื่อ status เปลี่ยนเป็น CALLED
 
 **🧪 ทดสอบ:**
 1. Scan QR → เลือก service → กรอกชื่อ → ได้เลขคิว A-001
@@ -297,27 +297,27 @@
 ### QC-03 · Staff Queue Control Console
 
 #### Repository (เพิ่มใน queueRepository)
-- [ ] `getActiveQueueItems(branchId)` — real-time listener (status ≠ COMPLETED/CANCELLED)
-- [ ] `callNextTicket(branchId, staffUserId)` — transaction: oldest WAITING → CALLED
-- [ ] `startServingTicket(ticketId, staffUserId)` — CALLED → SERVING
-- [ ] `completeTicket(ticketId)` — SERVING → COMPLETED + log audit
-- [ ] `markNoShow(ticketId)` — CALLED → NO_SHOW + log audit
-- [ ] `recallTicket(ticketId)` — re-call CALLED ticket
+- [x] `getActiveQueueItems(branchId)` — real-time listener (status ≠ COMPLETED/CANCELLED)
+- [x] `callNextTicket(branchId, staffUserId)` — transaction: oldest WAITING → CALLED
+- [x] `startServingTicket(ticketId, staffUserId)` — CALLED → SERVING
+- [x] `completeTicket(ticketId)` — SERVING → COMPLETED + log audit
+- [x] `markNoShow(ticketId)` — CALLED → NO_SHOW + log audit
+- [x] `recallTicket(ticketId)` — re-call CALLED ticket
 
 #### Hooks
-- [ ] `useActiveQueue(branchId)` — real-time subscription
-- [ ] `useQueueActions()` — mutation wrappers
+- [x] `useActiveQueue(branchId)` — real-time subscription
+- [x] `useQueueActions()` — mutation wrappers
 
 #### Components & Pages
-- [ ] `QueueConsolePage.tsx` (`/dashboard/queues`):
-  - [ ] Header cards: Waiting / Serving / Completed (today)
-  - [ ] ปุ่ม "Call Next Ticket" (ใหญ่, prominent)
-  - [ ] Real-time list: แสดง ticket cards แบ่งตาม status
-  - [ ] Ticket Card component:
-    - [ ] เลขคิว, ชื่อ, service name, เวลารอ
-    - [ ] Action buttons: Start / Complete / No-Show / Re-call
-  - [ ] Filter tabs: All / Waiting / Serving / Completed
-  - [ ] Branch selector (ถ้า staff มีหลาย branch)
+- [x] `QueueConsolePage.tsx` (`/dashboard/queues`):
+  - [x] Header cards: Waiting / Serving / Completed (today)
+  - [x] ปุ่ม "Call Next Ticket" (ใหญ่, prominent)
+  - [x] Real-time list: แสดง ticket cards แบ่งตาม status
+  - [x] Ticket Card component:
+    - [x] เลขคิว, ชื่อ, service name, เวลารอ
+    - [x] Action buttons: Start / Complete / No-Show / Re-call
+  - [x] Filter tabs: All / Waiting / Serving / Completed
+  - [x] Branch selector (ถ้า staff มีหลาย branch)
 
 **🧪 ทดสอบ:**
 1. กด "Call Next" → ticket แรกสุดเปลี่ยนเป็น CALLED + ปรากฏบน TV Display

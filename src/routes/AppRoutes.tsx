@@ -18,6 +18,9 @@ import OnboardingForm from '@/features/auth/components/OnboardingForm';
 // Real Feature Components
 import BranchListPage from '@/features/branches/components/BranchListPage';
 import ServiceListPage from '@/features/services/components/ServiceListPage';
+import JoinPage from '@/features/queues/components/JoinPage';
+import TicketStatusPage from '@/features/queues/components/TicketStatusPage';
+import QueueConsolePage from '@/features/queues/components/QueueConsolePage';
 
 
 // Mock Skeleton Pages (Not implementing business logic)
@@ -41,50 +44,7 @@ const MockLanding: React.FC = () => {
   );
 };
 
-const MockQRJoin: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="glass-panel p-6 rounded-2xl">
-      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('pages.qrJoin.title')}</h3>
-      <p className="text-xs text-slate-550 dark:text-slate-400 mb-6">{t('pages.qrJoin.subtitle')}</p>
-      <div className="space-y-4">
-        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl">
-          <span className="text-[10px] uppercase font-bold text-slate-450 dark:text-slate-500 tracking-wider">{t('pages.qrJoin.activeBranchLabel')}</span>
-          <h4 className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{t('pages.qrJoin.mockBranchName')}</h4>
-        </div>
-        <Link
-          to="/status/ticket-123"
-          className="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold transition-all text-center block shadow-md shadow-brand-600/10"
-        >
-          {t('pages.qrJoin.joinTicketBtn')}
-        </Link>
-      </div>
-    </div>
-  );
-};
 
-const MockTicketStatus: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="glass-panel p-6 rounded-2xl text-center">
-      <span className="text-[10px] uppercase font-bold text-slate-450 dark:text-slate-500 tracking-widest">{t('pages.ticketStatus.label')}</span>
-      <h3 className="text-5xl font-extrabold text-brand-600 dark:text-brand-500 my-4">A-042</h3>
-      <div className="p-3 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-500/20 rounded-xl mb-6">
-        <p className="text-xs text-brand-600 dark:text-brand-400 font-medium">
-          {t('pages.ticketStatus.peopleAhead', { count: 1, mins: 5 })}
-        </p>
-      </div>
-      <div className="flex justify-center space-x-2.5">
-        <button 
-          onClick={() => alert(t('pages.ticketStatus.cancelledAlert'))}
-          className="flex-1 py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-danger/10 hover:text-danger hover:border-danger/20 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all cursor-pointer"
-        >
-          {t('pages.ticketStatus.cancelTicketBtn')}
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const MockTVDisplay: React.FC = () => {
   const { t } = useTranslation();
@@ -127,42 +87,7 @@ const MockTVDisplay: React.FC = () => {
   );
 };
 
-// Staff Panels
-const MockQueuesConsole: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('pages.queues.title')}</h2>
-          <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">{t('pages.queues.subtitle')}</p>
-        </div>
-        <button 
-          onClick={() => alert(t('pages.queues.callNextAlert'))}
-          className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-brand-600/10 cursor-pointer"
-        >
-          {t('pages.queues.callNextBtn')}
-        </button>
-      </div>
 
-      {/* Cards overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-xl shadow-sm">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('pages.queues.waitingCustomers')}</h4>
-          <p className="text-3xl font-black text-slate-900 dark:text-white">12</p>
-        </div>
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-xl shadow-sm">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('pages.queues.activeServing')}</h4>
-          <p className="text-3xl font-black text-success">2</p>
-        </div>
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-xl shadow-sm">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('pages.queues.avgWaitTime')}</h4>
-          <p className="text-3xl font-black text-brand-600 dark:text-brand-500">14m</p>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const MockAppointments: React.FC = () => {
   const { t } = useTranslation();
@@ -210,8 +135,8 @@ export const AppRoutes: React.FC = () => {
       {/* Public Pages */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<MockLanding />} />
-        <Route path="/join/:branchId" element={<MockQRJoin />} />
-        <Route path="/status/:ticketId" element={<MockTicketStatus />} />
+        <Route path="/join/:branchId" element={<JoinPage />} />
+        <Route path="/status/:ticketId" element={<TicketStatusPage />} />
       </Route>
 
       {/* Auth Pages */}
@@ -240,7 +165,7 @@ export const AppRoutes: React.FC = () => {
         }
       >
         <Route index element={<Navigate to="/dashboard/queues" replace />} />
-        <Route path="queues" element={<MockQueuesConsole />} />
+        <Route path="queues" element={<QueueConsolePage />} />
         <Route path="appointments" element={<MockAppointments />} />
         
         {/* Branch settings (Manager, Admin, Owner) */}
