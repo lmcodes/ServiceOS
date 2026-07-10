@@ -96,7 +96,9 @@ service cloud.firestore {
       allow read: if true; // Public displays and QR queue join sheets read branches
       allow create: if isOwnerOrAdmin(request.resource.data.tenantId);
       allow update: if isOwnerOrAdmin(resource.data.tenantId) || 
-                      (belongsToTenant(resource.data.tenantId) && isManager() && branchId in userBranches());
+                      (belongsToTenant(resource.data.tenantId) && isManager() && branchId in userBranches()) ||
+                      // Allow public queue number/date reset update during check-in
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentQueueNumber', 'lastDailyResetDate', 'updatedAt']);
       allow delete: if isOwnerOrAdmin(resource.data.tenantId);
 
       // dailyMetrics subcollection
