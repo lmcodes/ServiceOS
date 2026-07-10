@@ -81,10 +81,10 @@ export const ServiceListPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            {t('services.title')}
+            {t('pages.services.title')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {t('services.subtitle')}
+            {t('pages.services.subtitle')}
           </p>
         </div>
 
@@ -94,7 +94,7 @@ export const ServiceListPage: React.FC = () => {
             className="flex items-center gap-1.5 py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-600/15 hover:shadow-brand-600/25 transition-all cursor-pointer"
           >
             <Plus className="w-4.5 h-4.5" />
-            <span>{t('services.addService')}</span>
+            <span>{t('pages.services.addService')}</span>
           </button>
         )}
       </div>
@@ -105,7 +105,7 @@ export const ServiceListPage: React.FC = () => {
           <Building2 className="w-5 h-5 text-slate-400" />
           <div className="flex-1">
             <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">
-              {t('services.branchSelectLabel')}
+              {t('pages.services.branchSelectLabel')}
             </label>
             <select
               value={selectedBranchId}
@@ -156,17 +156,17 @@ export const ServiceListPage: React.FC = () => {
             <Sparkles className="w-8 h-8" />
           </div>
           <h3 className="text-base font-bold text-slate-850 dark:text-white">
-            {t('services.noServices')}
+            {t('pages.services.noServices')}
           </h3>
           <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">
-            {t('services.noServicesDesc')}
+            {t('pages.services.noServicesDesc')}
           </p>
           <button
             onClick={handleCreateClick}
             className="mt-5 flex items-center gap-1.5 py-2 px-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs rounded-xl shadow-md transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>{t('services.addService')}</span>
+            <Plus className="w-4.5 h-4.5" />
+            <span>{t('pages.services.addService')}</span>
           </button>
         </div>
       )}
@@ -178,12 +178,12 @@ export const ServiceListPage: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-850 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
-                  <th className="py-4 px-6">{t('services.table.name')}</th>
-                  <th className="py-4 px-6">{t('services.table.category')}</th>
-                  <th className="py-4 px-6">{t('services.table.duration')}</th>
-                  <th className="py-4 px-6">{t('services.table.maxConcurrent')}</th>
-                  <th className="py-4 px-6 text-center">{t('services.table.status')}</th>
-                  <th className="py-4 px-6 text-right">{t('services.table.actions')}</th>
+                  <th className="py-4 px-6">{t('pages.services.table.name')}</th>
+                  <th className="py-4 px-6">{t('pages.services.table.category')}</th>
+                  <th className="py-4 px-6">{t('pages.services.table.duration')}</th>
+                  <th className="py-4 px-6">{t('pages.services.table.maxConcurrent')}</th>
+                  <th className="py-4 px-6 text-center">{t('pages.services.table.status')}</th>
+                  <th className="py-4 px-6 text-right">{t('pages.services.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-805/70 text-sm text-slate-800 dark:text-slate-300">
@@ -220,16 +220,16 @@ export const ServiceListPage: React.FC = () => {
                       )}
                     </td>
                     <td className="py-4 px-6 font-semibold">
-                      {t('services.table.minutes', { count: service.estimatedDurationMinutes })}
+                      {t('pages.services.table.minutes', { count: service.estimatedDurationMinutes })}
                     </td>
                     <td className="py-4 px-6 font-medium">
-                      {t('services.table.people', { count: service.maxConcurrent })}
+                      {t('pages.services.table.people', { count: service.maxConcurrent })}
                     </td>
                     <td className="py-4 px-6 text-center">
                       <button
                         onClick={() => handleToggleActive(service)}
                         className="inline-flex text-slate-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors cursor-pointer"
-                        title={service.isActive ? t('services.table.inactive') : t('services.table.active')}
+                        title={service.isActive ? t('pages.services.table.inactive') : t('pages.services.table.active')}
                       >
                         {service.isActive ? (
                           <ToggleRight className="w-8 h-8 text-success" />

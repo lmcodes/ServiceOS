@@ -130,10 +130,10 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800/80">
           <div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-              {initialData ? t('services.editService') : t('services.addService')}
+              {initialData ? t('pages.services.editService') : t('pages.services.addService')}
             </h3>
             <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">
-              {t('services.subtitle')}
+              {t('pages.services.subtitle')}
             </p>
           </div>
           <button
@@ -158,13 +158,13 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                  {t('services.form.nameLabel')} <span className="text-red-500">*</span>
+                  {t('pages.services.form.nameLabel')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder={t('services.form.namePlaceholder')}
+                  placeholder={t('pages.services.form.namePlaceholder')}
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
                 />
                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
@@ -172,33 +172,33 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                  {t('services.form.categoryLabel')}
+                  {t('pages.services.form.categoryLabel')}
                 </label>
                 <input
                   type="text"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder={t('services.form.categoryPlaceholder')}
+                  placeholder={t('pages.services.form.categoryPlaceholder')}
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
                 />
               </div>
 
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                  {t('services.form.descriptionLabel')}
+                  {t('pages.services.form.descriptionLabel')}
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={t('services.form.descriptionPlaceholder')}
+                  placeholder={t('pages.services.form.descriptionPlaceholder')}
                   rows={2}
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                  {t('services.form.durationLabel')} <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-slate-705 dark:text-slate-350 mb-1.5">
+                  {t('pages.services.form.durationLabel')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -212,7 +212,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                  {t('services.form.maxConcurrentLabel')} <span className="text-red-500">*</span>
+                  {t('pages.services.form.maxConcurrentLabel')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -228,7 +228,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
             {/* Toggles */}
             <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-800 rounded-xl">
               <span className="text-xs text-slate-750 dark:text-slate-350">
-                {t('services.form.requiresResource')}
+                {t('pages.services.form.requiresResource')}
               </span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -246,7 +246,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-slate-850 dark:text-white flex items-center gap-1.5">
                   <Sliders className="w-4 h-4 text-brand-500" />
-                  {t('services.form.customFieldsTitle')}
+                  {t('pages.services.form.customFieldsTitle')}
                 </h4>
                 <button
                   type="button"
@@ -254,7 +254,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                   className="flex items-center gap-1 py-1.5 px-3 bg-brand-50 dark:bg-brand-950/20 text-brand-655 hover:bg-brand-100/50 dark:hover:bg-brand-900/30 border border-brand-100 dark:border-brand-900/40 font-semibold text-xs rounded-lg transition-colors cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>{t('services.form.addField')}</span>
+                  <span>{t('pages.services.form.addField')}</span>
                 </button>
               </div>
 
@@ -274,13 +274,13 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                       {/* Question Label */}
                       <div className="flex-1">
                         <label className="block text-[10px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                          {t('services.form.fieldLabel')}
+                          {t('pages.services.form.fieldLabel')}
                         </label>
                         <input
                           type="text"
                           value={field.label}
                           onChange={(e) => handleFieldChange(index, 'label', e.target.value)}
-                          placeholder={t('services.form.fieldPlaceholder')}
+                          placeholder={t('pages.services.form.fieldPlaceholder')}
                           className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white outline-none"
                         />
                       </div>
@@ -288,17 +288,17 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                       {/* Input Type */}
                       <div className="w-full md:w-44">
                         <label className="block text-[10px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                          {t('services.form.fieldType')}
+                          {t('pages.services.form.fieldType')}
                         </label>
                         <select
                           value={field.type}
                           onChange={(e) => handleFieldChange(index, 'type', e.target.value)}
                           className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white outline-none"
                         >
-                          <option value="text">{t('services.fieldTypes.text')}</option>
-                          <option value="number">{t('services.fieldTypes.number')}</option>
-                          <option value="checkbox">{t('services.fieldTypes.checkbox')}</option>
-                          <option value="textarea">{t('services.fieldTypes.textarea')}</option>
+                          <option value="text">{t('pages.services.fieldTypes.text')}</option>
+                          <option value="number">{t('pages.services.fieldTypes.number')}</option>
+                          <option value="checkbox">{t('pages.services.fieldTypes.checkbox')}</option>
+                          <option value="textarea">{t('pages.services.fieldTypes.textarea')}</option>
                         </select>
                       </div>
 
@@ -315,7 +315,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                           htmlFor={`required-${field.key}`}
                           className="text-xs text-slate-700 dark:text-slate-300 font-medium cursor-pointer"
                         >
-                          {t('services.form.fieldRequired')}
+                          {t('pages.services.form.fieldRequired')}
                         </label>
                       </div>
 
@@ -323,7 +323,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveField(index)}
-                        className="absolute md:relative top-4 right-4 md:top-auto md:right-auto md:mt-4 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors cursor-pointer"
+                        className="absolute md:relative top-4 right-4 md:top-auto md:right-auto md:mt-4 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 rounded-lg transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4.5 h-4.5" />
                       </button>
@@ -341,19 +341,19 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
               onClick={onClose}
               className="py-2 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-semibold text-sm rounded-xl transition-colors cursor-pointer"
             >
-              {t('services.form.cancel')}
+              {t('pages.services.form.cancel')}
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center gap-1.5 py-2 px-5 bg-brand-655 hover:bg-brand-600 disabled:opacity-50 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-600/15 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 py-2 px-5 bg-brand-655 hover:bg-brand-600 disabled:opacity-50 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-655/15 transition-all cursor-pointer"
             >
               {isLoading ? (
                 <span>{t('common.loading')}</span>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span>{initialData ? t('services.form.submitUpdate') : t('services.form.submitCreate')}</span>
+                  <span>{initialData ? t('pages.services.form.submitUpdate') : t('pages.services.form.submitCreate')}</span>
                 </>
               )}
             </button>
