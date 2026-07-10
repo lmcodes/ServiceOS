@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTenant } from '@/context/TenantContext';
+import { useTranslation } from '@/context/LanguageContext';
+import { SettingsSwitcher } from '@/shared/components/SettingsSwitcher';
 import { 
   LayoutDashboard, 
   Users, 
@@ -31,7 +33,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon, label, active, onCl
     className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
       active 
         ? 'bg-brand-600 text-white shadow-md' 
-        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
     }`}
   >
     {icon}
@@ -42,17 +44,18 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon, label, active, onCl
 export const DashboardLayout: React.FC = () => {
   const { user, logout } = useAuth();
   const { tenant } = useTenant();
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { to: '/dashboard/queues', icon: <ConciergeBell size={18} />, label: 'Queues', roles: ['owner', 'admin', 'manager', 'staff'] },
-    { to: '/dashboard/appointments', icon: <Calendar size={18} />, label: 'Appointments', roles: ['owner', 'admin', 'manager', 'staff'] },
-    { to: '/dashboard/branches', icon: <MapPin size={18} />, label: 'Branches', roles: ['owner', 'admin', 'manager'] },
-    { to: '/dashboard/services', icon: <Settings size={18} />, label: 'Services', roles: ['owner', 'admin'] },
-    { to: '/dashboard/staff', icon: <Users size={18} />, label: 'Staff Users', roles: ['owner', 'admin'] },
-    { to: '/dashboard/settings', icon: <LayoutDashboard size={18} />, label: 'Tenant Settings', roles: ['owner'] },
+    { to: '/dashboard/queues', icon: <ConciergeBell size={18} />, label: t('menuQueues'), roles: ['owner', 'admin', 'manager', 'staff'] },
+    { to: '/dashboard/appointments', icon: <Calendar size={18} />, label: t('menuAppointments'), roles: ['owner', 'admin', 'manager', 'staff'] },
+    { to: '/dashboard/branches', icon: <MapPin size={18} />, label: t('menuBranches'), roles: ['owner', 'admin', 'manager'] },
+    { to: '/dashboard/services', icon: <Settings size={18} />, label: t('menuServices'), roles: ['owner', 'admin'] },
+    { to: '/dashboard/staff', icon: <Users size={18} />, label: t('menuStaff'), roles: ['owner', 'admin'] },
+    { to: '/dashboard/settings', icon: <LayoutDashboard size={18} />, label: t('menuSettings'), roles: ['owner'] },
   ];
 
   const handleLogout = async () => {
@@ -72,7 +75,7 @@ export const DashboardLayout: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex transition-colors duration-200">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
@@ -83,7 +86,7 @@ export const DashboardLayout: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-transform duration-300 md:static md:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -95,14 +98,14 @@ export const DashboardLayout: React.FC = () => {
                 <span className="font-extrabold text-white text-lg tracking-wider">S</span>
               </div>
               <div>
-                <h1 className="font-bold text-base text-white tracking-tight leading-none">ServiceOS</h1>
-                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mt-1 block">
+                <h1 className="font-bold text-base text-slate-900 dark:text-white tracking-tight leading-none">ServiceOS</h1>
+                <span className="text-[10px] text-slate-550 dark:text-slate-500 uppercase tracking-widest font-semibold mt-1 block">
                   {tenant?.name || 'Platform'}
                 </span>
               </div>
             </div>
             <button 
-              className="md:hidden text-slate-400 hover:text-white"
+              className="md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
               onClick={() => setSidebarOpen(false)}
             >
               <X size={20} />
@@ -125,29 +128,29 @@ export const DashboardLayout: React.FC = () => {
         </div>
 
         {/* User profile footer & logout */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/50">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center space-x-3 mb-4 px-2">
-            <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-500 shadow-inner">
+            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-brand-600 dark:text-brand-500 shadow-inner">
               <UserIcon size={18} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">
+              <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">
                 {user?.displayName || user?.email?.split('@')[0] || 'User'}
               </p>
               <div className="flex items-center space-x-1 mt-0.5">
-                <ShieldCheck size={12} className="text-brand-500" />
-                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider truncate">
-                  {user?.role || 'Staff'}
+                <ShieldCheck size={12} className="text-brand-650 dark:text-brand-500" />
+                <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
+                  {t('rolePrefix')}: {user?.role || 'Staff'}
                 </span>
               </div>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center justify-center space-x-2 w-full py-2.5 px-4 rounded-lg bg-slate-800/50 text-slate-400 hover:bg-danger/10 hover:text-danger border border-slate-700/50 hover:border-danger/25 transition-all duration-200"
+            className="flex items-center justify-center space-x-2 w-full py-2.5 px-4 rounded-lg bg-slate-100 dark:bg-slate-800/50 text-slate-550 dark:text-slate-400 hover:bg-danger/10 hover:text-danger border border-slate-200 dark:border-slate-700/50 hover:border-danger/25 transition-all duration-200 cursor-pointer"
           >
             <LogOut size={16} />
-            <span className="text-sm font-medium">Log out</span>
+            <span className="text-sm font-medium">{t('logoutButton')}</span>
           </button>
         </div>
       </aside>
@@ -155,24 +158,25 @@ export const DashboardLayout: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header Bar */}
-        <header className="h-16 bg-slate-900/50 border-b border-slate-800/80 px-6 flex items-center justify-between md:justify-end backdrop-blur-md sticky top-0 z-30">
+        <header className="h-16 bg-white/70 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800/80 px-6 flex items-center justify-between md:justify-end backdrop-blur-md sticky top-0 z-30">
           <button 
-            className="md:hidden text-slate-400 hover:text-white p-1"
+            className="md:hidden text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 cursor-pointer"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={24} />
           </button>
 
-          {/* Additional controls or status elements can be placed here */}
+          {/* Controls: Timezone Badge + Switcher */}
           <div className="flex items-center space-x-4">
-            <span className="text-xs text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50 font-medium">
-              Timezone: {tenant?.settings?.timezone || 'GMT'}
+            <span className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700/50 font-medium">
+              {t('timezonePrefix')}: {tenant?.settings?.timezone || 'GMT'}
             </span>
+            <SettingsSwitcher isFloating={false} />
           </div>
         </header>
 
         {/* Content Outlet */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-950">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50 dark:bg-slate-950">
           <Outlet />
         </main>
       </div>

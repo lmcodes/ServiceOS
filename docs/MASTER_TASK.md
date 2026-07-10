@@ -146,9 +146,11 @@
 - [x] สร้าง `src/context/LanguageContext.tsx` และ `src/context/ThemeContext.tsx`
 - [x] สร้างปุ่มเลือกภาษาและธีม `SettingsSwitcher.tsx` (ลอยอยู่มุมขวาบน)
 - [x] อัปเดต `AuthLayout.tsx`, `LoginForm.tsx`, `SignupForm.tsx`, `ForgotPasswordForm.tsx`, `OnboardingForm.tsx` ให้มีสไตล์ Mobile-First, รองรับ Dark/Light Mode และสลับภาษาได้ทันที
+- [x] อัปเดตโครงสร้าง Layout หลักทั้งหมด (`DashboardLayout.tsx`, `DisplayLayout.tsx`, `PublicLayout.tsx`) เพื่อรองรับปุ่มสลับภาษาและธีม Dark/Light Mode อย่างสมบูรณ์
+- [x] อัปเดตหน้าโครงร่าง (Mock Skeleton Pages) ใน `AppRoutes.tsx` ให้ดึงข้อมูลภาษาจาก dictionary ของระบบ (TH/EN) และรองรับการสลับธีม
 
 **🧪 ทดสอบ:**
-1. เข้าหน้า Login/Signup/ForgotPassword/Onboarding → ตรวจสอบการแสดงผลและสลับธีม/ภาษาได้โดยตรง
+1. เข้าหน้า Login/Signup/ForgotPassword/Onboarding/Dashboard/Public/Display → ตรวจสอบการแสดงผลและสลับธีม/ภาษาได้โดยตรง
 2. การตั้งค่าภาษาและธีมจะบันทึกใน LocalStorage และคงอยู่ระหว่างเปลี่ยนหน้า
 
 ---

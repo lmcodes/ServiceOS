@@ -53,6 +53,77 @@ export const translations = {
     salon: 'ร้านทำผม / เสริมสวย / สปา',
     repair_shop: 'ร้านซ่อมบำรุง / อู่ซ่อมรถ',
     service_center: 'ศูนย์บริการลูกค้า / เคาน์เตอร์ประชาสัมพันธ์',
+
+    // --- Dashboard & Navigation ---
+    menuQueues: 'บอร์ดควบคุมคิว',
+    menuAppointments: 'ตารางนัดหมาย',
+    menuBranches: 'การจัดการสาขา',
+    menuServices: 'การจัดการบริการ',
+    menuStaff: 'รายชื่อพนักงาน',
+    menuSettings: 'ตั้งค่าโปรไฟล์',
+    logoutButton: 'ออกจากระบบ',
+    timezonePrefix: 'เขตเวลา',
+    rolePrefix: 'สิทธิ์',
+
+    // --- Mock Landing Page ---
+    landingTitle: 'ยินดีต้อนรับสู่ ServiceOS',
+    landingSubtitle: 'โครงสร้างพื้นฐานระบบและระบบตรวจคิวบริการอัจฉริยะ',
+    landingLoginBtn: 'เข้าสู่ระบบ',
+    landingTryQRBtn: 'ทดลองสแกน QR เช็คอิน',
+
+    // --- Mock QR Join ---
+    qrJoinTitle: 'สแกน QR เช็คอิน',
+    qrJoinSubtitle: 'สแกนคิวอาร์โค้ดประจำสาขาเพื่อรับบัตรคิวเข้าบริการ',
+    activeBranchLabel: 'สาขาให้บริการ',
+    mockBranchName: 'สำนักงานใหญ่ กรุงเทพฯ',
+    mockJoinTicketBtn: 'จำลองการกดรับบัตรคิว',
+
+    // --- Mock Ticket Status ---
+    ticketStatusLabel: 'สถานะบัตรคิวของคุณ',
+    peopleAheadLabel: 'มีอีก {count} คิวก่อนหน้าคุณ • รอประมาณ {mins} นาที',
+    cancelTicketBtn: 'ยกเลิกบัตรคิว',
+    ticketCancelledAlert: 'ยกเลิกบัตรคิวสำเร็จ',
+
+    // --- Mock TV Display ---
+    tvDisplayTitle: 'หน้าจอแสดงผลคิว',
+    nowCallingLabel: 'กำลังเรียกคิว',
+    proceedToCounterLabel: 'กรุณาติดต่อที่ช่องบริการ {counter}',
+    waitingListLabel: 'รายการคิวรอเรียก',
+    haveTicketReadyLabel: 'โปรดจัดเตรียมบัตรคิวของท่านให้พร้อม',
+
+    // --- Mock Queues Console ---
+    queueControlBoardTitle: 'บอร์ดควบคุมคิว',
+    queueControlBoardSubtitle: 'เรียกคิวลูกค้า ถัดไปตามระบบ จัดการข้อมูลบริการ และตรวจสอบข้อมูลสถิติประจำวัน',
+    callNextTicketBtn: 'เรียกคิวถัดไป',
+    waitingCustomersLabel: 'ลูกค้าที่รอเรียก',
+    activeServingLabel: 'กำลังให้บริการ',
+    avgWaitTimeLabel: 'เวลารอเฉลี่ย',
+    callNextActionTriggeredAlert: 'เริ่มเรียกคิวถัดไปแล้ว',
+
+    // --- Mock Appointments ---
+    appointmentScheduleTitle: 'ตารางการนัดหมาย',
+    appointmentScheduleSubtitle: 'จัดการคิวนัดหมายของลูกค้าล่วงหน้า และเช็คอินเข้าบริการเมื่อลูกค้ามาถึง',
+    appointmentPlaceholder: 'พื้นที่จำลองสำหรับแสดงปฏิทินและการจองคิวบริการ',
+
+    // --- Mock Branches ---
+    branchesTitle: 'การจัดการสาขา',
+    branchesSubtitle: 'ตั้งค่าเวลาเปิดทำการ เขตเวลา และจอแสดงคิวประจำสาขาต่าง ๆ',
+    branchesPlaceholder: 'พื้นที่จำลองสำหรับจัดการข้อมูลสาขา (สร้าง, อ่าน, แก้ไข, ลบ)',
+
+    // --- Mock Services ---
+    servicesTitle: 'การจัดการบริการ',
+    servicesSubtitle: 'ตั้งค่าตัวอักษรนำหน้าคิว ฟิลด์ข้อมูลลูกค้าที่ต้องกรอก และเชื่อมโยงกระบวนการทำงาน',
+    servicesPlaceholder: 'พื้นที่จำลองสำหรับจัดการประเภทและตัวเลือกบริการสาขา',
+
+    // --- Mock Staff ---
+    staffTitle: 'รายชื่อพนักงาน',
+    staffSubtitle: 'เชิญทีมงานเข้าร่วมระบบ พร้อมกำหนดสิทธิ์และสาขาประจำการ',
+    staffPlaceholder: 'พื้นที่จำลองสำหรับแสดงรายชื่อพนักงานและเครื่องมือจัดการสิทธิ์',
+
+    // --- Mock Settings ---
+    tenantSettingsTitle: 'ตั้งค่าโปรไฟล์และองค์กร',
+    tenantSettingsSubtitle: 'จัดการรายละเอียดบริษัท ตั้งค่าสีตราสินค้า และระบบเรียกเก็บเงิน Stripe',
+    settingsPlaceholder: 'พื้นที่จำลองสำหรับแสดงรายละเอียดการเป็นสมาชิกและระบบชำระเงิน',
   },
   en: {
     // Common
@@ -108,5 +179,76 @@ export const translations = {
     salon: 'Hair Salon / Beauty / Spa',
     repair_shop: 'Repair Shop / Garage',
     service_center: 'Customer Service / Info Counter',
+
+    // --- Dashboard & Navigation ---
+    menuQueues: 'Queues Control',
+    menuAppointments: 'Appointments',
+    menuBranches: 'Branches',
+    menuServices: 'Services',
+    menuStaff: 'Staff Directory',
+    menuSettings: 'Tenant Profile',
+    logoutButton: 'Log out',
+    timezonePrefix: 'Timezone',
+    rolePrefix: 'Role',
+
+    // --- Mock Landing Page ---
+    landingTitle: 'Welcome to ServiceOS',
+    landingSubtitle: 'Scaffolding and smart service check-in queue system.',
+    landingLoginBtn: 'Go to Login',
+    landingTryQRBtn: 'Try QR Check-in',
+
+    // --- Mock QR Join ---
+    qrJoinTitle: 'QR Self Check-in',
+    qrJoinSubtitle: 'Scan entrance QR code to secure your queue ticket.',
+    activeBranchLabel: 'Active Branch',
+    mockBranchName: 'Bangkok Main Office',
+    mockJoinTicketBtn: 'Mock Join Ticket',
+
+    // --- Mock Ticket Status ---
+    ticketStatusLabel: 'Queue Status',
+    peopleAheadLabel: '{count} person ahead of you • Est: {mins} mins',
+    cancelTicketBtn: 'Cancel Ticket',
+    ticketCancelledAlert: 'Ticket cancelled',
+
+    // --- Mock TV Display ---
+    tvDisplayTitle: 'TV Queue Display',
+    nowCallingLabel: 'Now Calling',
+    proceedToCounterLabel: 'Proceed to Counter {counter}',
+    waitingListLabel: 'Waiting List',
+    haveTicketReadyLabel: 'Please have your ticket ready',
+
+    // --- Mock Queues Console ---
+    queueControlBoardTitle: 'Queue Control Board',
+    queueControlBoardSubtitle: 'Summon customers, progress workflows, and track daily metrics.',
+    callNextTicketBtn: 'Call Next Ticket',
+    waitingCustomersLabel: 'Waiting Customers',
+    activeServingLabel: 'Active Serving',
+    avgWaitTimeLabel: 'Avg Wait Time',
+    callNextActionTriggeredAlert: 'Call Next action triggered',
+
+    // --- Mock Appointments ---
+    appointmentScheduleTitle: 'Appointment Schedule',
+    appointmentScheduleSubtitle: 'Manage scheduled customers and check them into priority queues on arrival.',
+    appointmentPlaceholder: 'Calendar slot reservations placeholder.',
+
+    // --- Mock Branches ---
+    branchesTitle: 'Branch Locations',
+    branchesSubtitle: 'Configure operating hours, timezones, and display screens per physical location.',
+    branchesPlaceholder: 'Branch CRUD control panel placeholder.',
+
+    // --- Mock Services ---
+    servicesTitle: 'Branch Services',
+    servicesSubtitle: 'Configure service prefixes, custom fields, and link workflow pipelines.',
+    servicesPlaceholder: 'Services settings placeholder.',
+
+    // --- Mock Staff ---
+    staffTitle: 'Staff Directory',
+    staffSubtitle: 'Invite team members and assign branch and role configurations.',
+    staffPlaceholder: 'Staff directory table placeholder.',
+
+    // --- Mock Settings ---
+    tenantSettingsTitle: 'Tenant Profile',
+    tenantSettingsSubtitle: 'Manage tenant settings, brand colors, and Stripe subscriptions.',
+    settingsPlaceholder: 'Subscription and billing details placeholder.',
   }
 };
