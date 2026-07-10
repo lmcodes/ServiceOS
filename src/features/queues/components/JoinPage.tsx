@@ -98,13 +98,13 @@ export const JoinPage: React.FC = () => {
     const errors: Record<string, string> = {};
 
     if (!name.trim()) {
-      errors.name = t('queues.validationName');
+      errors.name = t('pages.queues.validationName');
     }
 
     if (branch?.settings.requirePhone && !phone.trim()) {
-      errors.phone = t('queues.validationPhone');
+      errors.phone = t('pages.queues.validationPhone');
     } else if (phone.trim() && !/^0[0-9]{8,9}$/.test(phone.trim())) {
-      errors.phone = t('queues.validationPhone');
+      errors.phone = t('pages.queues.validationPhone');
     }
 
     // Custom Fields validation
@@ -217,7 +217,7 @@ export const JoinPage: React.FC = () => {
           <div className="glass-panel p-6 rounded-3xl animate-in fade-in slide-in-from-bottom-6 duration-300">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1.5 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-brand-500" />
-              {t('queues.selectService')}
+              {t('pages.queues.selectService')}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
               Choose one of our available options below to request a ticket.
@@ -283,13 +283,13 @@ export const JoinPage: React.FC = () => {
             <form onSubmit={handleFormSubmit} className="space-y-6">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">
-                  {t('queues.customerInfo')}
+                  {t('pages.queues.customerInfo')}
                 </h3>
                 <div className="space-y-4">
                   {/* Name Input */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                      {t('queues.customerName')} <span className="text-red-500">*</span>
+                      {t('pages.queues.customerName')} <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -312,7 +312,7 @@ export const JoinPage: React.FC = () => {
                   {/* Phone Input */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                      {t('queues.customerPhone')}{' '}
+                      {t('pages.queues.customerPhone')}{' '}
                       {branch.settings.requirePhone && <span className="text-red-500">*</span>}
                     </label>
                     <div className="relative">
@@ -336,7 +336,7 @@ export const JoinPage: React.FC = () => {
                   {/* Email Input */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                      {t('queues.customerEmail')}
+                      {t('pages.queues.customerEmail')}
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -426,7 +426,7 @@ export const JoinPage: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <span>{t('queues.submitJoin')}</span>
+                      <span>{t('pages.queues.submitJoin')}</span>
                       <ArrowRight className="w-4.5 h-4.5" />
                     </>
                   )}

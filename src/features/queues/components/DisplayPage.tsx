@@ -382,7 +382,7 @@ export const DisplayPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1 text-slate-600">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                      {t('queues.statusWaiting')}
+                      {t('pages.queues.statusWaiting')}
                     </span>
                     <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
                   </div>

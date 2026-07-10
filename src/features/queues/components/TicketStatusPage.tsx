@@ -136,44 +136,44 @@ export const TicketStatusPage: React.FC = () => {
     switch (status) {
       case 'WAITING':
         return {
-          bg: 'bg-brand-50 dark:bg-brand-950/20 border-brand-200/50 dark:border-brand-900/30',
+          bg: 'bg-brand-50 dark:bg-brand-955/20 border-brand-200/50 dark:border-brand-900/30',
           text: 'text-brand-655 dark:text-brand-400',
-          label: t('queues.statusWaiting'),
+          label: t('pages.queues.statusWaiting'),
           pulse: false
         };
       case 'CALLED':
         return {
           bg: 'bg-amber-50 dark:bg-amber-955/20 border-amber-300 dark:border-amber-900/40 animate-pulse',
           text: 'text-amber-700 dark:text-amber-400 font-extrabold',
-          label: t('queues.statusCalled'),
+          label: t('pages.queues.statusCalled'),
           pulse: true
         };
       case 'SERVING':
         return {
           bg: 'bg-emerald-50 dark:bg-emerald-955/20 border-emerald-250 dark:border-emerald-900/40',
           text: 'text-emerald-700 dark:text-emerald-400 font-bold',
-          label: t('queues.statusServing'),
+          label: t('pages.queues.statusServing'),
           pulse: false
         };
       case 'COMPLETED':
         return {
           bg: 'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800',
           text: 'text-slate-500 dark:text-slate-400',
-          label: t('queues.statusCompleted'),
+          label: t('pages.queues.statusCompleted'),
           pulse: false
         };
       case 'NO_SHOW':
         return {
           bg: 'bg-red-50 dark:bg-red-955/20 border-red-200 dark:border-red-900/40',
           text: 'text-red-650 dark:text-red-400',
-          label: t('queues.statusNoShow'),
+          label: t('pages.queues.statusNoShow'),
           pulse: false
         };
       case 'CANCELLED':
         return {
           bg: 'bg-slate-100 dark:bg-slate-900/30 border-slate-250 dark:border-slate-800/80',
           text: 'text-slate-400 dark:text-slate-500',
-          label: t('queues.statusCancelled'),
+          label: t('pages.queues.statusCancelled'),
           pulse: false
         };
       default:
@@ -210,7 +210,7 @@ export const TicketStatusPage: React.FC = () => {
             to="/"
             className="inline-block mt-6 px-5 py-2.5 bg-brand-655 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
           >
-            {t('queues.goBack')}
+            {t('pages.queues.goBack')}
           </Link>
         </div>
       </div>
@@ -252,7 +252,7 @@ export const TicketStatusPage: React.FC = () => {
           )}
 
           <span className="text-xs font-bold tracking-widest text-slate-450 dark:text-slate-500 uppercase">
-            {service ? service.name : t('queues.yourTicket')}
+            {service ? service.name : t('pages.queues.yourTicket')}
           </span>
 
           {/* Ticket Number */}
@@ -317,7 +317,7 @@ export const TicketStatusPage: React.FC = () => {
                 className="w-full py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-danger/10 hover:text-danger hover:border-danger/30 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-350 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>{t('queues.cancelBtn')}</span>
+                <span>{t('pages.queues.cancelBtn')}</span>
               </button>
             </div>
           )}
@@ -344,7 +344,7 @@ export const TicketStatusPage: React.FC = () => {
               Confirm Cancellation
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-              {t('queues.cancelConfirm')}
+              {t('pages.queues.cancelConfirm')}
             </p>
             <div className="flex gap-3 justify-end">
               <button
