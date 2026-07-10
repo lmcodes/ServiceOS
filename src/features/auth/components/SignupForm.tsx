@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { z } from 'zod';
 import { useSignup } from '@/features/auth/hooks/useSignup';
-import { useTranslation } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 // ─── Validation Schema ─────────────────────────────────────────────────────────
 const signupSchema = z
@@ -21,18 +21,19 @@ type SignupFields = z.infer<typeof signupSchema>;
 type FieldErrors = Partial<Record<keyof SignupFields, string>>;
 
 // ─── Password Strength Indicator ───────────────────────────────────────────────
-const getPasswordStrength = (password: string, locale: 'th' | 'en'): { level: number; label: string; color: string } => {
-  if (password.length === 0) return { level: 0, label: '', color: '' };
-  
-  const labels = locale === 'th' 
-    ? { weak: 'อ่อน', medium: 'ปานกลาง', good: 'ดี', strong: 'แข็งแกร่ง' }
-    : { weak: 'Weak', medium: 'Medium', good: 'Good', strong: 'Strong' };
+interface PasswordStrength {
+  level: number;
+  labelKey: string;
+  color: string;
+}
 
-  if (password.length < 6) return { level: 1, label: labels.weak, color: 'bg-danger' };
-  if (password.length < 8 && !/\d/.test(password)) return { level: 2, label: labels.medium, color: 'bg-warning' };
+const getPasswordStrength = (password: string): PasswordStrength => {
+  if (password.length === 0) return { level: 0, labelKey: '', color: '' };
+  if (password.length < 6) return { level: 1, labelKey: 'passwordStrength.weak', color: 'bg-danger' };
+  if (password.length < 8 && !/\d/.test(password)) return { level: 2, labelKey: 'passwordStrength.medium', color: 'bg-warning' };
   if (password.length >= 8 && /\d/.test(password) && /[A-Z]/.test(password))
-    return { level: 4, label: labels.strong, color: 'bg-success' };
-  return { level: 3, label: labels.good, color: 'bg-brand-500' };
+    return { level: 4, labelKey: 'passwordStrength.strong', color: 'bg-success' };
+  return { level: 3, labelKey: 'passwordStrength.good', color: 'bg-brand-500' };
 };
 
 // ─── Google Icon SVG ───────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ const GoogleIcon = () => (
 // ─── SignupForm ────────────────────────────────────────────────────────────────
 export const SignupForm: React.FC = () => {
   const { emailMutation, googleMutation } = useSignup();
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
 
   const [fields, setFields] = useState<SignupFields>({
     name: '',
@@ -61,7 +62,7 @@ export const SignupForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const passwordStrength = getPasswordStrength(fields.password, locale);
+  const passwordStrength = getPasswordStrength(fields.password);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -82,13 +83,13 @@ export const SignupForm: React.FC = () => {
       parsed.error.errors.forEach((err) => {
         const key = err.path[0] as keyof SignupFields;
         if (key === 'name') {
-          errors.name = locale === 'th' ? 'ชื่อต้องมีอย่างน้อย 2 ตัวอักษร' : 'Name must be at least 2 characters';
+          errors.name = t('validation.nameMin');
         } else if (key === 'email') {
-          errors.email = locale === 'th' ? 'รูปแบบอีเมลไม่ถูกต้อง' : 'Invalid email format';
+          errors.email = t('validation.emailInvalid');
         } else if (key === 'password') {
-          errors.password = locale === 'th' ? 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' : 'Password must be at least 6 characters';
+          errors.password = t('validation.passwordMin');
         } else if (key === 'confirmPassword') {
-          errors.confirmPassword = locale === 'th' ? 'รหัสผ่านไม่ตรงกัน' : 'Passwords do not match';
+          errors.confirmPassword = t('validation.passwordMismatch');
         }
       });
       setFieldErrors(errors);
@@ -103,7 +104,7 @@ export const SignupForm: React.FC = () => {
       });
       if (result.error) setServerError(result.error);
     } catch {
-      setServerError(t('errorConnection'));
+      setServerError(t('common.errorConnection'));
     }
   };
 
@@ -113,7 +114,7 @@ export const SignupForm: React.FC = () => {
       const result = await googleMutation.mutateAsync();
       if (result.error) setServerError(result.error);
     } catch {
-      setServerError(t('errorConnection'));
+      setServerError(t('common.errorConnection'));
     }
   };
 
@@ -121,8 +122,8 @@ export const SignupForm: React.FC = () => {
 
   return (
     <div>
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-1">{t('signupTitle')}</h3>
-      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">{t('signupSubtitle')}</p>
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-1">{t('signup.title')}</h3>
+      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">{t('signup.subtitle')}</p>
 
       {/* Server Error Banner */}
       {serverError && (
@@ -136,7 +137,7 @@ export const SignupForm: React.FC = () => {
         {/* Full Name */}
         <div>
           <label htmlFor="name" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-            {t('nameLabel')}
+            {t('signup.nameLabel')}
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
@@ -149,7 +150,7 @@ export const SignupForm: React.FC = () => {
               value={fields.name}
               onChange={handleChange}
               autoComplete="name"
-              placeholder={locale === 'th' ? 'ชื่อของคุณ' : 'Your name'}
+              placeholder={t('auth.yourName')}
               className={`w-full bg-white dark:bg-slate-900 border ${fieldErrors.name ? 'border-danger/50 focus:border-danger focus:ring-danger/30' : 'border-slate-200 dark:border-slate-700 focus:border-brand-500 focus:ring-brand-500/30'} text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm rounded-lg py-2.5 pl-9 pr-3 outline-none transition-all duration-200 focus:ring-1`}
             />
           </div>
@@ -163,7 +164,7 @@ export const SignupForm: React.FC = () => {
         {/* Email */}
         <div>
           <label htmlFor="signup-email" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-            {t('emailLabel')}
+            {t('signup.emailLabel')}
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
@@ -190,7 +191,7 @@ export const SignupForm: React.FC = () => {
         {/* Password */}
         <div>
           <label htmlFor="signup-password" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-            {t('passwordLabel')}
+            {t('signup.passwordLabel')}
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
@@ -203,14 +204,14 @@ export const SignupForm: React.FC = () => {
               value={fields.password}
               onChange={handleChange}
               autoComplete="new-password"
-              placeholder={locale === 'th' ? 'อย่างน้อย 6 ตัวอักษร' : 'At least 6 characters'}
+              placeholder={t('auth.passwordMinPlaceholder')}
               className={`w-full bg-white dark:bg-slate-900 border ${fieldErrors.password ? 'border-danger/50 focus:border-danger focus:ring-danger/30' : 'border-slate-200 dark:border-slate-700 focus:border-brand-500 focus:ring-brand-500/30'} text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm rounded-lg py-2.5 pl-9 pr-10 outline-none transition-all duration-200 focus:ring-1`}
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-350 transition-colors"
-              aria-label={showPassword ? (locale === 'th' ? 'ซ่อนรหัสผ่าน' : 'Hide password') : (locale === 'th' ? 'แสดงรหัสผ่าน' : 'Show password')}
+              aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -229,7 +230,7 @@ export const SignupForm: React.FC = () => {
                 ))}
               </div>
               <p className={`text-xs ${passwordStrength.level <= 1 ? 'text-danger' : passwordStrength.level === 2 ? 'text-warning' : passwordStrength.level === 3 ? 'text-brand-500' : 'text-success'}`}>
-                {locale === 'th' ? 'ความปลอดภัย: ' : 'Strength: '}{passwordStrength.label}
+                {t('passwordStrength.label')}{t(passwordStrength.labelKey)}
               </p>
             </div>
           )}
@@ -243,7 +244,7 @@ export const SignupForm: React.FC = () => {
         {/* Confirm Password */}
         <div>
           <label htmlFor="confirmPassword" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-            {t('confirmPasswordLabel')}
+            {t('signup.confirmPasswordLabel')}
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
@@ -256,7 +257,7 @@ export const SignupForm: React.FC = () => {
               value={fields.confirmPassword}
               onChange={handleChange}
               autoComplete="new-password"
-              placeholder={locale === 'th' ? 'พิมพ์รหัสผ่านอีกครั้ง' : 'Type password again'}
+              placeholder={t('auth.typePasswordAgain')}
               className={`w-full bg-white dark:bg-slate-900 border ${fieldErrors.confirmPassword ? 'border-danger/50 focus:border-danger focus:ring-danger/30' : fields.confirmPassword && fields.confirmPassword === fields.password ? 'border-success/50 focus:border-success focus:ring-success/30' : 'border-slate-200 dark:border-slate-700 focus:border-brand-500 focus:ring-brand-500/30'} text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm rounded-lg py-2.5 pl-9 pr-10 outline-none transition-all duration-200 focus:ring-1`}
             />
             <button
@@ -293,7 +294,7 @@ export const SignupForm: React.FC = () => {
           ) : (
             <UserPlus className="w-4 h-4" />
           )}
-          {emailMutation.isPending ? t('loading') : t('signupButton')}
+          {emailMutation.isPending ? t('common.loading') : t('signup.signupButton')}
         </button>
       </form>
 
@@ -304,7 +305,7 @@ export const SignupForm: React.FC = () => {
         </div>
         <div className="relative flex justify-center">
           <span className="px-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm text-xs text-slate-500 rounded">
-            {locale === 'th' ? 'หรือ' : 'or'}
+            {t('common.or')}
           </span>
         </div>
       </div>
@@ -324,13 +325,13 @@ export const SignupForm: React.FC = () => {
         ) : (
           <GoogleIcon />
         )}
-        {googleMutation.isPending ? t('loading') : t('googleSignUp')}
+        {googleMutation.isPending ? t('common.loading') : t('signup.googleSignUp')}
       </button>
 
       <p className="mt-6 text-center text-xs text-slate-500">
-        {t('alreadyHaveAccount')}{' '}
+        {t('signup.alreadyHaveAccount')}{' '}
         <Link to="/login" className="text-brand-600 dark:text-brand-500 hover:text-brand-500 dark:hover:text-brand-400 font-semibold transition-colors">
-          {t('loginLink')}
+          {t('signup.loginLink')}
         </Link>
       </p>
     </div>

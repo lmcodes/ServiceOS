@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ProtectedRoute from '@/routes/ProtectedRoute';
-import { useTranslation } from '@/context/LanguageContext';
 
 // Layouts
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -20,16 +20,16 @@ const MockLanding: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div className="text-center py-12">
-      <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-4">{t('landingTitle')}</h1>
+      <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-4">{t('pages.landing.title')}</h1>
       <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
-        {t('landingSubtitle')}
+        {t('pages.landing.subtitle')}
       </p>
       <div className="flex justify-center space-x-4">
         <Link to="/login" className="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-brand-600/10">
-          {t('landingLoginBtn')}
+          {t('pages.landing.loginBtn')}
         </Link>
         <Link to="/join/branch-abc" className="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold transition-all shadow-sm">
-          {t('landingTryQRBtn')}
+          {t('pages.landing.tryQRBtn')}
         </Link>
       </div>
     </div>
@@ -40,18 +40,18 @@ const MockQRJoin: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div className="glass-panel p-6 rounded-2xl">
-      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('qrJoinTitle')}</h3>
-      <p className="text-xs text-slate-550 dark:text-slate-400 mb-6">{t('qrJoinSubtitle')}</p>
+      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('pages.qrJoin.title')}</h3>
+      <p className="text-xs text-slate-550 dark:text-slate-400 mb-6">{t('pages.qrJoin.subtitle')}</p>
       <div className="space-y-4">
         <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl">
-          <span className="text-[10px] uppercase font-bold text-slate-450 dark:text-slate-500 tracking-wider">{t('activeBranchLabel')}</span>
-          <h4 className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{t('mockBranchName')}</h4>
+          <span className="text-[10px] uppercase font-bold text-slate-450 dark:text-slate-500 tracking-wider">{t('pages.qrJoin.activeBranchLabel')}</span>
+          <h4 className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{t('pages.qrJoin.mockBranchName')}</h4>
         </div>
         <Link
           to="/status/ticket-123"
           className="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold transition-all text-center block shadow-md shadow-brand-600/10"
         >
-          {t('mockJoinTicketBtn')}
+          {t('pages.qrJoin.joinTicketBtn')}
         </Link>
       </div>
     </div>
@@ -62,19 +62,19 @@ const MockTicketStatus: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div className="glass-panel p-6 rounded-2xl text-center">
-      <span className="text-[10px] uppercase font-bold text-slate-450 dark:text-slate-500 tracking-widest">{t('ticketStatusLabel')}</span>
+      <span className="text-[10px] uppercase font-bold text-slate-450 dark:text-slate-500 tracking-widest">{t('pages.ticketStatus.label')}</span>
       <h3 className="text-5xl font-extrabold text-brand-600 dark:text-brand-500 my-4">A-042</h3>
       <div className="p-3 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-500/20 rounded-xl mb-6">
         <p className="text-xs text-brand-600 dark:text-brand-400 font-medium">
-          {t('peopleAheadLabel').replace('{count}', '1').replace('{mins}', '5')}
+          {t('pages.ticketStatus.peopleAhead', { count: 1, mins: 5 })}
         </p>
       </div>
       <div className="flex justify-center space-x-2.5">
         <button 
-          onClick={() => alert(t('ticketCancelledAlert'))}
+          onClick={() => alert(t('pages.ticketStatus.cancelledAlert'))}
           className="flex-1 py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-danger/10 hover:text-danger hover:border-danger/20 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all cursor-pointer"
         >
-          {t('cancelTicketBtn')}
+          {t('pages.ticketStatus.cancelTicketBtn')}
         </button>
       </div>
     </div>
@@ -87,7 +87,7 @@ const MockTVDisplay: React.FC = () => {
     <div className="flex-1 flex flex-col justify-between h-full">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-        <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300">{t('mockBranchName')} ({t('tvDisplayTitle')})</h2>
+        <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300">{t('pages.qrJoin.mockBranchName')} ({t('pages.tvDisplay.title')})</h2>
         <span className="text-2xl font-extrabold text-brand-600 dark:text-brand-500">ServiceOS</span>
       </div>
 
@@ -95,14 +95,14 @@ const MockTVDisplay: React.FC = () => {
       <div className="grid grid-cols-2 gap-8 my-8 flex-1">
         {/* Called Box */}
         <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 flex flex-col justify-between items-center text-center shadow-sm">
-          <span className="text-sm font-bold text-warning uppercase tracking-widest">{t('nowCallingLabel')}</span>
+          <span className="text-sm font-bold text-warning uppercase tracking-widest">{t('pages.tvDisplay.nowCallingLabel')}</span>
           <h1 className="text-[120px] font-black text-warning leading-none animate-pulse">A-041</h1>
-          <span className="text-xl text-slate-700 dark:text-slate-400 font-semibold">{t('proceedToCounterLabel').replace('{counter}', '3')}</span>
+          <span className="text-xl text-slate-700 dark:text-slate-400 font-semibold">{t('pages.tvDisplay.proceedToCounter', { counter: 3 })}</span>
         </div>
 
         {/* Waiting list */}
         <div className="bg-white/50 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800/50 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-widest text-center">{t('waitingListLabel')}</h3>
+          <h3 className="text-lg font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-widest text-center">{t('pages.tvDisplay.waitingListLabel')}</h3>
           <div className="grid grid-cols-2 gap-3 text-center">
             {['A-042', 'A-043', 'A-044', 'B-012', 'A-045'].map((num, i) => (
               <div key={num} className={`p-4 rounded-xl font-bold text-2xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/80 ${i === 0 ? 'text-slate-900 dark:text-white border-brand-500/30' : 'text-slate-450 dark:text-slate-500'}`}>
@@ -115,7 +115,7 @@ const MockTVDisplay: React.FC = () => {
 
       {/* Footer ticker */}
       <div className="border-t border-slate-200 dark:border-slate-800 pt-4 flex items-center justify-between text-slate-550 dark:text-slate-500 text-sm font-medium">
-        <span>{t('haveTicketReadyLabel')}</span>
+        <span>{t('pages.tvDisplay.haveTicketReady')}</span>
         <span>{new Date().toLocaleTimeString()}</span>
       </div>
     </div>
@@ -129,29 +129,29 @@ const MockQueuesConsole: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('queueControlBoardTitle')}</h2>
-          <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">{t('queueControlBoardSubtitle')}</p>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('pages.queues.title')}</h2>
+          <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">{t('pages.queues.subtitle')}</p>
         </div>
         <button 
-          onClick={() => alert(t('callNextActionTriggeredAlert'))}
+          onClick={() => alert(t('pages.queues.callNextAlert'))}
           className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-brand-600/10 cursor-pointer"
         >
-          {t('callNextTicketBtn')}
+          {t('pages.queues.callNextBtn')}
         </button>
       </div>
 
       {/* Cards overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-xl shadow-sm">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('waitingCustomersLabel')}</h4>
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('pages.queues.waitingCustomers')}</h4>
           <p className="text-3xl font-black text-slate-900 dark:text-white">12</p>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-xl shadow-sm">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('activeServingLabel')}</h4>
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('pages.queues.activeServing')}</h4>
           <p className="text-3xl font-black text-success">2</p>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-xl shadow-sm">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('avgWaitTimeLabel')}</h4>
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{t('pages.queues.avgWaitTime')}</h4>
           <p className="text-3xl font-black text-brand-600 dark:text-brand-500">14m</p>
         </div>
       </div>
@@ -163,10 +163,10 @@ const MockAppointments: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('appointmentScheduleTitle')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('appointmentScheduleSubtitle')}</p>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.appointments.title')}</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.appointments.subtitle')}</p>
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
-        {t('appointmentPlaceholder')}
+        {t('pages.appointments.placeholder')}
       </div>
     </div>
   );
@@ -176,10 +176,10 @@ const MockBranches: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('branchesTitle')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('branchesSubtitle')}</p>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.branches.title')}</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.branches.subtitle')}</p>
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
-        {t('branchesPlaceholder')}
+        {t('pages.branches.placeholder')}
       </div>
     </div>
   );
@@ -189,10 +189,10 @@ const MockServices: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('servicesTitle')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('servicesSubtitle')}</p>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.services.title')}</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.services.subtitle')}</p>
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
-        {t('servicesPlaceholder')}
+        {t('pages.services.placeholder')}
       </div>
     </div>
   );
@@ -202,10 +202,10 @@ const MockStaff: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('staffTitle')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('staffSubtitle')}</p>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.staff.title')}</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.staff.subtitle')}</p>
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
-        {t('staffPlaceholder')}
+        {t('pages.staff.placeholder')}
       </div>
     </div>
   );
@@ -215,10 +215,10 @@ const MockSettings: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('tenantSettingsTitle')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('tenantSettingsSubtitle')}</p>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.settings.title')}</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.settings.subtitle')}</p>
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
-        {t('settingsPlaceholder')}
+        {t('pages.settings.placeholder')}
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { SettingsSwitcher } from '@/shared/components/SettingsSwitcher';
-import { useTranslation } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 export const AuthLayout: React.FC = () => {
   const { user, loading } = useAuth();
@@ -37,7 +37,7 @@ export const AuthLayout: React.FC = () => {
           ServiceOS
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
-          {t('loginSubtitle')}
+          {t('login.layoutSubtitle')}
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export const AuthLayout: React.FC = () => {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
               <div className="w-10 h-10 border-4 border-slate-200 dark:border-slate-800 border-t-brand-500 rounded-full animate-spin" />
-              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{t('loading')}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{t('common.loading')}</p>
             </div>
           ) : (
             <Outlet />

@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, AlertCircle, CheckCircle2, Send } from 'lucide-react';
 import { z } from 'zod';
 import { sendPasswordReset } from '@/features/auth/repository/authRepository';
-import { useTranslation } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const emailSchema = z.object({
   email: z.string().email(),
 });
 
 export const ForgotPasswordForm: React.FC = () => {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -24,7 +24,7 @@ export const ForgotPasswordForm: React.FC = () => {
 
     const parsed = emailSchema.safeParse({ email });
     if (!parsed.success) {
-      setEmailError(locale === 'th' ? 'รูปแบบอีเมลไม่ถูกต้อง' : 'Invalid email format');
+      setEmailError(t('validation.emailInvalid'));
       return;
     }
 
@@ -45,22 +45,20 @@ export const ForgotPasswordForm: React.FC = () => {
         <div className="w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
           <CheckCircle2 className="w-7 h-7 text-success" />
         </div>
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('resetSuccessTitle')}</h3>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('forgotPassword.resetSuccessTitle')}</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-          {locale === 'th' ? 'เราส่งลิงก์รีเซ็ตรหัสผ่านไปที่' : 'We sent a reset link to'}
+          {t('auth.resetLinkSentTo')}
         </p>
         <p className="text-sm font-semibold text-slate-800 dark:text-white mb-6">{email}</p>
         <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-          {locale === 'th'
-            ? 'กรุณาตรวจสอบกล่องจดหมาย (รวมถึงโฟลเดอร์ Spam) ลิงก์จะหมดอายุภายใน 1 ชั่วโมง'
-            : 'Please check your inbox (including Spam folder). The link will expire in 1 hour.'}
+          {t('auth.checkInboxNote')}
         </p>
         <Link
           to="/login"
           className="inline-flex items-center gap-2 text-sm text-brand-600 dark:text-brand-500 hover:text-brand-500 dark:hover:text-brand-400 font-semibold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          {t('backToLogin')}
+          {t('forgotPassword.backToLogin')}
         </Link>
       </div>
     );
@@ -68,9 +66,9 @@ export const ForgotPasswordForm: React.FC = () => {
 
   return (
     <div>
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-1">{t('forgotPasswordTitle')}</h3>
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-1">{t('forgotPassword.title')}</h3>
       <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6 leading-relaxed">
-        {t('forgotPasswordSubtitle')}
+        {t('forgotPassword.subtitle')}
       </p>
 
       {serverError && (
@@ -83,7 +81,7 @@ export const ForgotPasswordForm: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div>
           <label htmlFor="reset-email" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-            {t('emailLabel')}
+            {t('forgotPassword.emailLabel')}
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
@@ -120,7 +118,7 @@ export const ForgotPasswordForm: React.FC = () => {
           ) : (
             <Send className="w-4 h-4" />
           )}
-          {isLoading ? (locale === 'th' ? 'กำลังส่ง...' : 'Sending...') : t('resetButton')}
+          {isLoading ? t('common.sending') : t('forgotPassword.resetButton')}
         </button>
       </form>
 
@@ -130,7 +128,7 @@ export const ForgotPasswordForm: React.FC = () => {
           className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-350 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          {t('backToLogin')}
+          {t('forgotPassword.backToLogin')}
         </Link>
       </div>
     </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTenant } from '@/context/TenantContext';
-import { useTranslation } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { SettingsSwitcher } from '@/shared/components/SettingsSwitcher';
 import { 
   LayoutDashboard, 
@@ -50,12 +50,12 @@ export const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { to: '/dashboard/queues', icon: <ConciergeBell size={18} />, label: t('menuQueues'), roles: ['owner', 'admin', 'manager', 'staff'] },
-    { to: '/dashboard/appointments', icon: <Calendar size={18} />, label: t('menuAppointments'), roles: ['owner', 'admin', 'manager', 'staff'] },
-    { to: '/dashboard/branches', icon: <MapPin size={18} />, label: t('menuBranches'), roles: ['owner', 'admin', 'manager'] },
-    { to: '/dashboard/services', icon: <Settings size={18} />, label: t('menuServices'), roles: ['owner', 'admin'] },
-    { to: '/dashboard/staff', icon: <Users size={18} />, label: t('menuStaff'), roles: ['owner', 'admin'] },
-    { to: '/dashboard/settings', icon: <LayoutDashboard size={18} />, label: t('menuSettings'), roles: ['owner'] },
+    { to: '/dashboard/queues', icon: <ConciergeBell size={18} />, label: t('dashboard.menuQueues'), roles: ['owner', 'admin', 'manager', 'staff'] },
+    { to: '/dashboard/appointments', icon: <Calendar size={18} />, label: t('dashboard.menuAppointments'), roles: ['owner', 'admin', 'manager', 'staff'] },
+    { to: '/dashboard/branches', icon: <MapPin size={18} />, label: t('dashboard.menuBranches'), roles: ['owner', 'admin', 'manager'] },
+    { to: '/dashboard/services', icon: <Settings size={18} />, label: t('dashboard.menuServices'), roles: ['owner', 'admin'] },
+    { to: '/dashboard/staff', icon: <Users size={18} />, label: t('dashboard.menuStaff'), roles: ['owner', 'admin'] },
+    { to: '/dashboard/settings', icon: <LayoutDashboard size={18} />, label: t('dashboard.menuSettings'), roles: ['owner'] },
   ];
 
   const handleLogout = async () => {
@@ -140,7 +140,7 @@ export const DashboardLayout: React.FC = () => {
               <div className="flex items-center space-x-1 mt-0.5">
                 <ShieldCheck size={12} className="text-brand-650 dark:text-brand-500" />
                 <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
-                  {t('rolePrefix')}: {user?.role || 'Staff'}
+                  {t('dashboard.rolePrefix')}: {user?.role || 'Staff'}
                 </span>
               </div>
             </div>
@@ -150,7 +150,7 @@ export const DashboardLayout: React.FC = () => {
             className="flex items-center justify-center space-x-2 w-full py-2.5 px-4 rounded-lg bg-slate-100 dark:bg-slate-800/50 text-slate-550 dark:text-slate-400 hover:bg-danger/10 hover:text-danger border border-slate-200 dark:border-slate-700/50 hover:border-danger/25 transition-all duration-200 cursor-pointer"
           >
             <LogOut size={16} />
-            <span className="text-sm font-medium">{t('logoutButton')}</span>
+            <span className="text-sm font-medium">{t('dashboard.logoutButton')}</span>
           </button>
         </div>
       </aside>
@@ -169,7 +169,7 @@ export const DashboardLayout: React.FC = () => {
           {/* Controls: Timezone Badge + Switcher */}
           <div className="flex items-center space-x-4">
             <span className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700/50 font-medium">
-              {t('timezonePrefix')}: {tenant?.settings?.timezone || 'GMT'}
+              {t('dashboard.timezonePrefix')}: {tenant?.settings?.timezone || 'GMT'}
             </span>
             <SettingsSwitcher isFloating={false} />
           </div>

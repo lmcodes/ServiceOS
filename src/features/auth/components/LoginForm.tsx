@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
 import { useLogin } from '@/features/auth/hooks/useLogin';
-import { useTranslation } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 // ─── Validation Schema ─────────────────────────────────────────────────────────
 const loginSchema = z.object({
@@ -92,7 +92,7 @@ const InputField: React.FC<InputFieldProps> = ({
 // ─── LoginForm ─────────────────────────────────────────────────────────────────
 export const LoginForm: React.FC = () => {
   const { emailMutation, googleMutation } = useLogin();
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
 
   const [fields, setFields] = useState<LoginFields>({ email: '', password: '' });
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -119,9 +119,9 @@ export const LoginForm: React.FC = () => {
       parsed.error.errors.forEach((err) => {
         const key = err.path[0] as keyof LoginFields;
         if (key === 'email') {
-          errors.email = locale === 'th' ? 'รูปแบบอีเมลไม่ถูกต้อง' : 'Invalid email format';
+          errors.email = t('validation.emailInvalid');
         } else if (key === 'password') {
-          errors.password = locale === 'th' ? 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' : 'Password must be at least 6 characters';
+          errors.password = t('validation.passwordMin');
         }
       });
       setFieldErrors(errors);
@@ -132,7 +132,7 @@ export const LoginForm: React.FC = () => {
       const result = await emailMutation.mutateAsync(fields);
       if (result.error) setServerError(result.error);
     } catch {
-      setServerError(t('errorConnection'));
+      setServerError(t('common.errorConnection'));
     }
   };
 
@@ -142,7 +142,7 @@ export const LoginForm: React.FC = () => {
       const result = await googleMutation.mutateAsync();
       if (result.error) setServerError(result.error);
     } catch {
-      setServerError(t('errorConnection'));
+      setServerError(t('common.errorConnection'));
     }
   };
 
@@ -150,9 +150,9 @@ export const LoginForm: React.FC = () => {
 
   return (
     <div>
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-1">{locale === 'th' ? 'เข้าสู่ระบบ' : 'Sign In'}</h3>
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-1">{t('login.title')}</h3>
       <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">
-        {locale === 'th' ? 'ยินดีต้อนรับกลับ กรุณาเข้าสู่ระบบเพื่อดำเนินการ' : 'Welcome back, please sign in to continue'}
+        {t('login.subtitle')}
       </p>
 
       {/* Server Error Banner */}
@@ -166,7 +166,7 @@ export const LoginForm: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <InputField
           id="email"
-          label={t('emailLabel')}
+          label={t('login.emailLabel')}
           type="email"
           value={fields.email}
           onChange={handleChange}
@@ -178,7 +178,7 @@ export const LoginForm: React.FC = () => {
 
         <InputField
           id="password"
-          label={t('passwordLabel')}
+          label={t('login.passwordLabel')}
           type={showPassword ? 'text' : 'password'}
           value={fields.password}
           onChange={handleChange}
@@ -191,7 +191,7 @@ export const LoginForm: React.FC = () => {
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-350 transition-colors"
-              aria-label={showPassword ? (locale === 'th' ? 'ซ่อนรหัสผ่าน' : 'Hide password') : (locale === 'th' ? 'แสดงรหัสผ่าน' : 'Show password')}
+              aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -203,7 +203,7 @@ export const LoginForm: React.FC = () => {
             to="/forgot-password"
             className="text-xs text-brand-600 dark:text-brand-500 hover:text-brand-500 dark:hover:text-brand-400 font-medium transition-colors"
           >
-            {t('forgotPasswordLink')}
+            {t('login.forgotPasswordLink')}
           </Link>
         </div>
 
@@ -220,7 +220,7 @@ export const LoginForm: React.FC = () => {
           ) : (
             <LogIn className="w-4 h-4" />
           )}
-          {emailMutation.isPending ? t('loading') : t('loginButton')}
+          {emailMutation.isPending ? t('common.loading') : t('login.loginButton')}
         </button>
       </form>
 
@@ -231,7 +231,7 @@ export const LoginForm: React.FC = () => {
         </div>
         <div className="relative flex justify-center">
           <span className="px-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm text-xs text-slate-500 rounded">
-            {locale === 'th' ? 'หรือ' : 'or'}
+            {t('common.or')}
           </span>
         </div>
       </div>
@@ -251,14 +251,14 @@ export const LoginForm: React.FC = () => {
         ) : (
           <GoogleIcon />
         )}
-        {googleMutation.isPending ? t('loading') : t('googleSignIn')}
+        {googleMutation.isPending ? t('common.loading') : t('login.googleSignIn')}
       </button>
 
       {/* Sign Up Link */}
       <p className="mt-6 text-center text-xs text-slate-500">
-        {t('noAccount')}{' '}
+        {t('login.noAccount')}{' '}
         <Link to="/signup" className="text-brand-600 dark:text-brand-500 hover:text-brand-500 dark:hover:text-brand-400 font-semibold transition-colors">
-          {t('signUpLink')}
+          {t('login.signUpLink')}
         </Link>
       </p>
     </div>

@@ -4,9 +4,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from '@/context/AuthContext';
 import { TenantProvider } from '@/context/TenantContext';
-import { LanguageProvider } from '@/context/LanguageContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import AppRoutes from '@/routes/AppRoutes';
+
+// Initialize i18next (must be imported before any component that uses useTranslation)
+import '@/config/i18n';
 
 // Initialize React Query client
 const queryClient = new QueryClient({
@@ -23,15 +25,13 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <LanguageProvider>
-          <ThemeProvider>
-            <AuthProvider>
-              <TenantProvider>
-                <AppRoutes />
-              </TenantProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </LanguageProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <TenantProvider>
+              <AppRoutes />
+            </TenantProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </BrowserRouter>
       {/* Devtools helper (only active during development compilation) */}
       <ReactQueryDevtools initialIsOpen={false} />

@@ -1,0 +1,157 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "sending": "Sending...",
+    "errorConnection": "Connection error. Please try again.",
+    "or": "or"
+  },
+  "validation": {
+    "emailInvalid": "Invalid email format",
+    "passwordMin": "Password must be at least 6 characters",
+    "nameMin": "Name must be at least 2 characters",
+    "passwordMismatch": "Passwords do not match"
+  },
+  "passwordStrength": {
+    "label": "Strength: ",
+    "weak": "Weak",
+    "medium": "Medium",
+    "good": "Good",
+    "strong": "Strong"
+  },
+  "auth": {
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "yourName": "Your name",
+    "passwordMinPlaceholder": "At least 6 characters",
+    "typePasswordAgain": "Type password again",
+    "resetLinkSentTo": "We sent a reset link to",
+    "checkInboxNote": "Please check your inbox (including Spam folder). The link will expire in 1 hour."
+  },
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Welcome back, please sign in to continue",
+    "layoutSubtitle": "Smart queue & service operating system",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "loginButton": "Sign In",
+    "googleSignIn": "Sign in with Google",
+    "forgotPasswordLink": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "signUpLink": "Sign up here"
+  },
+  "signup": {
+    "title": "Create ServiceOS Account",
+    "subtitle": "Get started with the smart queue system",
+    "nameLabel": "Full Name",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "confirmPasswordLabel": "Confirm Password",
+    "signupButton": "Create Account",
+    "googleSignUp": "Sign up with Google",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginLink": "Sign in here"
+  },
+  "forgotPassword": {
+    "title": "Reset Password",
+    "subtitle": "Enter your email to receive a password reset link",
+    "emailLabel": "Email Address",
+    "resetButton": "Send Reset Link",
+    "backToLogin": "Back to sign in",
+    "resetSuccessTitle": "Email Sent!",
+    "resetSuccessMessage": "We have sent a password reset link to your email address."
+  },
+  "onboarding": {
+    "title": "Welcome to ServiceOS",
+    "subtitle": "Set up your business profile to begin building your queues and dashboard.",
+    "businessNameLabel": "Business / Shop Name",
+    "businessNamePlaceholder": "e.g. Health Clinic, Cozy Coffee",
+    "businessTypeLabel": "Business Type",
+    "businessTypePlaceholder": "Please select your business type",
+    "phoneLabel": "Contact Phone Number",
+    "phonePlaceholder": "e.g. 0812345678",
+    "timezoneLabel": "System Timezone",
+    "submitButton": "Create Workspace & Proceed",
+    "logoutLink": "Sign Out",
+    "switchAccount": "Sign in with a different account?",
+    "businessTypes": {
+      "restaurant": "Restaurant / Cafe",
+      "clinic": "Clinic (Medical / Aesthetic)",
+      "salon": "Hair Salon / Beauty / Spa",
+      "repair_shop": "Repair Shop / Garage",
+      "service_center": "Customer Service / Info Counter"
+    }
+  },
+  "dashboard": {
+    "menuQueues": "Queues Control",
+    "menuAppointments": "Appointments",
+    "menuBranches": "Branches",
+    "menuServices": "Services",
+    "menuStaff": "Staff Directory",
+    "menuSettings": "Tenant Profile",
+    "logoutButton": "Log out",
+    "timezonePrefix": "Timezone",
+    "rolePrefix": "Role"
+  },
+  "pages": {
+    "landing": {
+      "title": "Welcome to ServiceOS",
+      "subtitle": "Scaffolding and smart service check-in queue system.",
+      "loginBtn": "Go to Login",
+      "tryQRBtn": "Try QR Check-in"
+    },
+    "qrJoin": {
+      "title": "QR Self Check-in",
+      "subtitle": "Scan entrance QR code to secure your queue ticket.",
+      "activeBranchLabel": "Active Branch",
+      "mockBranchName": "Bangkok Main Office",
+      "joinTicketBtn": "Mock Join Ticket"
+    },
+    "ticketStatus": {
+      "label": "Queue Status",
+      "peopleAhead": "{{count}} person ahead of you • Est: {{mins}} mins",
+      "cancelTicketBtn": "Cancel Ticket",
+      "cancelledAlert": "Ticket cancelled"
+    },
+    "tvDisplay": {
+      "title": "TV Queue Display",
+      "nowCallingLabel": "Now Calling",
+      "proceedToCounter": "Proceed to Counter {{counter}}",
+      "waitingListLabel": "Waiting List",
+      "haveTicketReady": "Please have your ticket ready"
+    },
+    "queues": {
+      "title": "Queue Control Board",
+      "subtitle": "Summon customers, progress workflows, and track daily metrics.",
+      "callNextBtn": "Call Next Ticket",
+      "waitingCustomers": "Waiting Customers",
+      "activeServing": "Active Serving",
+      "avgWaitTime": "Avg Wait Time",
+      "callNextAlert": "Call Next action triggered"
+    },
+    "appointments": {
+      "title": "Appointment Schedule",
+      "subtitle": "Manage scheduled customers and check them into priority queues on arrival.",
+      "placeholder": "Calendar slot reservations placeholder."
+    },
+    "branches": {
+      "title": "Branch Locations",
+      "subtitle": "Configure operating hours, timezones, and display screens per physical location.",
+      "placeholder": "Branch CRUD control panel placeholder."
+    },
+    "services": {
+      "title": "Branch Services",
+      "subtitle": "Configure service prefixes, custom fields, and link workflow pipelines.",
+      "placeholder": "Services settings placeholder."
+    },
+    "staff": {
+      "title": "Staff Directory",
+      "subtitle": "Invite team members and assign branch and role configurations.",
+      "placeholder": "Staff directory table placeholder."
+    },
+    "settings": {
+      "title": "Tenant Profile",
+      "subtitle": "Manage tenant settings, brand colors, and Stripe subscriptions.",
+      "placeholder": "Subscription and billing details placeholder."
+    }
+  }
+}

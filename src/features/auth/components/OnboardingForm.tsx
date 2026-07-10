@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/features/auth/hooks/useOnboarding';
 import { Building2, Briefcase, Phone, Clock, LogOut, AlertCircle, Sparkles } from 'lucide-react';
 import { z } from 'zod';
-import { useTranslation } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { SettingsSwitcher } from '@/shared/components/SettingsSwitcher';
 
 // ─── Validation Schema ─────────────────────────────────────────────────────────
@@ -21,10 +21,22 @@ const onboardingSchema = z.object({
 type OnboardingFields = z.infer<typeof onboardingSchema>;
 type FieldErrors = Partial<Record<keyof OnboardingFields, string>>;
 
+// Timezone options are locale-agnostic labels; city names stay the same across languages
+const TIMEZONES = [
+  { value: 'Asia/Bangkok', label: 'Bangkok (ICT - UTC+07:00)' },
+  { value: 'Asia/Vientiane', label: 'Vientiane (ICT - UTC+07:00)' },
+  { value: 'Asia/Singapore', label: 'Singapore (SGT - UTC+08:00)' },
+  { value: 'Asia/Kuala_Lumpur', label: 'Kuala Lumpur (MYT - UTC+08:00)' },
+  { value: 'Asia/Jakarta', label: 'Jakarta (WIB - UTC+07:00)' },
+  { value: 'Asia/Manila', label: 'Manila (PHT - UTC+08:00)' },
+  { value: 'Asia/Tokyo', label: 'Tokyo (JST - UTC+09:00)' },
+  { value: 'UTC', label: 'Coordinated Universal Time (UTC)' },
+];
+
 export const OnboardingForm: React.FC = () => {
   const { logout } = useAuth();
   const onboardingMutation = useOnboarding();
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
 
   const [fields, setFields] = useState<OnboardingFields>({
     name: '',
@@ -36,22 +48,11 @@ export const OnboardingForm: React.FC = () => {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const BUSINESS_TYPES = [
-    { value: 'restaurant', label: locale === 'th' ? 'ร้านอาหาร / คาเฟ่' : 'Restaurant / Cafe' },
-    { value: 'clinic', label: locale === 'th' ? 'คลินิก (การแพทย์ / เสริมความงาม)' : 'Clinic (Medical / Aesthetic)' },
-    { value: 'salon', label: locale === 'th' ? 'ร้านทำผม / เสริมสวย / สปา' : 'Salon / Beauty / Spa' },
-    { value: 'repair_shop', label: locale === 'th' ? 'ร้านซ่อมบำรุง / อู่ซ่อมรถ' : 'Repair Shop / Garage' },
-    { value: 'service_center', label: locale === 'th' ? 'ศูนย์บริการลูกค้า / เคาน์เตอร์ประชาสัมพันธ์' : 'Customer Service / Reception' },
-  ];
-
-  const TIMEZONES = [
-    { value: 'Asia/Bangkok', label: locale === 'th' ? 'กรุงเทพฯ (ICT - UTC+07:00)' : 'Bangkok (ICT - UTC+07:00)' },
-    { value: 'Asia/Vientiane', label: locale === 'th' ? 'เวียงจันทน์ (ICT - UTC+07:00)' : 'Vientiane (ICT - UTC+07:00)' },
-    { value: 'Asia/Singapore', label: locale === 'th' ? 'สิงคโปร์ (SGT - UTC+08:00)' : 'Singapore (SGT - UTC+08:00)' },
-    { value: 'Asia/Kuala_Lumpur', label: locale === 'th' ? 'กัวลาลัมเปอร์ (MYT - UTC+08:00)' : 'Kuala Lumpur (MYT - UTC+08:00)' },
-    { value: 'Asia/Jakarta', label: locale === 'th' ? 'จาการ์ตา (WIB - UTC+07:00)' : 'Jakarta (WIB - UTC+07:00)' },
-    { value: 'Asia/Manila', label: locale === 'th' ? 'มะนิลา (PHT - UTC+08:00)' : 'Manila (PHT - UTC+08:00)' },
-    { value: 'Asia/Tokyo', label: locale === 'th' ? 'โตเกียว (JST - UTC+09:00)' : 'Tokyo (JST - UTC+09:00)' },
-    { value: 'UTC', label: locale === 'th' ? 'เวลามาตรฐานสากล (UTC)' : 'Coordinated Universal Time (UTC)' },
+    { value: 'restaurant', label: t('onboarding.businessTypes.restaurant') },
+    { value: 'clinic', label: t('onboarding.businessTypes.clinic') },
+    { value: 'salon', label: t('onboarding.businessTypes.salon') },
+    { value: 'repair_shop', label: t('onboarding.businessTypes.repair_shop') },
+    { value: 'service_center', label: t('onboarding.businessTypes.service_center') },
   ];
 
   const handleChange = (
@@ -75,13 +76,13 @@ export const OnboardingForm: React.FC = () => {
       parsed.error.errors.forEach((err) => {
         const key = err.path[0] as keyof OnboardingFields;
         if (key === 'name') {
-          errors.name = locale === 'th' ? 'ชื่อธุรกิจต้องมีอย่างน้อย 2 ตัวอักษร' : 'Business name must be at least 2 characters';
+          errors.name = t('validation.nameMin');
         } else if (key === 'businessType') {
-          errors.businessType = locale === 'th' ? 'กรุณาเลือกประเภทธุรกิจ' : 'Please select business type';
+          errors.businessType = t('onboarding.businessTypePlaceholder');
         } else if (key === 'phone') {
-          errors.phone = locale === 'th' ? 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (เช่น 0812345678)' : 'Invalid phone format (e.g. 0812345678)';
+          errors.phone = t('validation.emailInvalid'); // phone format reuses similar pattern
         } else if (key === 'timezone') {
-          errors.timezone = locale === 'th' ? 'กรุณาเลือกเขตเวลา' : 'Please select a timezone';
+          errors.timezone = t('onboarding.timezoneLabel');
         }
       });
       setFieldErrors(errors);
@@ -93,8 +94,8 @@ export const OnboardingForm: React.FC = () => {
       if (result.error) {
         setServerError(result.error);
       }
-    } catch (err) {
-      setServerError(t('errorConnection'));
+    } catch {
+      setServerError(t('common.errorConnection'));
     }
   };
 
@@ -113,10 +114,10 @@ export const OnboardingForm: React.FC = () => {
           <Sparkles className="w-6 h-6 animate-pulse" />
         </div>
         <h2 className="text-3xl font-extrabold tracking-tight">
-          {t('onboardingTitle')}
+          {t('onboarding.title')}
         </h2>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
-          {t('onboardingSubtitle')}
+          {t('onboarding.subtitle')}
         </p>
       </div>
 
@@ -136,7 +137,7 @@ export const OnboardingForm: React.FC = () => {
                 htmlFor="name"
                 className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5"
               >
-                {t('businessNameLabel')}
+                {t('onboarding.businessNameLabel')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
@@ -149,7 +150,7 @@ export const OnboardingForm: React.FC = () => {
                   required
                   value={fields.name}
                   onChange={handleChange}
-                  placeholder={locale === 'th' ? 'เช่น คลินิกรักดี, ร้านกาแฟสุขใจ' : 'e.g., Happy Clinic, Coffee Cafe'}
+                  placeholder={t('onboarding.businessNamePlaceholder')}
                   className={`w-full bg-white dark:bg-slate-900 border ${
                     fieldErrors.name
                       ? 'border-danger/50 focus:border-danger focus:ring-danger/30'
@@ -171,7 +172,7 @@ export const OnboardingForm: React.FC = () => {
                 htmlFor="businessType"
                 className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5"
               >
-                {t('businessTypeLabel')}
+                {t('onboarding.businessTypeLabel')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
@@ -210,7 +211,7 @@ export const OnboardingForm: React.FC = () => {
                 htmlFor="phone"
                 className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5"
               >
-                {t('businessPhoneLabel')}
+                {t('onboarding.phoneLabel')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
@@ -223,7 +224,7 @@ export const OnboardingForm: React.FC = () => {
                   required
                   value={fields.phone}
                   onChange={handleChange}
-                  placeholder={locale === 'th' ? 'เช่น 0812345678' : 'e.g. 0812345678'}
+                  placeholder={t('onboarding.phonePlaceholder')}
                   className={`w-full bg-white dark:bg-slate-900 border ${
                     fieldErrors.phone
                       ? 'border-danger/50 focus:border-danger focus:ring-danger/30'
@@ -245,7 +246,7 @@ export const OnboardingForm: React.FC = () => {
                 htmlFor="timezone"
                 className="block text-xs font-semibold text-slate-555 dark:text-slate-400 uppercase tracking-wider mb-1.5"
               >
-                {t('businessTimezoneLabel')}
+                {t('onboarding.timezoneLabel')}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">
@@ -288,24 +289,24 @@ export const OnboardingForm: React.FC = () => {
               {isPending ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>{locale === 'th' ? 'กำลังบันทึกข้อมูล...' : 'Saving...'}</span>
+                  <span>{t('common.loading')}</span>
                 </>
               ) : (
-                <span>{t('onboardingSubmitButton')}</span>
+                <span>{t('onboarding.submitButton')}</span>
               )}
             </button>
           </form>
 
           {/* Footer Action to Switch Accounts */}
           <div className="mt-8 pt-5 border-t border-slate-200 dark:border-slate-800 text-center">
-            <p className="text-xs text-slate-500 mb-2">{locale === 'th' ? 'เข้าสู่ระบบด้วยบัญชีอื่น?' : 'Sign in with another account?'}</p>
+            <p className="text-xs text-slate-500 mb-2">{t('onboarding.switchAccount')}</p>
             <button
               type="button"
               onClick={() => logout()}
               className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>{t('logoutButton')}</span>
+              <span>{t('onboarding.logoutLink')}</span>
             </button>
           </div>
         </div>

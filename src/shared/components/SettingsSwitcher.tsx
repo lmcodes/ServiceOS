@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { Sun, Moon, Globe } from 'lucide-react';
 
@@ -9,8 +9,15 @@ interface SettingsSwitcherProps {
 }
 
 export const SettingsSwitcher: React.FC<SettingsSwitcherProps> = ({ className = '', isFloating = true }) => {
-  const { locale, setLocale } = useTranslation();
+  const { i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
+
+  const currentLocale = i18n.language?.startsWith('th') ? 'th' : 'en';
+
+  const handleToggleLanguage = () => {
+    const nextLocale = currentLocale === 'th' ? 'en' : 'th';
+    i18n.changeLanguage(nextLocale);
+  };
 
   const containerClasses = isFloating
     ? `fixed top-4 right-4 z-50 flex items-center gap-2 ${className}`
@@ -21,11 +28,11 @@ export const SettingsSwitcher: React.FC<SettingsSwitcherProps> = ({ className = 
       {/* Language Switcher */}
       <button
         type="button"
-        onClick={() => setLocale(locale === 'th' ? 'en' : 'th')}
+        onClick={handleToggleLanguage}
         className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800/80 border border-slate-200/50 dark:border-slate-800/50 text-slate-700 dark:text-slate-300 backdrop-blur-md shadow-sm transition-all duration-200 cursor-pointer"
       >
         <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-        <span>{locale === 'th' ? 'EN' : 'ไทย'}</span>
+        <span>{currentLocale === 'th' ? 'EN' : 'ไทย'}</span>
       </button>
 
       {/* Theme Switcher */}
