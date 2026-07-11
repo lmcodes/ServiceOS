@@ -466,6 +466,7 @@ export const ServiceListPage: React.FC = () => {
           }}
           onSubmit={handleFormSubmit}
           isLoading={createMutation.isPending || updateMutation.isPending}
+          workflows={workflows}
         />
       )}
     </div>

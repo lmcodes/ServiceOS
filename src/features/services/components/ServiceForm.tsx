@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { X, Plus, Trash2, Save, Sliders } from 'lucide-react';
 import { Service, ServiceCustomField, Workflow } from '@/types/firestore';
 import { CreateServiceInput } from '../types';
-import { useAuth } from '@/context/AuthContext';
-import { getWorkflows } from '@/features/workflows/repository/workflowRepository';
 
 interface ServiceFormProps {
   initialData?: Service | null;
   onClose: () => void;
   onSubmit: (data: any) => Promise<void>;
   isLoading: boolean;
+  workflows: Workflow[];
 }
 
 export const ServiceForm: React.FC<ServiceFormProps> = ({
@@ -19,9 +18,9 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   onClose,
   onSubmit,
   isLoading,
+  workflows,
 }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
   // Form states
@@ -32,16 +31,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   const [requiresResource, setRequiresResource] = useState(initialData?.requiresResource ?? false);
   const [maxConcurrent, setMaxConcurrent] = useState(initialData?.maxConcurrent || 1);
   const [customFields, setCustomFields] = useState<ServiceCustomField[]>(initialData?.customFields || []);
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [workflowId, setWorkflowId] = useState<string | null>(initialData?.workflowId || null);
-
-  useEffect(() => {
-    if (user?.tenantId) {
-      getWorkflows(user.tenantId)
-        .then(setWorkflows)
-        .catch((err) => console.error('Failed to load workflows:', err));
-    }
-  }, [user]);
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});

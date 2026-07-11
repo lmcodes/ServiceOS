@@ -64,31 +64,11 @@ export async function createQueueItem(
   const queueRef = doc(collection(db, QUEUES_COLLECTION));
 
   const result = await runTransaction(db, async (transaction) => {
+    // 1. ALL READ OPERATIONS FIRST
     const branchSnap = await transaction.get(branchRef);
     if (!branchSnap.exists()) {
       throw new Error('Branch does not exist');
     }
-
-    const branchData = branchSnap.data();
-    const timezone = branchData.timezone || 'Asia/Bangkok';
-    const todayStr = getTodayDateInTimezone(timezone);
-
-    let nextQueueNumber = 1;
-    const lastResetDate = branchData.lastDailyResetDate;
-
-    if (lastResetDate === todayStr) {
-      nextQueueNumber = (branchData.currentQueueNumber || 0) + 1;
-    }
-
-    // Update branch counters
-    transaction.update(branchRef, {
-      currentQueueNumber: nextQueueNumber,
-      lastDailyResetDate: todayStr,
-      updatedAt: serverTimestamp()
-    });
-
-    const prefix = branchData.queuePrefix || 'A';
-    const formattedQueueNumber = `${prefix}-${String(nextQueueNumber).padStart(3, '0')}`;
 
     // Check if the service maps to a workflow template
     const serviceRef = doc(db, 'services', serviceId);
@@ -121,6 +101,28 @@ export async function createQueueItem(
         }
       }
     }
+
+    // 2. WRITE OPERATIONS AFTER READS
+    const branchData = branchSnap.data();
+    const timezone = branchData.timezone || 'Asia/Bangkok';
+    const todayStr = getTodayDateInTimezone(timezone);
+
+    let nextQueueNumber = 1;
+    const lastResetDate = branchData.lastDailyResetDate;
+
+    if (lastResetDate === todayStr) {
+      nextQueueNumber = (branchData.currentQueueNumber || 0) + 1;
+    }
+
+    // Update branch counters
+    transaction.update(branchRef, {
+      currentQueueNumber: nextQueueNumber,
+      lastDailyResetDate: todayStr,
+      updatedAt: serverTimestamp()
+    });
+
+    const prefix = branchData.queuePrefix || 'A';
+    const formattedQueueNumber = `${prefix}-${String(nextQueueNumber).padStart(3, '0')}`;
 
     // Create queue item doc
     transaction.set(queueRef, {
