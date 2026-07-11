@@ -28,7 +28,7 @@ import {
 
 export const AppointmentsPage: React.FC = () => {
   const { user } = useAuth();
-  useTranslation();
+  const { t } = useTranslation();
 
   // Branch Selection
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -147,7 +147,7 @@ export const AppointmentsPage: React.FC = () => {
   };
 
   const handleCancel = async (apptId: string) => {
-    if (window.confirm('Are you sure you want to cancel this appointment?')) {
+    if (window.confirm(t('pages.appointments.confirmCancelPrompt'))) {
       try {
         await cancelMutation.mutateAsync(apptId);
       } catch (err) {
@@ -202,10 +202,10 @@ export const AppointmentsPage: React.FC = () => {
         <div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <CalendarIcon className="w-7 h-7 text-brand-655" />
-            Appointments Management
+            {t('pages.appointments.consoleTitle')}
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            View scheduled appointments, check-in customers, and monitor capacity.
+            {t('pages.appointments.consoleSubtitle')}
           </p>
         </div>
 
@@ -240,7 +240,7 @@ export const AppointmentsPage: React.FC = () => {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <span className="text-sm font-bold text-slate-900 dark:text-white min-w-[120px] text-center">
-            {selectedDate === new Date().toISOString().split('T')[0] ? 'Today' : selectedDate}
+            {selectedDate === new Date().toISOString().split('T')[0] ? t('pages.appointments.today') : selectedDate}
           </span>
           <button
             onClick={() => shiftDate(1)}
@@ -261,7 +261,7 @@ export const AppointmentsPage: React.FC = () => {
             }}
             className="px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-655 dark:text-slate-350 border border-slate-200 dark:border-slate-800 cursor-pointer transition-colors"
           >
-            Go to Today
+            {t('pages.appointments.goToToday')}
           </button>
           <input
             type="date"
@@ -277,7 +277,7 @@ export const AppointmentsPage: React.FC = () => {
         {/* Metric Scheduled */}
         <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Scheduled</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('pages.appointments.statScheduled')}</span>
             <span className="text-xl font-black text-slate-900 dark:text-white mt-1 block">{stats.scheduled}</span>
           </div>
           <div className="w-10 h-10 bg-brand-50 dark:bg-brand-950/20 text-brand-655 border border-brand-100 dark:border-brand-900/50 rounded-xl flex items-center justify-center">
@@ -288,7 +288,7 @@ export const AppointmentsPage: React.FC = () => {
         {/* Metric Checked In */}
         <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Checked In</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('pages.appointments.statCheckedIn')}</span>
             <span className="text-xl font-black text-slate-900 dark:text-white mt-1 block">{stats.checkedIn}</span>
           </div>
           <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-550 border border-emerald-100 dark:border-emerald-900/50 rounded-xl flex items-center justify-center">
@@ -299,7 +299,7 @@ export const AppointmentsPage: React.FC = () => {
         {/* Metric No Show */}
         <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">No Show</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('pages.appointments.statNoShow')}</span>
             <span className="text-xl font-black text-slate-900 dark:text-white mt-1 block">{stats.noShows}</span>
           </div>
           <div className="w-10 h-10 bg-amber-50 dark:bg-amber-950/20 text-amber-550 border border-amber-100 dark:border-amber-900/50 rounded-xl flex items-center justify-center">
@@ -310,10 +310,10 @@ export const AppointmentsPage: React.FC = () => {
         {/* Metric Cancelled */}
         <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Cancelled</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('pages.appointments.statCancelled')}</span>
             <span className="text-xl font-black text-slate-900 dark:text-white mt-1 block">{stats.cancelled}</span>
           </div>
-          <div className="w-10 h-10 bg-red-50 dark:bg-red-950/20 text-red-550 border border-red-100 dark:border-red-900/50 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-red-50 dark:bg-red-955/20 text-red-550 border border-red-100 dark:border-red-900/50 rounded-xl flex items-center justify-center">
             <XCircle className="w-5 h-5" />
           </div>
         </div>
@@ -321,15 +321,15 @@ export const AppointmentsPage: React.FC = () => {
 
       {/* Success alert for check-in */}
       {successCheckIn && (
-        <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-300 text-sm font-medium rounded-2xl shadow-sm flex items-center justify-between animate-in fade-in duration-300">
+        <div className="p-4 bg-emerald-50 dark:bg-emerald-955/30 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-300 text-sm font-medium rounded-2xl shadow-sm flex items-center justify-between animate-in fade-in duration-300">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-emerald-555" />
             <span>
-              Checked in **{successCheckIn.name}** successfully! Ticket assigned: **{successCheckIn.queueNumber}**
+              {t('pages.appointments.checkInSuccess', { name: successCheckIn.name, queueNumber: successCheckIn.queueNumber })}
             </span>
           </div>
           <button onClick={() => setSuccessCheckIn(null)} className="text-xs hover:underline cursor-pointer">
-            Dismiss
+            {t('pages.branches.form.cancel')}
           </button>
         </div>
       )}
@@ -341,7 +341,7 @@ export const AppointmentsPage: React.FC = () => {
             <span>{checkInError}</span>
           </div>
           <button onClick={() => setCheckInError(null)} className="text-xs hover:underline cursor-pointer">
-            Dismiss
+            {t('pages.branches.form.cancel')}
           </button>
         </div>
       )}
@@ -364,7 +364,7 @@ export const AppointmentsPage: React.FC = () => {
                     : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
-                {s === 'ALL' ? 'All' : s.replace('_', ' ')}
+                {s === 'ALL' ? t('pages.appointments.filterAll') : s === 'CONFIRMED' ? t('pages.appointments.filterConfirmed') : s === 'CHECKED_IN' ? t('pages.appointments.filterCheckedIn') : s === 'NO_SHOW' ? t('pages.appointments.filterNoShow') : t('pages.appointments.filterCancelled')}
               </button>
             ))}
           </div>
@@ -376,7 +376,7 @@ export const AppointmentsPage: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by customer or ID..."
+              placeholder={t('pages.appointments.searchPlaceholder')}
               className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs focus:ring-2 focus:ring-brand-500/20 focus:outline-none"
             />
           </div>
@@ -386,22 +386,22 @@ export const AppointmentsPage: React.FC = () => {
         {loadingAppointments ? (
           <div className="p-12 text-center">
             <Loader2 className="w-8 h-8 animate-spin text-brand-600 mx-auto" />
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-medium">Loading appointments...</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-medium">{t('pages.appointments.loadingAppointments')}</p>
           </div>
         ) : filteredAppointments.length === 0 ? (
           <div className="p-12 text-center text-slate-400 italic text-xs">
-            No appointments found for the selected options.
+            {t('pages.appointments.noAppointments')}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left text-xs">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/30 text-slate-450 border-b border-slate-100 dark:border-slate-800/80 font-bold uppercase tracking-wider">
-                  <th className="p-4">Time</th>
-                  <th className="p-4">Customer</th>
-                  <th className="p-4">Service</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4 text-right">Actions</th>
+                  <th className="p-4">{t('pages.appointments.tableTime')}</th>
+                  <th className="p-4">{t('pages.appointments.tableCustomer')}</th>
+                  <th className="p-4">{t('pages.appointments.tableService')}</th>
+                  <th className="p-4">{t('pages.appointments.tableStatus')}</th>
+                  <th className="p-4 text-right">{t('pages.appointments.tableActions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
@@ -424,7 +424,7 @@ export const AppointmentsPage: React.FC = () => {
                       </td>
                       <td className="p-4">
                         <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-655 dark:text-slate-350 font-bold rounded-lg uppercase text-[10px]">
-                          {svc?.name || 'Loading service...'}
+                          {svc?.name || t('common.loading')}
                         </span>
                       </td>
                       <td className="p-4">
@@ -437,34 +437,34 @@ export const AppointmentsPage: React.FC = () => {
                             ? 'bg-amber-50 dark:bg-amber-955/20 text-amber-600 border border-amber-100/50 dark:border-amber-900/30'
                             : 'bg-red-50 dark:bg-red-955/20 text-red-655 border border-red-100/50 dark:border-red-900/30'
                         }`}>
-                          {appt.status.replace('_', ' ')}
+                          {appt.status === 'CONFIRMED' ? t('pages.appointments.filterConfirmed') : appt.status === 'CHECKED_IN' ? t('pages.appointments.filterCheckedIn') : appt.status === 'NO_SHOW' ? t('pages.appointments.filterNoShow') : t('pages.appointments.filterCancelled')}
                         </span>
                       </td>
                       <td className="p-4 text-right">
                         {appt.status === 'CONFIRMED' ? (
                           <div className="flex justify-end gap-1.5">
                             <button
-                              onClick={() => handleCheckIn(appt)}
+                               onClick={() => handleCheckIn(appt)}
                               className="px-2.5 py-1 bg-emerald-655 hover:bg-emerald-600 text-white rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm shadow-emerald-600/10 hover:scale-[1.02]"
                             >
                               <UserCheck className="w-3.5 h-3.5" />
-                              <span>Check In</span>
+                              <span>{t('pages.appointments.btnCheckIn')}</span>
                             </button>
                             <button
                               onClick={() => handleNoShow(appt.id)}
                               className="px-2 py-1 bg-amber-50 dark:bg-amber-950/20 hover:bg-amber-100 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900/50 rounded-lg font-bold transition-all cursor-pointer"
                             >
-                              No Show
+                              {t('pages.appointments.btnNoShow')}
                             </button>
                             <button
                               onClick={() => handleCancel(appt.id)}
-                              className="px-2 py-1 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 rounded-lg font-bold transition-all cursor-pointer"
+                              className="px-2 py-1 bg-red-50 dark:bg-red-955/20 hover:bg-red-100 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50 rounded-lg font-bold transition-all cursor-pointer"
                             >
-                              Cancel
+                              {t('pages.appointments.btnCancel')}
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-slate-400 italic">No actions</span>
+                          <span className="text-[10px] text-slate-400 italic">{t('pages.appointments.noActions')}</span>
                         )}
                       </td>
                     </tr>

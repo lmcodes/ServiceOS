@@ -203,14 +203,14 @@ export const BookingPage: React.FC = () => {
   // 5. Submit Form
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    if (!name.trim()) errors.name = 'Name is required';
+    if (!name.trim()) errors.name = t('pages.appointments.validationName');
     if (!email.trim()) {
-      errors.email = 'Email is required';
+      errors.email = t('pages.appointments.validationEmail');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Invalid email address';
+      errors.email = t('pages.appointments.validationEmail');
     }
     if (phone.trim() && !/^0[0-9]{8,9}$/.test(phone.trim())) {
-      errors.phone = 'Phone number format must be e.g. 0812345678';
+      errors.phone = t('pages.appointments.validationPhone');
     }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -262,10 +262,10 @@ export const BookingPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-slate-50 dark:bg-slate-955">
         <Loader2 className="w-10 h-10 text-brand-600 animate-spin" />
         <p className="mt-4 text-sm text-slate-500 dark:text-slate-400 font-medium animate-pulse">
-          Loading branch details...
+          {t('common.loading')}
         </p>
       </div>
     );
@@ -277,10 +277,10 @@ export const BookingPage: React.FC = () => {
         <div className="glass-panel max-w-md w-full p-6 text-center border-danger/25">
           <AlertCircle className="w-12 h-12 text-danger mx-auto mb-4" />
           <h3 className="text-lg font-bold text-slate-955 dark:text-white">
-            {error || 'Branch Unavailable'}
+            {error}
           </h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-            Please double check the link or try again later.
+            {t('pages.appointments.bookingFailed')}
           </p>
         </div>
       </div>
@@ -305,7 +305,7 @@ export const BookingPage: React.FC = () => {
               <CalendarIcon className="w-7 h-7 text-brand-655" />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-              {branch.name} - Online Booking
+              {branch.name} - {t('pages.appointments.bookingTitle')}
             </h1>
             <div className="flex flex-wrap items-center justify-center gap-y-2 gap-x-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
               {branch.address && (
@@ -329,16 +329,16 @@ export const BookingPage: React.FC = () => {
           <div className="glass-panel p-6 rounded-3xl animate-in fade-in slide-in-from-bottom-6 duration-300">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1.5 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-brand-500" />
-              Select Service
+              {t('pages.appointments.stepService')}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-              Select the service you wish to book an appointment for.
+              {t('pages.appointments.bookingSubtitle')}
             </p>
 
             {services.length === 0 ? (
               <div className="p-8 text-center bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
                 <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                  No active services are open for booking at this branch.
+                  {t('pages.services.noServicesDesc')}
                 </p>
               </div>
             ) : (
@@ -353,7 +353,7 @@ export const BookingPage: React.FC = () => {
                     className="flex flex-col items-start p-5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl text-left transition-all hover:scale-[1.015] hover:shadow-md hover:border-brand-500/40 cursor-pointer group"
                   >
                     <span className="px-2 py-0.5 bg-brand-50 dark:bg-brand-950/30 text-brand-655 font-bold text-[10px] uppercase rounded-full tracking-wider mb-2 border border-brand-100/50 dark:border-brand-900/20">
-                      {svc.category || 'Service'}
+                      {svc.category || t('pages.appointments.tableService')}
                     </span>
                     <h3 className="font-bold text-slate-900 dark:text-white text-sm group-hover:text-brand-655 transition-colors">
                       {svc.name}
@@ -365,7 +365,7 @@ export const BookingPage: React.FC = () => {
                     )}
                     <div className="flex items-center gap-1 mt-4 text-[11px] font-semibold text-slate-450 dark:text-slate-500">
                       <Clock className="w-3.5 h-3.5" />
-                      <span>{svc.estimatedDurationMinutes} mins</span>
+                      <span>{t('pages.appointments.duration', { mins: svc.estimatedDurationMinutes })}</span>
                     </div>
                   </button>
                 ))}
@@ -379,21 +379,21 @@ export const BookingPage: React.FC = () => {
           <div className="glass-panel p-6 rounded-3xl animate-in fade-in zoom-in-95 duration-250 space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/60">
               <div>
-                <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">Selected Service</span>
+                <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">{t('pages.appointments.selectedServiceLabel')}</span>
                 <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{selectedService.name}</h3>
               </div>
               <button 
                 onClick={() => setStep(1)} 
                 className="text-xs font-bold text-brand-655 hover:underline cursor-pointer"
               >
-                Change
+                {t('pages.branches.branchCard.edit')}
               </button>
             </div>
 
             {/* Date selector */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wider block">
-                1. Select Date
+                {t('pages.appointments.stepDateTime')}
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {getNext14Days().map((d) => (
@@ -424,10 +424,10 @@ export const BookingPage: React.FC = () => {
             {selectedDate && (
               <div className="space-y-2 animate-in fade-in duration-200">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wider block">
-                  2. Select Time Slot
+                  {t('pages.appointments.availableSlots')}
                 </label>
                 {getTimeSlots().length === 0 ? (
-                  <p className="text-xs text-slate-400 italic">No slots available on this day.</p>
+                  <p className="text-xs text-slate-400 italic">{t('pages.appointments.noSlotsAvailable')}</p>
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {getTimeSlots().map((tStr) => {
@@ -450,7 +450,7 @@ export const BookingPage: React.FC = () => {
                           }`}
                         >
                           <span>{tStr}</span>
-                          {isFull && <span className="block text-[8px] font-medium text-red-500 uppercase tracking-wide">Full</span>}
+                          {isFull && <span className="block text-[8px] font-medium text-red-500 uppercase tracking-wide">{t('pages.appointments.slotFull')}</span>}
                         </button>
                       );
                     })}
@@ -466,7 +466,7 @@ export const BookingPage: React.FC = () => {
                   onClick={() => setStep(3)}
                   className="w-full py-3 bg-brand-655 hover:bg-brand-600 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-brand-655/10 cursor-pointer"
                 >
-                  <span>Continue to Contact Details</span>
+                  <span>{t('pages.appointments.btnNext')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -479,7 +479,7 @@ export const BookingPage: React.FC = () => {
           <div className="glass-panel p-6 rounded-3xl animate-in fade-in zoom-in-95 duration-250">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/60 mb-6">
               <div>
-                <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">Appointment summary</span>
+                <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">{t('pages.appointments.stepConfirm')}</span>
                 <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
                   {selectedService.name} on {selectedDate} @ {selectedTime}
                 </h3>
@@ -488,7 +488,7 @@ export const BookingPage: React.FC = () => {
                 onClick={() => setStep(2)} 
                 className="text-xs font-bold text-brand-655 hover:underline cursor-pointer"
               >
-                Change Time
+                {t('pages.branches.branchCard.edit')}
               </button>
             </div>
 
@@ -503,7 +503,7 @@ export const BookingPage: React.FC = () => {
               {/* Name */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                  Full Name <span className="text-red-500">*</span>
+                  {t('pages.queues.customerName')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -511,7 +511,7 @@ export const BookingPage: React.FC = () => {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Jane Doe"
+                    placeholder={t('pages.appointments.formNamePlaceholder')}
                     required
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
                   />
@@ -522,7 +522,7 @@ export const BookingPage: React.FC = () => {
               {/* Email */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                  Email Address <span className="text-red-500">*</span>
+                  {t('pages.queues.customerEmail')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -530,7 +530,7 @@ export const BookingPage: React.FC = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. jane@example.com"
+                    placeholder={t('pages.appointments.formEmailPlaceholder')}
                     required
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
                   />
@@ -541,7 +541,7 @@ export const BookingPage: React.FC = () => {
               {/* Phone */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
-                  Phone Number
+                  {t('pages.queues.customerPhone')}
                 </label>
                 <div className="relative">
                   <PhoneIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -549,7 +549,7 @@ export const BookingPage: React.FC = () => {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. 0812345678"
+                    placeholder={t('pages.appointments.formPhonePlaceholder')}
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
                   />
                 </div>
@@ -566,11 +566,11 @@ export const BookingPage: React.FC = () => {
                   {submitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Confirming Booking...</span>
+                      <span>{t('common.sending')}</span>
                     </>
                   ) : (
                     <>
-                      <span>Confirm Appointment Booking</span>
+                      <span>{t('pages.appointments.btnSubmitBooking')}</span>
                       <CheckCircle2 className="w-4 h-4" />
                     </>
                   )}
@@ -588,31 +588,31 @@ export const BookingPage: React.FC = () => {
             </div>
 
             <div>
-              <h2 className="text-xl font-black text-slate-900 dark:text-white">Booking Confirmed!</h2>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">{t('pages.appointments.bookingSuccess')}</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                Your appointment has been successfully scheduled. We look forward to seeing you.
+                {t('pages.appointments.bookingSuccessDesc')}
               </p>
             </div>
 
             <div className="p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm mx-auto space-y-3.5 text-left text-xs">
               <div className="flex justify-between border-b border-slate-100 dark:border-slate-850 pb-2">
-                <span className="text-slate-450">Branch</span>
+                <span className="text-slate-450">{t('pages.appointments.branchLabel')}</span>
                 <span className="font-bold text-slate-900 dark:text-white">{branch.name}</span>
               </div>
               <div className="flex justify-between border-b border-slate-100 dark:border-slate-850 pb-2">
-                <span className="text-slate-450">Service</span>
+                <span className="text-slate-450">{t('pages.appointments.tableService')}</span>
                 <span className="font-bold text-slate-900 dark:text-white">{selectedService.name}</span>
               </div>
               <div className="flex justify-between border-b border-slate-100 dark:border-slate-850 pb-2">
-                <span className="text-slate-450">Date</span>
+                <span className="text-slate-450">{t('pages.appointments.selectedDateLabel')}</span>
                 <span className="font-bold text-slate-900 dark:text-white">{selectedDate}</span>
               </div>
               <div className="flex justify-between border-b border-slate-100 dark:border-slate-850 pb-2">
-                <span className="text-slate-450">Time Slot</span>
+                <span className="text-slate-450">{t('pages.appointments.selectedTimeLabel')}</span>
                 <span className="font-bold text-slate-900 dark:text-white">{selectedTime}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-450">Reference ID</span>
+                <span className="text-slate-450">{t('pages.appointments.referenceCode')}</span>
                 <span className="font-bold text-brand-655 uppercase tracking-wide">{createdId?.slice(0, 8)}</span>
               </div>
             </div>
@@ -631,7 +631,7 @@ export const BookingPage: React.FC = () => {
                 }}
                 className="py-2.5 px-6 border border-slate-200 dark:border-slate-850 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-655 dark:text-slate-350 font-bold text-xs rounded-xl cursor-pointer transition-colors"
               >
-                Book Another Appointment
+                {t('pages.appointments.doneBtn')}
               </button>
             </div>
           </div>

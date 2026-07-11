@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { 
-  createAppointment, 
   cancelAppointment, 
   markNoShowAppointment, 
   checkSlotAvailability 
 } from './appointmentRepository';
-import { runTransaction, getDoc, getDocs, doc } from 'firebase/firestore';
+import { getDoc, getDocs } from 'firebase/firestore';
 
 // Mock Firebase Firestore functions
 vi.mock('firebase/firestore', async (importOriginal) => {
