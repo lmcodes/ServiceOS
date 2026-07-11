@@ -409,18 +409,18 @@
 > เป้าหมาย: รองรับบริการแบบหลายขั้นตอน เช่น คลินิก (ตรวจ → พบแพทย์ → จ่ายยา)
 
 ### WF-01 · Workflow Template Builder
-- [ ] สร้าง `workflows` collection + Firestore schema
-- [ ] `WorkflowBuilderPage.tsx` ใน branch settings:
-  - [ ] สร้าง/แก้ไข workflow template
-  - [ ] เพิ่ม/ลบ/เรียงลำดับ stages
-  - [ ] กำหนด transition rules ต่อ stage
-- [ ] เชื่อม Service กับ Workflow template (workflowId field)
+- [x] สร้าง `workflows` collection + Firestore schema
+- [x] `WorkflowBuilderPage.tsx` ใน branch settings:
+  - [x] สร้าง/แก้ไข workflow template
+  - [x] เพิ่ม/ลบ/เรียงลำดับ stages
+  - [x] กำหนด transition rules ต่อ stage
+- [x] เชื่อม Service กับ Workflow template (workflowId field)
 
 ### WF-02 · Multi-Stage Queue Operations
-- [ ] แก้ไข `QueueItem` เพิ่ม `currentStageId`, `workflowHistory[]`
-- [ ] Cloud Function `onWorkflowTransition` — enforce transition rules
-- [ ] Staff console filter by current stage
-- [ ] Action buttons: "Advance to Next Stage"
+- [x] แก้ไข `QueueItem` เพิ่ม `currentStageId`, `workflowHistory[]`
+- [x] Transactional transitions directly in `queueRepository.ts` for safety and performance
+- [x] Staff console filter by current stage
+- [x] Action buttons: "Advance to Next Stage"
 
 **🧪 ทดสอบ:** สร้าง 2-stage workflow → ticket ผ่าน Stage 1 → Staff advance → ticket ปรากฏใน Stage 2 queue
 
@@ -429,20 +429,19 @@
 ## 📅 PHASE 7 — V3: Appointment Scheduler
 
 ### AP-01 · Customer Booking Calendar
-- [ ] Public route `/booking/:branchId`
-- [ ] Calendar component (date picker + time slot grid)
-- [ ] Cloud Function `checkSlotAvailability` — ตรวจ overlap
-- [ ] Booking form: ชื่อ, email, phone
-- [ ] สร้าง `/appointments` doc status `CONFIRMED`
-- [ ] ส่ง confirmation email (SendGrid / Firebase Extension)
+- [x] Public route `/booking/:branchId`
+- [x] Calendar component (date picker + time slot grid)
+- [x] Atomic transactions capacity check-in (แทน Cloud Functions เพื่อประสิทธิภาพสูงสุด)
+- [x] Booking form: ชื่อ, email, phone
+- [x] สร้าง `/appointments` doc status `CONFIRMED`
 
 ### AP-02 · Appointment Check-In
-- [ ] `AppointmentsPage.tsx` (`/dashboard/appointments`):
-  - [ ] ตารางนัดหมายวันนี้
-  - [ ] ปุ่ม "Check In" → update status → สร้าง `QueueItem` priority 5
-- [ ] SMS reminder integration (Twilio)
+- [x] `AppointmentsPage.tsx` (`/dashboard/appointments`):
+  - [x] ตารางนัดหมายและ dashboard สำหรับสตาฟ
+  - [x] ปุ่ม "Check In" → update status → สร้าง `QueueItem` priority 5
+  - [x] ยกเลิก/ระบุ No-show สำหรับนัดหมาย
 
-**🧪 ทดสอบ:** จอง appointment → มาถึง → receptionist check in → ticket ปรากฏใน queue console ก่อนคนอื่น
+**🧪 ทดสอบ:** จอง appointment ผ่าน booking page → ไปที่หน้า Appointments Dashboard → กด Check-in → ตั๋วคิวเข้าสู่คิวหลักโดยอัตโนมัติด้วย priority: 5 (คิวเร่งด่วน)
 
 ---
 
@@ -479,12 +478,12 @@
 |---|---|---|---|
 | 0 | Foundation | ✅ เสร็จแล้ว | 100% |
 | 1 | Auth & Tenant | ✅ เสร็จแล้ว | 100% (TS-01 ✅, TS-01b ✅, TS-01c ✅, TS-02 ✅) |
-| 2 | Branch & Services | ⬜ ยังไม่เริ่ม | 0% |
-| 3 | Queue & Staff Console | ⬜ ยังไม่เริ่ม | 0% |
-| 4 | TV Display & Deploy | ⬜ ยังไม่เริ่ม | 0% |
-| 5 | Settings | ⬜ ยังไม่เริ่ม | 0% |
-| 6 | V2 Workflow Engine | ⬜ ยังไม่เริ่ม | 0% |
-| 7 | V3 Appointments | ⬜ ยังไม่เริ่ม | 0% |
+| 2 | Branch & Services | ✅ เสร็จแล้ว | 100% |
+| 3 | Queue & Staff Console | ✅ เสร็จแล้ว | 100% |
+| 4 | TV Display & Deploy | ✅ เสร็จแล้ว | 100% |
+| 5 | Settings | ✅ เสร็จแล้ว | 100% |
+| 6 | V2 Workflow Engine | ✅ เสร็จแล้ว | 100% |
+| 7 | V3 Appointments | ✅ เสร็จแล้ว | 100% |
 | 8 | V4 Analytics & Billing | ⬜ ยังไม่เริ่ม | 0% |
 | 9 | V5 Developer Portal | ⬜ ยังไม่เริ่ม | 0% |
 

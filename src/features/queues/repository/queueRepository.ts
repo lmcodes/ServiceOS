@@ -13,10 +13,20 @@ import {
   runTransaction
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import { QueueItem } from '@/types/firestore';
+import { QueueItem, WorkflowHistoryEntry } from '@/types/firestore';
 
 const QUEUES_COLLECTION = 'queues';
 const BRANCHES_COLLECTION = 'branches';
+
+function getMillisFromTimestamp(timestamp: any): number {
+  if (!timestamp) return Date.now();
+  if (typeof timestamp.toMillis === 'function') return timestamp.toMillis();
+  if (timestamp.seconds !== undefined) return timestamp.seconds * 1000;
+  if (timestamp instanceof Date) return timestamp.getTime();
+  if (typeof timestamp === 'string' || typeof timestamp === 'number') return new Date(timestamp).getTime();
+  return Date.now();
+}
+
 
 function getTodayDateInTimezone(timezone: string): string {
   try {
@@ -80,6 +90,38 @@ export async function createQueueItem(
     const prefix = branchData.queuePrefix || 'A';
     const formattedQueueNumber = `${prefix}-${String(nextQueueNumber).padStart(3, '0')}`;
 
+    // Check if the service maps to a workflow template
+    const serviceRef = doc(db, 'services', serviceId);
+    const serviceSnap = await transaction.get(serviceRef);
+    
+    let workflowId: string | null = null;
+    let currentStageId: string | null = null;
+    let workflowHistory: WorkflowHistoryEntry[] = [];
+
+    if (serviceSnap.exists()) {
+      const serviceData = serviceSnap.data();
+      if (serviceData.workflowId) {
+        const workflowRef = doc(db, 'workflows', serviceData.workflowId);
+        const workflowSnap = await transaction.get(workflowRef);
+        if (workflowSnap.exists()) {
+          const workflowData = workflowSnap.data();
+          const stageIds = workflowData.stageIds || [];
+          if (stageIds.length > 0) {
+            workflowId = serviceData.workflowId;
+            currentStageId = stageIds[0];
+            workflowHistory = [{
+              stageId: currentStageId as string,
+              enteredAt: new Date() as any, // Local timestamp inside transaction
+              exitedAt: null,
+              durationSeconds: null,
+              assignedUserId: null,
+              assignedResourceId: null
+            }];
+          }
+        }
+      }
+    }
+
     // Create queue item doc
     transaction.set(queueRef, {
       tenantId: branchData.tenantId,
@@ -94,7 +136,9 @@ export async function createQueueItem(
       priority: 0,
       calledCount: 0,
       customData: customerData.customData || {},
-      workflowHistory: [],
+      workflowId,
+      currentStageId,
+      workflowHistory,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
@@ -142,10 +186,34 @@ export function subscribeQueueItem(
  */
 export async function cancelQueueItem(ticketId: string): Promise<void> {
   const docRef = doc(db, QUEUES_COLLECTION, ticketId);
-  await updateDoc(docRef, {
-    status: 'CANCELLED',
-    cancelledAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
+  await runTransaction(db, async (transaction) => {
+    const snapRead = await transaction.get(docRef);
+    if (!snapRead.exists()) return;
+    const currentData = snapRead.data() as QueueItem;
+    const updatePayload: Record<string, any> = {
+      status: 'CANCELLED',
+      cancelledAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    if (currentData.workflowId && currentData.currentStageId) {
+      const history = [...(currentData.workflowHistory || [])];
+      const activeEntryIndex = history.findIndex((h) => h.stageId === currentData.currentStageId && !h.exitedAt);
+      if (activeEntryIndex !== -1) {
+        const activeEntry = history[activeEntryIndex];
+        const enteredMs = getMillisFromTimestamp(activeEntry.enteredAt);
+        const now = new Date();
+        const durationSeconds = Math.max(0, Math.floor((now.getTime() - enteredMs) / 1000));
+        history[activeEntryIndex] = {
+          ...activeEntry,
+          exitedAt: now as any,
+          durationSeconds
+        };
+        updatePayload.workflowHistory = history;
+      }
+    }
+
+    transaction.update(docRef, updatePayload);
   });
 }
 
@@ -216,13 +284,22 @@ export function subscribeWaitingAheadCount(
 export async function callNextTicket(
   branchId: string, 
   staffUserId: string, 
-  counter?: string
+  counter?: string,
+  currentStageId?: string | null
 ): Promise<QueueItem | null> {
   // 1. Find oldest WAITING ticket
+  const constraints = [
+    where('branchId', '==', branchId),
+    where('status', '==', 'WAITING')
+  ];
+
+  if (currentStageId !== undefined) {
+    constraints.push(where('currentStageId', '==', currentStageId));
+  }
+
   const q = query(
     collection(db, QUEUES_COLLECTION),
-    where('branchId', '==', branchId),
-    where('status', '==', 'WAITING'),
+    ...constraints,
     orderBy('priority', 'desc'),
     orderBy('sequenceNumber', 'asc'),
     limit(1)
@@ -315,10 +392,36 @@ export async function startServingTicket(
  */
 export async function completeTicket(ticketId: string): Promise<void> {
   const docRef = doc(db, QUEUES_COLLECTION, ticketId);
-  await updateDoc(docRef, {
-    status: 'COMPLETED',
-    completedAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
+  await runTransaction(db, async (transaction) => {
+    const snapRead = await transaction.get(docRef);
+    if (!snapRead.exists()) {
+      throw new Error('Ticket does not exist');
+    }
+    const currentData = snapRead.data() as QueueItem;
+    const updatePayload: Record<string, any> = {
+      status: 'COMPLETED',
+      completedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    if (currentData.workflowId && currentData.currentStageId) {
+      const history = [...(currentData.workflowHistory || [])];
+      const activeEntryIndex = history.findIndex((h) => h.stageId === currentData.currentStageId && !h.exitedAt);
+      if (activeEntryIndex !== -1) {
+        const activeEntry = history[activeEntryIndex];
+        const enteredMs = getMillisFromTimestamp(activeEntry.enteredAt);
+        const now = new Date();
+        const durationSeconds = Math.max(0, Math.floor((now.getTime() - enteredMs) / 1000));
+        history[activeEntryIndex] = {
+          ...activeEntry,
+          exitedAt: now as any,
+          durationSeconds
+        };
+        updatePayload.workflowHistory = history;
+      }
+    }
+
+    transaction.update(docRef, updatePayload);
   });
 }
 
@@ -327,10 +430,95 @@ export async function completeTicket(ticketId: string): Promise<void> {
  */
 export async function markNoShow(ticketId: string): Promise<void> {
   const docRef = doc(db, QUEUES_COLLECTION, ticketId);
-  await updateDoc(docRef, {
-    status: 'NO_SHOW',
-    noShowAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
+  await runTransaction(db, async (transaction) => {
+    const snapRead = await transaction.get(docRef);
+    if (!snapRead.exists()) return;
+    const currentData = snapRead.data() as QueueItem;
+    const updatePayload: Record<string, any> = {
+      status: 'NO_SHOW',
+      noShowAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    if (currentData.workflowId && currentData.currentStageId) {
+      const history = [...(currentData.workflowHistory || [])];
+      const activeEntryIndex = history.findIndex((h) => h.stageId === currentData.currentStageId && !h.exitedAt);
+      if (activeEntryIndex !== -1) {
+        const activeEntry = history[activeEntryIndex];
+        const enteredMs = getMillisFromTimestamp(activeEntry.enteredAt);
+        const now = new Date();
+        const durationSeconds = Math.max(0, Math.floor((now.getTime() - enteredMs) / 1000));
+        history[activeEntryIndex] = {
+          ...activeEntry,
+          exitedAt: now as any,
+          durationSeconds
+        };
+        updatePayload.workflowHistory = history;
+      }
+    }
+
+    transaction.update(docRef, updatePayload);
+  });
+}
+
+/**
+ * Advance a queue ticket to a target workflow stage
+ */
+export async function advanceWorkflowStage(
+  ticketId: string,
+  targetStageId: string,
+  staffUserId: string
+): Promise<void> {
+  const docRef = doc(db, QUEUES_COLLECTION, ticketId);
+  await runTransaction(db, async (transaction) => {
+    const snapRead = await transaction.get(docRef);
+    if (!snapRead.exists()) {
+      throw new Error('Ticket does not exist');
+    }
+    const currentData = snapRead.data() as QueueItem;
+    if (!currentData.workflowId || !currentData.currentStageId) {
+      throw new Error('Ticket is not in a workflow');
+    }
+
+    const now = new Date();
+    const history = [...(currentData.workflowHistory || [])];
+    const activeEntryIndex = history.findIndex(
+      (h) => h.stageId === currentData.currentStageId && !h.exitedAt
+    );
+
+    if (activeEntryIndex !== -1) {
+      const activeEntry = history[activeEntryIndex];
+      const enteredMs = getMillisFromTimestamp(activeEntry.enteredAt);
+      const durationSeconds = Math.max(0, Math.floor((now.getTime() - enteredMs) / 1000));
+      history[activeEntryIndex] = {
+        ...activeEntry,
+        exitedAt: now as any,
+        durationSeconds,
+        assignedUserId: staffUserId
+      };
+    }
+
+    // Append new stage
+    history.push({
+      stageId: targetStageId,
+      enteredAt: now as any,
+      exitedAt: null,
+      durationSeconds: null,
+      assignedUserId: null,
+      assignedResourceId: null
+    });
+
+    transaction.update(docRef, {
+      currentStageId: targetStageId,
+      status: 'WAITING',
+      calledByUserId: null,
+      calledByCounter: '',
+      calledAt: null,
+      calledCount: 0,
+      servingStartedAt: null,
+      workflowHistory: history,
+      updatedAt: serverTimestamp()
+    });
   });
 }
 

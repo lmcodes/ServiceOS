@@ -27,8 +27,12 @@ import StaffListPage from '@/features/staff/components/StaffListPage';
 
 import { SettingsPage } from '@/features/settings/components/SettingsPage';
 
+// Appointments Feature
+import BookingPage from '@/features/appointments/components/BookingPage';
+import AppointmentsPage from '@/features/appointments/components/AppointmentsPage';
 
-// Mock Skeleton Pages (Not implementing business logic)
+
+// Mock Landing Page
 const MockLanding: React.FC = () => {
   const { t } = useTranslation();
   return (
@@ -50,22 +54,6 @@ const MockLanding: React.FC = () => {
 };
 
 
-
-
-const MockAppointments: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('pages.appointments.title')}</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('pages.appointments.subtitle')}</p>
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center text-slate-500 shadow-sm">
-        {t('pages.appointments.placeholder')}
-      </div>
-    </div>
-  );
-};
-
-
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -73,6 +61,7 @@ export const AppRoutes: React.FC = () => {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<MockLanding />} />
         <Route path="/join/:branchId" element={<JoinPage />} />
+        <Route path="/booking/:branchId" element={<BookingPage />} />
         <Route path="/status/:ticketId" element={<TicketStatusPage />} />
       </Route>
 
@@ -103,7 +92,7 @@ export const AppRoutes: React.FC = () => {
       >
         <Route index element={<Navigate to="/dashboard/queues" replace />} />
         <Route path="queues" element={<QueueConsolePage />} />
-        <Route path="appointments" element={<MockAppointments />} />
+        <Route path="appointments" element={<AppointmentsPage />} />
         
         {/* Branch settings (Manager, Admin, Owner) */}
         <Route 
@@ -151,3 +140,4 @@ export const AppRoutes: React.FC = () => {
 };
 
 export default AppRoutes;
+

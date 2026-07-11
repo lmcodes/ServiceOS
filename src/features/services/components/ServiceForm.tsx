@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { X, Plus, Trash2, Save, Sliders } from 'lucide-react';
-import { Service, ServiceCustomField } from '@/types/firestore';
+import { Service, ServiceCustomField, Workflow } from '@/types/firestore';
 import { CreateServiceInput } from '../types';
+import { useAuth } from '@/context/AuthContext';
+import { getWorkflows } from '@/features/workflows/repository/workflowRepository';
 
 interface ServiceFormProps {
   initialData?: Service | null;
@@ -19,6 +21,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   isLoading,
 }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
   // Form states
@@ -29,6 +32,16 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   const [requiresResource, setRequiresResource] = useState(initialData?.requiresResource ?? false);
   const [maxConcurrent, setMaxConcurrent] = useState(initialData?.maxConcurrent || 1);
   const [customFields, setCustomFields] = useState<ServiceCustomField[]>(initialData?.customFields || []);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [workflowId, setWorkflowId] = useState<string | null>(initialData?.workflowId || null);
+
+  useEffect(() => {
+    if (user?.tenantId) {
+      getWorkflows(user.tenantId)
+        .then(setWorkflows)
+        .catch((err) => console.error('Failed to load workflows:', err));
+    }
+  }, [user]);
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -115,6 +128,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
           ...f,
           label: f.label.trim(),
         })),
+        workflowId,
       };
       await onSubmit(payload);
     } catch (err: any) {
@@ -222,6 +236,24 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
                 />
                 {errors.maxConcurrent && <p className="text-xs text-red-500 mt-1">{errors.maxConcurrent}</p>}
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
+                  Workflow Template
+                </label>
+                <select
+                  value={workflowId || ''}
+                  onChange={(e) => setWorkflowId(e.target.value || null)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none cursor-pointer"
+                >
+                  <option value="">None (Standard Single Stage)</option>
+                  {workflows.map((wf) => (
+                    <option key={wf.id} value={wf.id}>
+                      {wf.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

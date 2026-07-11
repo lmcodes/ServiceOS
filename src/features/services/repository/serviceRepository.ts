@@ -89,6 +89,7 @@ export async function createService(
     requiresResource: input.requiresResource,
     maxConcurrent: input.maxConcurrent,
     customFields: input.customFields,
+    workflowId: input.workflowId || null,
     isActive: true,
     sortOrder: nextSortOrder,
     createdAt: serverTimestamp(),
@@ -114,6 +115,7 @@ export async function updateService(serviceId: string, input: UpdateServiceInput
   if (input.maxConcurrent !== undefined) updateData.maxConcurrent = input.maxConcurrent;
   if (input.isActive !== undefined) updateData.isActive = input.isActive;
   if (input.customFields !== undefined) updateData.customFields = input.customFields;
+  if (input.workflowId !== undefined) updateData.workflowId = input.workflowId;
 
   await updateDoc(serviceRef, updateData);
 }

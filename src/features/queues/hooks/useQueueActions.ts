@@ -6,7 +6,8 @@ import {
   startServingTicket, 
   completeTicket, 
   markNoShow, 
-  recallTicket 
+  recallTicket,
+  advanceWorkflowStage
 } from '../repository/queueRepository';
 
 export function useQueueActions(branchId: string | null | undefined) {
@@ -20,10 +21,10 @@ export function useQueueActions(branchId: string | null | undefined) {
   };
 
   const callNextMutation = useMutation({
-    mutationFn: (counter?: string) => {
+    mutationFn: ({ counter, currentStageId }: { counter?: string; currentStageId?: string | null } = {}) => {
       if (!branchId) throw new Error('No branch selected');
       if (!user?.uid) throw new Error('Unauthenticated staff');
-      return callNextTicket(branchId, user.uid, counter);
+      return callNextTicket(branchId, user.uid, counter, currentStageId);
     },
     onSuccess: () => invalidate()
   });
@@ -65,12 +66,21 @@ export function useQueueActions(branchId: string | null | undefined) {
     onSuccess: () => invalidate()
   });
 
+  const advanceWorkflowStageMutation = useMutation({
+    mutationFn: ({ ticketId, targetStageId }: { ticketId: string; targetStageId: string }) => {
+      if (!user?.uid) throw new Error('Unauthenticated staff');
+      return advanceWorkflowStage(ticketId, targetStageId, user.uid);
+    },
+    onSuccess: () => invalidate()
+  });
+
   return {
     callNext: callNextMutation,
     callSpecific: callSpecificMutation,
     startServing: startServingMutation,
     complete: completeMutation,
     noShow: noShowMutation,
-    recall: recallMutation
+    recall: recallMutation,
+    advanceWorkflowStage: advanceWorkflowStageMutation
   };
 }

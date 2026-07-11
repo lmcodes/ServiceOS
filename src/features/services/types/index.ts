@@ -8,6 +8,7 @@ export interface CreateServiceInput {
   requiresResource: boolean;
   maxConcurrent: number;
   customFields: ServiceCustomField[];
+  workflowId?: string | null;
 }
 
 export interface UpdateServiceInput {
@@ -19,4 +20,5 @@ export interface UpdateServiceInput {
   maxConcurrent?: number;
   isActive?: boolean;
   customFields?: ServiceCustomField[];
+  workflowId?: string | null;
 }

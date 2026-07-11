@@ -4,7 +4,8 @@ import { useActiveQueues } from '../hooks/useActiveQueues';
 import { useQueueActions } from '../hooks/useQueueActions';
 import { getBranches } from '@/features/branches/repository/branchRepository';
 import { getServices } from '@/features/services/repository/serviceRepository';
-import { Branch, Service } from '@/types/firestore';
+import { Branch, Service, Workflow, WorkflowStage } from '@/types/firestore';
+import { subscribeWorkflows, getWorkflowWithStages } from '@/features/workflows/repository/workflowRepository';
 import { db } from '@/config/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +20,9 @@ import {
   Loader2,
   Clock,
   Inbox,
-  UserCheck
+  UserCheck,
+  Workflow as WorkflowIcon,
+  ArrowRight
 } from 'lucide-react';
 
 export const QueueConsolePage: React.FC = () => {
@@ -33,6 +36,12 @@ export const QueueConsolePage: React.FC = () => {
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'all' | 'waiting' | 'serving' | 'completed'>('all');
   const [loadingBranches, setLoadingBranches] = useState(true);
+
+  // Workflow integration state
+  const [workflowsMap, setWorkflowsMap] = useState<Record<string, Workflow>>({});
+  const [stagesMap, setStagesMap] = useState<Record<string, WorkflowStage>>({});
+  const [activeStages, setActiveStages] = useState<WorkflowStage[]>([]);
+  const [selectedStageFilter, setSelectedStageFilter] = useState<string>('all');
 
   // Sync counter to localStorage
   useEffect(() => {
@@ -94,6 +103,62 @@ export const QueueConsolePage: React.FC = () => {
     loadServices();
   }, [selectedBranchId]);
 
+  // Subscribe to workflows and resolve stages
+  useEffect(() => {
+    const tenantId = user?.tenantId;
+    if (!tenantId) return;
+
+    const unsub = subscribeWorkflows(tenantId, async (list) => {
+      const wfMap: Record<string, Workflow> = {};
+      list.forEach((w) => {
+        wfMap[w.id] = w;
+      });
+      setWorkflowsMap(wfMap);
+
+      // Fetch all stages for these workflows in parallel
+      const newStagesMap: Record<string, WorkflowStage> = {};
+      await Promise.all(
+        list.map(async (wf) => {
+          try {
+            const data = await getWorkflowWithStages(wf.id);
+            if (data) {
+              data.stages.forEach((stage) => {
+                newStagesMap[stage.id] = stage;
+              });
+            }
+          } catch (err) {
+            console.error('Failed to load stages for workflow:', wf.id, err);
+          }
+        })
+      );
+      setStagesMap(newStagesMap);
+    }, (err) => {
+      console.error('Workflow subscription failed:', err);
+    });
+
+    return () => unsub();
+  }, [user]);
+
+  // Build the list of active stages for the currently selected branch services
+  useEffect(() => {
+    const stageList: WorkflowStage[] = [];
+    const addedStageIds = new Set<string>();
+
+    Object.values(services).forEach((service) => {
+      if (service.workflowId && workflowsMap[service.workflowId]) {
+        const wf = workflowsMap[service.workflowId];
+        wf.stageIds?.forEach((stageId) => {
+          if (stagesMap[stageId] && !addedStageIds.has(stageId)) {
+            stageList.push(stagesMap[stageId]);
+            addedStageIds.add(stageId);
+          }
+        });
+      }
+    });
+
+    setActiveStages(stageList);
+  }, [services, stagesMap, workflowsMap]);
+
   // Subscribe to real-time Completed/No Show counters for today
   useEffect(() => {
     if (!selectedBranchId) return;
@@ -139,14 +204,23 @@ export const QueueConsolePage: React.FC = () => {
   const { data: activeTickets = [], isLoading: loadingTickets } = useActiveQueues(selectedBranchId);
   const actions = useQueueActions(selectedBranchId);
 
-  // Action handers
+  // Action handlers
   const handleCallNext = async () => {
     if (!counter.trim()) {
       alert(t('pages.queues.selectCounterAlert'));
       return;
     }
     try {
-      const nextTicket = await actions.callNext.mutateAsync(counter);
+      const stageParam = selectedStageFilter === 'all' 
+        ? undefined 
+        : selectedStageFilter === 'standard' 
+        ? null 
+        : selectedStageFilter;
+
+      const nextTicket = await actions.callNext.mutateAsync({ 
+        counter, 
+        currentStageId: stageParam 
+      });
       if (!nextTicket) {
         alert(t('pages.queues.noWaitingTickets'));
       }
@@ -156,18 +230,26 @@ export const QueueConsolePage: React.FC = () => {
     }
   };
 
-  // Filter queues by active tab
+  // Filter queues by active tab AND stage selection
   const getFilteredTickets = () => {
+    let tickets = activeTickets;
+
+    // Apply stage filter
+    if (selectedStageFilter === 'standard') {
+      tickets = tickets.filter((t) => !t.currentStageId);
+    } else if (selectedStageFilter !== 'all') {
+      tickets = tickets.filter((t) => t.currentStageId === selectedStageFilter);
+    }
+
     switch (activeTab) {
       case 'waiting':
-        return activeTickets.filter((t) => t.status === 'WAITING' || t.status === 'CALLED');
+        return tickets.filter((t) => t.status === 'WAITING' || t.status === 'CALLED');
       case 'serving':
-        return activeTickets.filter((t) => t.status === 'SERVING');
+        return tickets.filter((t) => t.status === 'SERVING');
       case 'completed':
-        // Display called/serving as completed column tab is empty, showing completed counts
         return [];
       default:
-        return activeTickets;
+        return tickets;
     }
   };
 
@@ -186,8 +268,15 @@ export const QueueConsolePage: React.FC = () => {
     );
   }
 
-  const waitingTickets = activeTickets.filter((t) => t.status === 'WAITING');
-  const servingTickets = activeTickets.filter((t) => t.status === 'SERVING');
+  // Filter metrics using current stage selection
+  const filteredForMetrics = activeTickets.filter((t) => {
+    if (selectedStageFilter === 'standard') return !t.currentStageId;
+    if (selectedStageFilter !== 'all') return t.currentStageId === selectedStageFilter;
+    return true;
+  });
+
+  const waitingTickets = filteredForMetrics.filter((t) => t.status === 'WAITING');
+  const servingTickets = filteredForMetrics.filter((t) => t.status === 'SERVING');
 
   const displayedTickets = getFilteredTickets();
 
@@ -218,6 +307,23 @@ export const QueueConsolePage: React.FC = () => {
               placeholder={t('pages.queues.counterPlaceholder')}
               className="w-16 px-2 py-0.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20 text-center"
             />
+          </div>
+
+          {/* Workflow Stage Filter */}
+          <div className="relative flex-1 sm:flex-initial">
+            <select
+              value={selectedStageFilter}
+              onChange={(e) => setSelectedStageFilter(e.target.value)}
+              className="w-full sm:w-48 pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white outline-none cursor-pointer focus:ring-2 focus:ring-brand-500/20"
+            >
+              <option value="all">All Stages</option>
+              <option value="standard">Standard Queue (No Workflow)</option>
+              {activeStages.map((stg) => (
+                <option key={stg.id} value={stg.id}>
+                  Stage: {stg.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Branch selector */}
@@ -319,7 +425,7 @@ export const QueueConsolePage: React.FC = () => {
       {/* Main Board Section */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
         {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-100 dark:border-slate-800/80 px-6 pt-4 bg-slate-50/50 dark:bg-slate-950/20">
+        <div className="flex border-b border-slate-100 dark:border-slate-800/80 px-6 pt-4 bg-slate-50/50 dark:bg-slate-955/20">
           {(['all', 'waiting', 'serving'] as const).map((tab) => (
             <button
               key={tab}
@@ -344,13 +450,13 @@ export const QueueConsolePage: React.FC = () => {
           {loadingTickets ? (
             <div className="flex justify-center items-center py-16">
               <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
-              <span className="ml-2.5 text-xs text-slate-500 font-medium">{t('pages.queues.syncingBoard')}</span>
+              <span className="ml-2.5 text-xs text-slate-550 font-medium">{t('pages.queues.syncingBoard')}</span>
             </div>
           ) : displayedTickets.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-400">
               <Inbox className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-3" />
               <p className="text-sm font-semibold">{t('pages.queues.noTickets')}</p>
-              <p className="text-xs text-slate-450 dark:text-slate-550 mt-1">
+              <p className="text-xs text-slate-450 dark:text-slate-555 mt-1">
                 {t('pages.queues.noTicketsDesc')}
               </p>
             </div>
@@ -373,16 +479,26 @@ export const QueueConsolePage: React.FC = () => {
                   >
                     <div>
                       {/* Top Header Row of card */}
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80 mb-4">
-                        <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-655 dark:text-slate-400 rounded-lg">
-                          {serviceName}
-                        </span>
-                        
-                        {/* Time duration indicator */}
-                        <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-450 dark:text-slate-500">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{t('pages.queues.waitingDuration', { count: waitMins })}</span>
+                      <div className="flex flex-col gap-1 pb-3 border-b border-slate-100 dark:border-slate-800/80 mb-4">
+                        <div className="flex justify-between items-center w-full">
+                          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-655 dark:text-slate-400 rounded-lg">
+                            {serviceName}
+                          </span>
+                          
+                          {/* Time duration indicator */}
+                          <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-450 dark:text-slate-500">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{t('pages.queues.waitingDuration', { count: waitMins })}</span>
+                          </div>
                         </div>
+
+                        {/* Current stage badge */}
+                        {ticket.currentStageId && stagesMap[ticket.currentStageId] && (
+                          <span className="px-2 py-0.5 bg-brand-50 dark:bg-brand-950/20 text-[10px] font-bold text-brand-655 dark:text-brand-400 rounded-lg w-fit border border-brand-100 dark:border-brand-900/40 flex items-center gap-1 mt-1">
+                            <WorkflowIcon className="w-3 h-3 animate-pulse" />
+                            Stage: {stagesMap[ticket.currentStageId].name}
+                          </span>
+                        )}
                       </div>
 
                       {/* Queue Number */}
@@ -429,7 +545,7 @@ export const QueueConsolePage: React.FC = () => {
                     </div>
 
                     {/* Operational Action Buttons */}
-                    <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-end gap-2.5">
+                    <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-end gap-2.5">
                       {/* WAITING status Actions */}
                       {ticket.status === 'WAITING' && (
                         <button
@@ -496,11 +612,44 @@ export const QueueConsolePage: React.FC = () => {
                           <button
                             onClick={() => actions.noShow.mutate(ticket.id)}
                             disabled={actions.noShow.isPending}
-                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-200 shrink-0"
                             title={t('pages.queues.actionNoShow')}
                           >
                             <UserX className="w-4 h-4" />
                           </button>
+
+                          {/* Render dynamic successor transition buttons if workflow */}
+                          {(() => {
+                            if (!ticket.workflowId || !ticket.currentStageId) return null;
+                            const wf = workflowsMap[ticket.workflowId];
+                            const currentStage = stagesMap[ticket.currentStageId];
+                            if (!wf || !currentStage) return null;
+
+                            const successorIds = new Set<string>();
+                            (currentStage.transitionRules?.nextStages || []).forEach((id) => successorIds.add(id));
+                            if (wf.allowCustomTransitions) {
+                              (wf.stageIds || []).forEach((id) => {
+                                if (id !== ticket.currentStageId) successorIds.add(id);
+                              });
+                            }
+
+                            const successors = Array.from(successorIds)
+                              .map((id) => stagesMap[id])
+                              .filter(Boolean);
+
+                            return successors.map((succ) => (
+                              <button
+                                key={succ.id}
+                                onClick={() => actions.advanceWorkflowStage.mutate({ ticketId: ticket.id, targetStageId: succ.id })}
+                                disabled={actions.advanceWorkflowStage.isPending}
+                                className="flex-1 py-1.5 px-3 bg-brand-50 dark:bg-brand-950/20 text-brand-655 hover:bg-brand-100 dark:hover:bg-brand-900/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                              >
+                                <ArrowRight className="w-3.5 h-3.5 text-brand-600" />
+                                <span className="truncate">To {succ.name}</span>
+                              </button>
+                            ));
+                          })()}
+
                           <button
                             onClick={() => actions.complete.mutate(ticket.id)}
                             disabled={actions.complete.isPending}
