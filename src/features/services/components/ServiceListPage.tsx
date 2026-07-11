@@ -138,12 +138,12 @@ export const ServiceListPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            {activeTab === 'services' ? t('pages.services.title') : 'Workflow Templates'}
+            {activeTab === 'services' ? t('pages.services.title') : t('pages.workflows.title')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {activeTab === 'services' 
               ? t('pages.services.subtitle') 
-              : 'Design and configure stage-based workflows for your branch services.'}
+              : t('pages.workflows.listSubtitle')}
           </p>
         </div>
 
@@ -164,7 +164,7 @@ export const ServiceListPage: React.FC = () => {
               className="flex items-center gap-1.5 py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-600/15 hover:shadow-brand-600/25 transition-all cursor-pointer"
             >
               <Plus className="w-4.5 h-4.5" />
-              <span>Create Workflow</span>
+              <span>{t('pages.workflows.createWorkflowBtn')}</span>
             </button>
           )}
         </div>
@@ -190,7 +190,7 @@ export const ServiceListPage: React.FC = () => {
               : 'border-transparent text-slate-450 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          Workflow Templates
+          {t('pages.workflows.title')}
         </button>
       </div>
 
@@ -278,7 +278,7 @@ export const ServiceListPage: React.FC = () => {
                     <tr className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-850 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
                       <th className="py-4 px-6">{t('pages.services.table.name')}</th>
                       <th className="py-4 px-6">{t('pages.services.table.category')}</th>
-                      <th className="py-4 px-6">Workflow</th>
+                      <th className="py-4 px-6">{t('pages.services.table.workflow')}</th>
                       <th className="py-4 px-6">{t('pages.services.table.duration')}</th>
                       <th className="py-4 px-6">{t('pages.services.table.maxConcurrent')}</th>
                       <th className="py-4 px-6 text-center">{t('pages.services.table.status')}</th>
@@ -304,7 +304,7 @@ export const ServiceListPage: React.FC = () => {
                             <div className="mt-1.5 flex items-center gap-1">
                               <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-500"></span>
                               <span className="text-[10px] text-brand-555 dark:text-brand-400 font-bold uppercase tracking-wider">
-                                {service.customFields.length} custom questions requested
+                                {t('pages.services.table.customQuestions', { count: service.customFields.length })}
                               </span>
                             </div>
                           )}
@@ -320,12 +320,12 @@ export const ServiceListPage: React.FC = () => {
                         </td>
                         <td className="py-4 px-6">
                           {service.workflowId ? (
-                            <span className="py-1 px-2.5 bg-brand-50 dark:bg-brand-950/20 text-brand-655 dark:text-brand-400 text-xs font-bold rounded-lg border border-brand-100 dark:border-brand-900/40 flex items-center gap-1 w-fit">
+                            <span className="py-1 px-2.5 bg-brand-50 dark:bg-brand-955/20 text-brand-655 dark:text-brand-400 text-xs font-bold rounded-lg border border-brand-100 dark:border-brand-900/40 flex items-center gap-1 w-fit">
                               <WorkflowIcon className="w-3.5 h-3.5" />
                               {workflows.find((w) => w.id === service.workflowId)?.name || 'Mapped'}
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400 italic">None (Standard)</span>
+                            <span className="text-xs text-slate-400 italic">{t('pages.services.table.noneStandard')}</span>
                           )}
                         </td>
                         <td className="py-4 px-6 font-semibold">
@@ -364,9 +364,7 @@ export const ServiceListPage: React.FC = () => {
             </div>
           )}
         </>
-      )}
-
-      {/* WORKFLOWS TAB CONTENT */}
+      )}      {/* WORKFLOWS TAB CONTENT */}
       {activeTab === 'workflows' && (
         <div className="space-y-6">
           {workflows.length === 0 ? (
@@ -375,17 +373,17 @@ export const ServiceListPage: React.FC = () => {
                 <WorkflowIcon className="w-8 h-8" />
               </div>
               <h3 className="text-base font-bold text-slate-850 dark:text-white">
-                No Workflows Defined
+                {t('pages.workflows.noWorkflowsTitle')}
               </h3>
               <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">
-                Create a workflow template to route queue tickets through multiple chronological stages.
+                {t('pages.workflows.noWorkflowsDesc')}
               </p>
               <button
                 onClick={() => setIsCreatingWorkflow(true)}
                 className="mt-5 flex items-center gap-1.5 py-2 px-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs rounded-xl shadow-md transition-all cursor-pointer"
               >
                 <Plus className="w-4.5 h-4.5" />
-                <span>Create Workflow</span>
+                <span>{t('pages.workflows.createWorkflowBtn')}</span>
               </button>
             </div>
           ) : (
@@ -417,7 +415,7 @@ export const ServiceListPage: React.FC = () => {
                     {/* Stages Preview */}
                     <div className="space-y-2 pt-2">
                       <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">
-                        Chronological Stages ({wf.stageIds?.length || 0})
+                        {t('pages.workflows.chronologicalStages')} ({wf.stageIds?.length || 0})
                       </span>
                       <div className="flex flex-wrap items-center gap-2">
                         {wf.stageIds?.map((stageId, idx) => (
@@ -439,16 +437,16 @@ export const ServiceListPage: React.FC = () => {
                     <button
                       onClick={() => handleDeleteWorkflow(wf.id)}
                       className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 rounded-xl transition-colors cursor-pointer border border-transparent"
-                      title="Delete Template"
+                      title={t('pages.workflows.deleteTemplateTooltip')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setBuilderWorkflowId(wf.id)}
-                      className="py-1.5 px-4 bg-white dark:bg-slate-800 border border-slate-205 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl shadow-sm transition-colors cursor-pointer inline-flex items-center gap-1"
+                      className="py-1.5 px-4 bg-white dark:bg-slate-800 border border-slate-205 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-205 font-bold text-xs rounded-xl shadow-sm transition-colors cursor-pointer inline-flex items-center gap-1"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
-                      <span>Edit Template</span>
+                      <span>{t('pages.workflows.editTemplateBtn')}</span>
                     </button>
                   </div>
                 </div>

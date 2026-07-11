@@ -414,6 +414,7 @@
   - [x] สร้าง/แก้ไข workflow template
   - [x] เพิ่ม/ลบ/เรียงลำดับ stages
   - [x] กำหนด transition rules ต่อ stage
+  - [x] รองรับสองภาษา (i18n Localization TH/EN) ครบทุกฟิลด์การตั้งค่าและเงื่อนไข
 - [x] เชื่อม Service กับ Workflow template (workflowId field)
 
 ### WF-02 · Multi-Stage Queue Operations

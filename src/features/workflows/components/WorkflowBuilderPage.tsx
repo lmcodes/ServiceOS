@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   X, Plus, Trash2, ArrowUp, ArrowDown, Save, Sliders, AlertTriangle, 
   Settings2, ShieldAlert, Clock, FileText, UserCheck, HelpCircle
@@ -20,6 +21,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
   workflowId,
   onClose
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   // General States
@@ -43,7 +45,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
       setStages([
         {
           id: `stage_0_${Date.now()}`,
-          name: 'Stage 1',
+          name: `${t('pages.workflows.unnamedStage')} 1`,
           allowedResourceTypes: [],
           transitionRules: { nextStages: [], allowSkip: false, allowRevert: false },
           guards: []
@@ -69,7 +71,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
         }
       } catch (err: any) {
         console.error('Failed to load workflow template:', err);
-        setError('Failed to load workflow details.');
+        setError(t('pages.workflows.errorLoad'));
       } finally {
         setIsLoading(false);
       }
@@ -83,7 +85,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
     const newStageId = `stage_${stages.length}_${Date.now()}`;
     const newStage: WorkflowStage = {
       id: newStageId,
-      name: `Stage ${stages.length + 1}`,
+      name: `${t('pages.workflows.unnamedStage')} ${stages.length + 1}`,
       allowedResourceTypes: [],
       transitionRules: { nextStages: [], allowSkip: false, allowRevert: false },
       guards: []
@@ -95,7 +97,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
 
   const handleRemoveStage = (index: number) => {
     if (stages.length <= 1) {
-      alert('A workflow must have at least one stage.');
+      alert(t('pages.workflows.alertAtLeastOneStage'));
       return;
     }
     const stageIdToRemove = stages[index].id;
@@ -202,14 +204,14 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
     if (!user?.tenantId) return;
 
     if (!name.trim()) {
-      setError('Workflow Name is required.');
+      setError(t('pages.workflows.validationName'));
       return;
     }
 
     // Validate stage names
     const emptyStageName = stages.some(s => !s.name.trim());
     if (emptyStageName) {
-      setError('All stages must have a name.');
+      setError(t('pages.workflows.validationStageName'));
       return;
     }
 
@@ -235,7 +237,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
       onClose();
     } catch (err: any) {
       console.error('Failed to save workflow template:', err);
-      setError(err?.message || 'Failed to save workflow.');
+      setError(err?.message || t('pages.workflows.errorSave'));
     } finally {
       setIsSaving(false);
     }
@@ -252,7 +254,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
     return (
       <div className="flex justify-center items-center py-24">
         <Loader2 className="w-8 h-8 text-brand-600 animate-spin" />
-        <span className="ml-3 text-sm text-slate-500 font-medium">Loading template details...</span>
+        <span className="ml-3 text-sm text-slate-500 font-medium">{t('pages.workflows.loading')}</span>
       </div>
     );
   }
@@ -264,15 +266,15 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
       <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80">
         <div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-            {workflowId ? 'Edit Workflow Template' : 'Create Workflow Template'}
+            {workflowId ? t('pages.workflows.editTitle') : t('pages.workflows.createTitle')}
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Design chronological stages, rules, and entry conditions for multi-step service queues.
+          <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">
+            {t('pages.workflows.subtitle')}
           </p>
         </div>
         <button
           onClick={onClose}
-          className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl hover:bg-slate-105 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          className="p-2 text-slate-450 hover:text-slate-600 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -292,13 +294,13 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
           <div className="md:col-span-2 space-y-4">
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Workflow Template Name <span className="text-red-500">*</span>
+                {t('pages.workflows.nameLabel')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Patient Vitals + Consultation + Pharmacy"
+                placeholder={t('pages.workflows.namePlaceholder')}
                 required
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-205 dark:border-slate-800 rounded-2xl text-slate-905 dark:text-white text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-inner"
               />
@@ -306,12 +308,12 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
             
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                Description
+                {t('pages.workflows.descriptionLabel')}
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Briefly explain the purpose of this workflow..."
+                placeholder={t('pages.workflows.descriptionPlaceholder')}
                 rows={2}
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-205 dark:border-slate-800 rounded-2xl text-slate-905 dark:text-white text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none resize-none shadow-inner"
               />
@@ -321,15 +323,15 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
           <div className="p-5 bg-slate-50/50 dark:bg-slate-955/15 border border-slate-200/60 dark:border-slate-800 rounded-2xl space-y-4 h-fit">
             <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
               <Settings2 className="w-4 h-4 text-brand-655" />
-              Workflow Rules
+              {t('pages.workflows.rulesHeader')}
             </h4>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5 pr-2">
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  Custom Transitions
+                  {t('pages.workflows.customTransitionsLabel')}
                 </span>
                 <p className="text-[10px] text-slate-500 leading-tight">
-                  Allow staff to transition ticket to any stage, skipping normal flow.
+                  {t('pages.workflows.customTransitionsDesc')}
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
@@ -354,15 +356,15 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Chronological Stages ({stages.length})
+                {t('pages.workflows.chronologicalStages')} ({stages.length})
               </h3>
               <button
                 type="button"
                 onClick={handleAddStage}
-                className="flex items-center gap-1 py-1 px-2.5 bg-brand-50 dark:bg-brand-950/20 text-brand-655 border border-brand-100 dark:border-brand-900/40 hover:bg-brand-100 dark:hover:bg-brand-900/35 font-bold text-[10px] rounded-lg cursor-pointer transition-colors"
+                className="flex items-center gap-1 py-1 px-2.5 bg-brand-50 dark:bg-brand-955/20 text-brand-655 border border-brand-100 dark:border-brand-900/40 hover:bg-brand-100 dark:hover:bg-brand-900/35 font-bold text-[10px] rounded-lg cursor-pointer transition-colors"
               >
                 <Plus className="w-3 h-3" />
-                Add Stage
+                {t('pages.workflows.addStage')}
               </button>
             </div>
 
@@ -378,16 +380,16 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-5.5 h-5.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-450 font-bold text-xs flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                    <span className="w-5.5 h-5.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-455 font-bold text-xs flex items-center justify-center border border-slate-200 dark:border-slate-700">
                       {index + 1}
                     </span>
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-slate-850 dark:text-white truncate">
-                        {stage.name || 'Unnamed Stage'}
+                        {stage.name || t('pages.workflows.unnamedStage')}
                       </p>
                       {stage.transitionRules?.nextStages?.length > 0 && (
                         <span className="text-[9px] text-slate-450 font-medium">
-                          Next: {stage.transitionRules.nextStages.length} route(s)
+                          {t('pages.workflows.nextRoutesCount', { count: stage.transitionRules.nextStages.length })}
                         </span>
                       )}
                     </div>
@@ -436,10 +438,10 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/60">
                       <h4 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                         <Sliders className="w-4 h-4 text-brand-655" />
-                        Configure Stage {selectedStageIndex + 1}: {currentStage.name}
+                        {t('pages.workflows.configureStageTitle', { index: selectedStageIndex + 1, name: currentStage.name })}
                       </h4>
                       <span className="text-[10px] text-brand-655 dark:text-brand-400 font-bold uppercase tracking-wider bg-brand-50 dark:bg-brand-955/30 border border-brand-100 dark:border-brand-900/40 px-2 py-0.5 rounded-lg">
-                        Stage ID: {currentStage.id}
+                        {t('pages.workflows.stageId')}: {currentStage.id}
                       </span>
                     </div>
 
@@ -447,21 +449,21 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                       {/* Name input */}
                       <div className="space-y-1.5">
                         <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
-                          Stage Name
+                          {t('pages.workflows.stageNameLabel')}
                         </label>
                         <input
                           type="text"
                           value={currentStage.name}
                           onChange={(e) => handleStageFieldChange(selectedStageIndex, 'name', e.target.value)}
                           className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-205 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-brand-500"
-                          placeholder="e.g. Doctor Screening"
+                          placeholder={t('pages.workflows.stageNamePlaceholder')}
                         />
                       </div>
 
                       {/* Allowed Resources input */}
                       <div className="space-y-1.5">
                         <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                          Allowed Roles
+                          {t('pages.workflows.allowedRolesLabel')}
                           <span title="Comma-separated roles allowed to service this stage (e.g. staff, doctor, nurse)"><HelpCircle className="w-3.5 h-3.5 text-slate-400" /></span>
                         </label>
                         <input
@@ -473,7 +475,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                             handleStageFieldChange(selectedStageIndex, 'allowedResourceTypes', arr);
                           }}
                           className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-205 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-brand-500"
-                          placeholder="e.g. nurse, doctor, staff"
+                          placeholder={t('pages.workflows.allowedRolesPlaceholder')}
                         />
                       </div>
                     </div>
@@ -481,7 +483,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                     {/* Transition rules panel */}
                     <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-950/40 space-y-4">
                       <h5 className="text-xs font-bold text-slate-850 dark:text-white">
-                        Transition Rules (Successor Stages)
+                        {t('pages.workflows.transitionRulesTitle')}
                       </h5>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -494,7 +496,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                             className="w-4 h-4 text-brand-600 bg-slate-100 border-slate-350 dark:border-slate-700 rounded cursor-pointer"
                           />
                           <label htmlFor={`allow-skip-${currentStage.id}`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
-                            Allow Skip Stage
+                            {t('pages.workflows.allowSkipStage')}
                           </label>
                         </div>
 
@@ -507,7 +509,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                             className="w-4 h-4 text-brand-600 bg-slate-100 border-slate-350 dark:border-slate-700 rounded cursor-pointer"
                           />
                           <label htmlFor={`allow-revert-${currentStage.id}`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
-                            Allow Revert (Send Back)
+                            {t('pages.workflows.allowRevertStage')}
                           </label>
                         </div>
                       </div>
@@ -515,7 +517,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                       {/* Next stage routes selection */}
                       <div className="space-y-1.5">
                         <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
-                          Routeable Next Stage(s)
+                          {t('pages.workflows.routeableNextStages')}
                         </label>
                         <div className="flex flex-wrap gap-2.5">
                           {stages
@@ -540,12 +542,12 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                                       : 'border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-450 hover:bg-slate-50'
                                   }`}
                                 >
-                                  {s.name || 'Unnamed Stage'}
+                                  {s.name || t('pages.workflows.unnamedStage')}
                                 </button>
                               );
                             })}
                           {stages.filter(s => s.id !== currentStage.id).length === 0 && (
-                            <span className="text-xs text-slate-400 italic">No other stages in workflow to route to.</span>
+                            <span className="text-xs text-slate-400 italic">{t('pages.workflows.noOtherStagesToRoute')}</span>
                           )}
                         </div>
                       </div>
@@ -555,20 +557,20 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <h5 className="text-xs font-bold text-slate-850 dark:text-white">
-                          Transition Guards (Preconditions to enter stage)
+                          {t('pages.workflows.transitionGuardsTitle')}
                         </h5>
                         <button
                           type="button"
                           onClick={() => handleAddGuard(selectedStageIndex)}
-                          className="flex items-center gap-1 py-1 px-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 font-semibold text-[10px] rounded-lg cursor-pointer transition-colors"
+                          className="flex items-center gap-1 py-1 px-2.5 bg-slate-100 hover:bg-slate-205 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 font-semibold text-[10px] rounded-lg cursor-pointer transition-colors"
                         >
                           <Plus className="w-3 h-3" />
-                          Add Guard
+                          {t('pages.workflows.addGuard')}
                         </button>
                       </div>
 
                       {(!currentStage.guards || currentStage.guards.length === 0) && (
-                        <p className="text-xs text-slate-400 italic">No entry guards defined. Ticket can progress into this stage without preconditions.</p>
+                        <p className="text-xs text-slate-400 italic">{t('pages.workflows.noGuardsDesc')}</p>
                       )}
 
                       {currentStage.guards?.map((guard, gIndex) => (
@@ -578,7 +580,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                         >
                           {/* Guard Type */}
                           <div className="w-full sm:w-44 flex-shrink-0 space-y-1">
-                            <label className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400">Guard Type</label>
+                            <label className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400">{t('pages.workflows.guardTypeLabel')}</label>
                             <select
                               value={guard.type}
                               onChange={(e) => handleGuardChange(selectedStageIndex, gIndex, {
@@ -589,10 +591,10 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                               })}
                               className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none"
                             >
-                              <option value="customDataPresent">Check Field Filled</option>
-                              <option value="resourceAssigned">Resource Bound</option>
-                              <option value="roleAuthorized">Role Authorized</option>
-                              <option value="minimumDuration">Min Wait Time</option>
+                              <option value="customDataPresent">{t('pages.workflows.guardTypeFieldFilled')}</option>
+                              <option value="resourceAssigned">{t('pages.workflows.guardTypeResourceBound')}</option>
+                              <option value="roleAuthorized">{t('pages.workflows.guardTypeRoleAuthorized')}</option>
+                              <option value="minimumDuration">{t('pages.workflows.guardTypeMinWaitTime')}</option>
                             </select>
                           </div>
 
@@ -602,13 +604,13 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                               <div className="space-y-1">
                                 <label className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
                                   <FileText className="w-3 h-3" />
-                                  Custom Field Key
+                                  {t('pages.workflows.customFieldKeyLabel')}
                                 </label>
                                 <input
                                   type="text"
                                   value={guard.field || ''}
                                   onChange={(e) => handleGuardChange(selectedStageIndex, gIndex, { ...guard, field: e.target.value })}
-                                  placeholder="e.g. blood_pressure"
+                                  placeholder={t('pages.workflows.customFieldKeyPlaceholder')}
                                   className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs outline-none"
                                 />
                               </div>
@@ -617,7 +619,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                             {guard.type === 'resourceAssigned' && (
                               <p className="text-xs text-slate-500 pt-3 flex items-center gap-1.5 font-semibold">
                                 <UserCheck className="w-4 h-4 text-emerald-500" />
-                                Verifies a physical resource (counter/room) is bound to the ticket.
+                                {t('pages.workflows.resourceAssignedDesc')}
                               </p>
                             )}
 
@@ -625,7 +627,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                               <div className="space-y-1">
                                 <label className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
                                   <ShieldAlert className="w-3 h-3" />
-                                  Authorized Roles (comma separated)
+                                  {t('pages.workflows.authRolesLabel')}
                                 </label>
                                 <input
                                   type="text"
@@ -634,7 +636,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                                     ...guard,
                                     roles: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
                                   })}
-                                  placeholder="e.g. owner, admin, doctor"
+                                  placeholder={t('pages.workflows.authRolesPlaceholder')}
                                   className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs outline-none"
                                 />
                               </div>
@@ -644,7 +646,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                               <div className="space-y-1">
                                 <label className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
-                                  Minimum Duration (minutes)
+                                  {t('pages.workflows.minDurationLabel')}
                                 </label>
                                 <input
                                   type="number"
@@ -674,8 +676,8 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 py-16">
                 <Sliders className="w-12 h-12 text-slate-250 dark:text-slate-800 mb-3" />
-                <p className="text-sm font-semibold">No Stage Selected</p>
-                <p className="text-xs text-slate-450 dark:text-slate-500 mt-1">Select a stage from the sidebar to configure its details.</p>
+                <p className="text-sm font-semibold">{t('pages.workflows.noStageSelected')}</p>
+                <p className="text-xs text-slate-450 dark:text-slate-550 mt-1">{t('pages.workflows.noStageSelectedDesc')}</p>
               </div>
             )}
           </div>
@@ -688,7 +690,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
             onClick={onClose}
             className="py-2 px-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-semibold text-sm rounded-xl transition-colors cursor-pointer"
           >
-            Cancel
+            {t('pages.workflows.cancel')}
           </button>
           <button
             type="submit"
@@ -700,7 +702,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
             ) : (
               <Save className="w-4 h-4" />
             )}
-            <span>Save Workflow</span>
+            <span>{t('pages.workflows.saveWorkflow')}</span>
           </button>
         </div>
       </form>
