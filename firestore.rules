@@ -122,12 +122,12 @@ service cloud.firestore {
 
     // 7. Workflows Collection
     match /workflows/{workflowId} {
-      allow read: if belongsToTenant(resource.data.tenantId);
+      allow read: if true;
       allow create, update, delete: if isOwnerOrAdmin(request.resource.data.tenantId);
 
       // stages subcollection
       match /stages/{stageId} {
-        allow read: if belongsToTenant(resource.data.tenantId);
+        allow read: if true;
         allow create, update, delete: if isOwnerOrAdmin(request.resource.data.tenantId);
       }
     }
