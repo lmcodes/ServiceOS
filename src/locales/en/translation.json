@@ -322,6 +322,7 @@
       "actionStart": "Start Serving",
       "actionComplete": "Complete",
       "actionNoShow": "No Show",
+      "actionToStage": "To {{name}}",
       "noTickets": "No active tickets",
       "noWaitingTickets": "No waiting tickets",
       "branchSelectLabel": "Select Branch",

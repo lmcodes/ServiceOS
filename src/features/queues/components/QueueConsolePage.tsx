@@ -633,6 +633,13 @@ export const QueueConsolePage: React.FC = () => {
                               });
                             }
 
+                            // Fallback: If no custom transitions defined, default to the next stage in linear index order
+                            const stageIds = wf.stageIds || [];
+                            const currentIndex = stageIds.indexOf(ticket.currentStageId);
+                            if (successorIds.size === 0 && currentIndex !== -1 && currentIndex < stageIds.length - 1) {
+                              successorIds.add(stageIds[currentIndex + 1]);
+                            }
+
                             const successors = Array.from(successorIds)
                               .map((id) => stagesMap[id])
                               .filter(Boolean);
@@ -645,7 +652,7 @@ export const QueueConsolePage: React.FC = () => {
                                 className="flex-1 py-1.5 px-3 bg-brand-50 dark:bg-brand-950/20 text-brand-655 hover:bg-brand-100 dark:hover:bg-brand-900/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-colors"
                               >
                                 <ArrowRight className="w-3.5 h-3.5 text-brand-600" />
-                                <span className="truncate">To {succ.name}</span>
+                                <span className="truncate">{t('pages.queues.actionToStage', { name: succ.name })}</span>
                               </button>
                             ));
                           })()}

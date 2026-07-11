@@ -322,6 +322,7 @@
       "actionStart": "เริ่มบริการ",
       "actionComplete": "เสร็จสิ้น",
       "actionNoShow": "ข้ามคิว (No-show)",
+      "actionToStage": "ส่งไป {{name}}",
       "noTickets": "ไม่มีคิวทำงานขณะนี้",
       "noWaitingTickets": "ไม่มีคิวรอเรียกขณะนี้",
       "branchSelectLabel": "เลือกสาขา",
