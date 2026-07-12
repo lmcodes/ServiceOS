@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stripeWebhook = exports.createCheckoutSession = exports.onQueueItemWrite = exports.inviteStaff = exports.setUserRole = exports.onUserCreated = void 0;
+exports.onQueueItemWriteWebhook = exports.api = exports.stripeWebhook = exports.createCheckoutSession = exports.onQueueItemWrite = exports.inviteStaff = exports.setUserRole = exports.onUserCreated = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const https_1 = require("firebase-functions/v2/https");
@@ -8,6 +8,7 @@ const firestore_1 = require("firebase-admin/firestore");
 const stripe_1 = require("stripe");
 admin.initializeApp();
 const db = admin.firestore();
+const rateLimitCache = new Map();
 /**
  * 1. Auth Trigger: onUserCreated
  * Triggers when a new user signs up in Firebase Auth.
@@ -507,5 +508,468 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
         console.error('Error handling webhook event:', error);
         res.status(500).send('Internal server error');
     }
+});
+/**
+ * 7. Public REST API Endpoint: api
+ * Serves /queues endpoints with authorization via API keys.
+ */
+exports.api = functions.https.onRequest(async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+    let apiKey = req.headers['x-api-key'];
+    if (!apiKey && req.headers.authorization?.startsWith('Bearer ')) {
+        apiKey = req.headers.authorization.split(' ')[1];
+    }
+    if (!apiKey) {
+        res.status(401).json({ error: 'Unauthorized: Missing API Key' });
+        return;
+    }
+    // Rate Limiting Check (100 requests per minute)
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+    const timestamps = rateLimitCache.get(apiKey) || [];
+    const activeTimestamps = timestamps.filter(t => t > oneMinuteAgo);
+    activeTimestamps.push(now);
+    rateLimitCache.set(apiKey, activeTimestamps);
+    if (activeTimestamps.length > 100) {
+        res.status(429).json({ error: 'Too Many Requests: Rate limit exceeded (100 requests per minute)' });
+        return;
+    }
+    try {
+        const apiKeyQuery = await db.collection('apiKeys')
+            .where('secret', '==', apiKey)
+            .where('status', '==', 'active')
+            .limit(1)
+            .get();
+        if (apiKeyQuery.empty) {
+            res.status(401).json({ error: 'Unauthorized: Invalid API Key' });
+            return;
+        }
+        const keyDoc = apiKeyQuery.docs[0];
+        const tenantId = keyDoc.data().tenantId;
+        const path = req.path || req.url?.split('?')[0] || '';
+        const cleanPath = path.replace(/^\/api\/v1/, '').replace(/^\/v1/, '').replace(/^\//, '');
+        const pathParts = cleanPath.split('/').filter(Boolean);
+        if (pathParts[0] === 'queues') {
+            // GET /queues -> list queues for a branch
+            if (req.method === 'GET' && pathParts.length === 1) {
+                const branchId = req.query.branchId;
+                if (!branchId) {
+                    res.status(400).json({ error: 'Missing query parameter: branchId' });
+                    return;
+                }
+                const branchDoc = await db.collection('branches').doc(branchId).get();
+                if (!branchDoc.exists || branchDoc.data()?.tenantId !== tenantId) {
+                    res.status(404).json({ error: 'Branch not found or unauthorized' });
+                    return;
+                }
+                const queuesQuery = await db.collection('queues')
+                    .where('tenantId', '==', tenantId)
+                    .where('branchId', '==', branchId)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                const queueList = queuesQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                res.status(200).json({ queues: queueList });
+                return;
+            }
+            // POST /queues -> create queue item
+            if (req.method === 'POST' && pathParts.length === 1) {
+                const { branchId, serviceId, customerName, customerPhone, customerEmail, customFields } = req.body;
+                if (!branchId || !serviceId || !customerName) {
+                    res.status(400).json({ error: 'Missing required fields: branchId, serviceId, customerName' });
+                    return;
+                }
+                const branchRef = db.collection('branches').doc(branchId);
+                const branchSnap = await branchRef.get();
+                if (!branchSnap.exists || branchSnap.data()?.tenantId !== tenantId) {
+                    res.status(404).json({ error: 'Branch not found or unauthorized' });
+                    return;
+                }
+                const serviceRef = db.collection('services').doc(serviceId);
+                const serviceSnap = await serviceRef.get();
+                if (!serviceSnap.exists || serviceSnap.data()?.tenantId !== tenantId) {
+                    res.status(404).json({ error: 'Service not found or unauthorized' });
+                    return;
+                }
+                const serviceData = serviceSnap.data() || {};
+                let workflowId = null;
+                let currentStageId = null;
+                let workflowHistory = [];
+                if (serviceData.workflowId) {
+                    const workflowSnap = await db.collection('workflows').doc(serviceData.workflowId).get();
+                    if (workflowSnap.exists) {
+                        const workflowData = workflowSnap.data() || {};
+                        const stageIds = workflowData.stageIds || [];
+                        if (stageIds.length > 0) {
+                            workflowId = serviceData.workflowId;
+                            currentStageId = stageIds[0];
+                            workflowHistory = [{
+                                    stageId: currentStageId,
+                                    enteredAt: new Date(),
+                                    exitedAt: null,
+                                    durationSeconds: null,
+                                    assignedUserId: null,
+                                    assignedResourceId: null
+                                }];
+                        }
+                    }
+                }
+                const queueDocRef = db.collection('queues').doc();
+                let formattedQueueNumber = '';
+                await db.runTransaction(async (transaction) => {
+                    const freshBranchSnap = await transaction.get(branchRef);
+                    if (!freshBranchSnap.exists) {
+                        throw new Error('Branch not found');
+                    }
+                    const freshBranchData = freshBranchSnap.data() || {};
+                    const timezone = freshBranchData.timezone || 'Asia/Bangkok';
+                    let todayStr = '2026-07-12';
+                    try {
+                        todayStr = new Intl.DateTimeFormat('en-CA', {
+                            timeZone: timezone,
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                        }).format(new Date());
+                    }
+                    catch (err) { }
+                    let nextQueueNumber = 1;
+                    const lastResetDate = freshBranchData.lastDailyResetDate;
+                    if (lastResetDate === todayStr) {
+                        nextQueueNumber = (freshBranchData.currentQueueNumber || 0) + 1;
+                    }
+                    transaction.update(branchRef, {
+                        currentQueueNumber: nextQueueNumber,
+                        lastDailyResetDate: todayStr,
+                        updatedAt: firestore_1.FieldValue.serverTimestamp()
+                    });
+                    const prefix = freshBranchData.queuePrefix || 'A';
+                    formattedQueueNumber = `${prefix}-${String(nextQueueNumber).padStart(3, '0')}`;
+                    const newQueueItem = {
+                        tenantId,
+                        branchId,
+                        serviceId,
+                        queueNumber: formattedQueueNumber,
+                        sequenceNumber: Date.now(),
+                        customerName,
+                        customerPhone: customerPhone || '',
+                        customerEmail: customerEmail || '',
+                        status: 'WAITING',
+                        priority: 0,
+                        calledCount: 0,
+                        customData: customFields || {},
+                        workflowId,
+                        currentStageId,
+                        workflowHistory,
+                        createdAt: firestore_1.FieldValue.serverTimestamp(),
+                        updatedAt: firestore_1.FieldValue.serverTimestamp()
+                    };
+                    transaction.set(queueDocRef, newQueueItem);
+                });
+                res.status(201).json({ id: queueDocRef.id, queueNumber: formattedQueueNumber });
+                return;
+            }
+            // GET /queues/:id -> get status
+            if (req.method === 'GET' && pathParts.length === 2) {
+                const queueItemId = pathParts[1];
+                const queueDoc = await db.collection('queues').doc(queueItemId).get();
+                if (!queueDoc.exists || queueDoc.data()?.tenantId !== tenantId) {
+                    res.status(404).json({ error: 'Queue item not found or unauthorized' });
+                    return;
+                }
+                res.status(200).json({ id: queueDoc.id, ...queueDoc.data() });
+                return;
+            }
+            // POST /queues/:id/cancel -> cancel queue item
+            if (req.method === 'POST' && pathParts.length === 3 && pathParts[2] === 'cancel') {
+                const queueItemId = pathParts[1];
+                const queueRef = db.collection('queues').doc(queueItemId);
+                const queueDoc = await queueRef.get();
+                if (!queueDoc.exists || queueDoc.data()?.tenantId !== tenantId) {
+                    res.status(404).json({ error: 'Queue item not found or unauthorized' });
+                    return;
+                }
+                if (queueDoc.data()?.status !== 'WAITING') {
+                    res.status(400).json({ error: 'Only WAITING queue items can be cancelled' });
+                    return;
+                }
+                await queueRef.update({
+                    status: 'CANCELLED',
+                    updatedAt: firestore_1.FieldValue.serverTimestamp()
+                });
+                res.status(200).json({ success: true, message: 'Queue item cancelled successfully' });
+                return;
+            }
+        }
+        if (pathParts[0] === 'webhooks') {
+            // POST /webhooks/:id/test
+            if (req.method === 'POST' && pathParts[2] === 'test') {
+                const webhookId = pathParts[1];
+                const webhookDoc = await db.collection('webhooks').doc(webhookId).get();
+                if (!webhookDoc.exists || webhookDoc.data()?.tenantId !== tenantId) {
+                    res.status(404).json({ error: 'Webhook not found or unauthorized' });
+                    return;
+                }
+                const webhook = webhookDoc.data();
+                const url = webhook.url;
+                const secret = webhook.secret;
+                const pingPayload = {
+                    event: 'ping.test',
+                    id: 'ping-' + Date.now(),
+                    timestamp: new Date().toISOString(),
+                    data: {
+                        message: 'Webhook configuration test successful',
+                        tenantId
+                    }
+                };
+                const body = JSON.stringify(pingPayload);
+                const crypto = require('crypto');
+                const signature = crypto.createHmac('sha256', secret || '').update(body).digest('hex');
+                let statusCode = 0;
+                let responseText = '';
+                let errorMessage = '';
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-svcos-signature': signature
+                        },
+                        body
+                    });
+                    statusCode = response.status;
+                    responseText = await response.text();
+                    if (!response.ok) {
+                        errorMessage = responseText;
+                    }
+                }
+                catch (err) {
+                    errorMessage = err.message || 'Fetch failed';
+                    statusCode = 500;
+                }
+                // Record a log in webhookLogs
+                const logDocRef = db.collection('webhookLogs').doc();
+                await logDocRef.set({
+                    tenantId,
+                    webhookId,
+                    eventType: 'ping.test',
+                    url,
+                    payload: body,
+                    statusCode,
+                    errorMessage: errorMessage.substring(0, 1000),
+                    attempts: 1,
+                    status: statusCode >= 200 && statusCode < 300 ? 'success' : 'failed',
+                    deliveredAt: firestore_1.FieldValue.serverTimestamp()
+                });
+                res.status(200).json({
+                    success: statusCode >= 200 && statusCode < 300,
+                    statusCode,
+                    body: responseText || errorMessage
+                });
+                return;
+            }
+        }
+        if (pathParts[0] === 'webhook-logs') {
+            // POST /webhook-logs/:id/redeliver
+            if (req.method === 'POST' && pathParts[2] === 'redeliver') {
+                const logId = pathParts[1];
+                const logDoc = await db.collection('webhookLogs').doc(logId).get();
+                if (!logDoc.exists || logDoc.data()?.tenantId !== tenantId) {
+                    res.status(404).json({ error: 'Webhook log not found or unauthorized' });
+                    return;
+                }
+                const logData = logDoc.data();
+                const webhookId = logData.webhookId;
+                const webhookDoc = await db.collection('webhooks').doc(webhookId).get();
+                if (!webhookDoc.exists) {
+                    res.status(404).json({ error: 'Webhook configuration no longer exists' });
+                    return;
+                }
+                const webhook = webhookDoc.data();
+                const url = webhook.url;
+                const secret = webhook.secret;
+                const payload = JSON.parse(logData.payload);
+                // Update timestamp in payload
+                payload.timestamp = new Date().toISOString();
+                const body = JSON.stringify(payload);
+                const crypto = require('crypto');
+                const signature = crypto.createHmac('sha256', secret || '').update(body).digest('hex');
+                let statusCode = 0;
+                let errorMessage = '';
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-svcos-signature': signature
+                        },
+                        body
+                    });
+                    statusCode = response.status;
+                    if (!response.ok) {
+                        errorMessage = await response.text();
+                    }
+                }
+                catch (err) {
+                    errorMessage = err.message || 'Fetch failed';
+                    statusCode = 500;
+                }
+                const logDocRef = db.collection('webhookLogs').doc();
+                await logDocRef.set({
+                    tenantId,
+                    webhookId,
+                    eventType: logData.eventType + '.redeliver',
+                    url,
+                    payload: body,
+                    statusCode,
+                    errorMessage: errorMessage.substring(0, 1000),
+                    attempts: 1,
+                    status: statusCode >= 200 && statusCode < 300 ? 'success' : 'failed',
+                    deliveredAt: firestore_1.FieldValue.serverTimestamp()
+                });
+                res.status(200).json({
+                    success: statusCode >= 200 && statusCode < 300,
+                    statusCode
+                });
+                return;
+            }
+        }
+        res.status(404).json({ error: `Not Found: ${req.method} ${path}` });
+    }
+    catch (error) {
+        console.error('[api] Error processing request:', error);
+        res.status(500).json({ error: 'Internal Server Error', message: error.message });
+    }
+});
+/**
+ * 8. Firestore Trigger: onQueueItemWriteWebhook
+ * Sends webhook notification to registered URLs when queue items change status.
+ */
+exports.onQueueItemWriteWebhook = functions.firestore
+    .document('queues/{queueItemId}')
+    .onWrite(async (change, context) => {
+    const queueItemId = context.params.queueItemId;
+    const beforeData = change.before.exists ? change.before.data() : null;
+    const afterData = change.after.exists ? change.after.data() : null;
+    if (!afterData) {
+        return;
+    }
+    const tenantId = afterData.tenantId;
+    if (!tenantId)
+        return;
+    let eventType = 'queue.updated';
+    if (!beforeData) {
+        eventType = 'queue.created';
+    }
+    else if (beforeData.status !== afterData.status) {
+        if (afterData.status === 'WAITING') {
+            eventType = 'queue.created';
+        }
+        else if (afterData.status === 'SERVING') {
+            eventType = 'queue.serving';
+        }
+        else if (afterData.status === 'COMPLETED') {
+            eventType = 'queue.completed';
+        }
+        else if (afterData.status === 'CANCELLED') {
+            eventType = 'queue.cancelled';
+        }
+        else if (afterData.status === 'NO_SHOW') {
+            eventType = 'queue.noshow';
+        }
+    }
+    else {
+        // No status change, skip
+        return;
+    }
+    const webhooksQuery = await db.collection('webhooks')
+        .where('tenantId', '==', tenantId)
+        .where('isActive', '==', true)
+        .get();
+    if (webhooksQuery.empty)
+        return;
+    const payload = {
+        event: eventType,
+        id: queueItemId,
+        timestamp: new Date().toISOString(),
+        data: {
+            queueItemId,
+            tenantId: afterData.tenantId,
+            branchId: afterData.branchId,
+            serviceId: afterData.serviceId,
+            queueNumber: afterData.queueNumber,
+            status: afterData.status,
+            customerName: afterData.customerName,
+            customerPhone: afterData.customerPhone,
+            customerEmail: afterData.customerEmail,
+            createdAt: afterData.createdAt ? new Date(afterData.createdAt.seconds * 1000).toISOString() : null,
+            updatedAt: afterData.updatedAt ? new Date(afterData.updatedAt.seconds * 1000).toISOString() : null
+        }
+    };
+    const promises = webhooksQuery.docs.map(async (docSnap) => {
+        const webhook = docSnap.data();
+        const url = webhook.url;
+        const secret = webhook.secret;
+        const events = webhook.events || [];
+        if (events.length > 0 && !events.includes(eventType)) {
+            return;
+        }
+        const logDocRef = db.collection('webhookLogs').doc();
+        let statusCode = 0;
+        let errorMessage = '';
+        let attempt = 0;
+        const maxAttempts = 3;
+        let success = false;
+        const body = JSON.stringify(payload);
+        const crypto = require('crypto');
+        const signature = crypto.createHmac('sha256', secret || '').update(body).digest('hex');
+        while (attempt < maxAttempts && !success) {
+            attempt++;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-svcos-signature': signature
+                    },
+                    body
+                });
+                statusCode = response.status;
+                if (response.ok) {
+                    success = true;
+                    errorMessage = '';
+                }
+                else {
+                    errorMessage = await response.text();
+                }
+            }
+            catch (err) {
+                errorMessage = err.message || 'Fetch failed';
+                statusCode = 500;
+            }
+            if (!success && attempt < maxAttempts) {
+                // Exponential backoff: 1s, 2s
+                await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+            }
+        }
+        await logDocRef.set({
+            tenantId,
+            webhookId: docSnap.id,
+            eventType,
+            url,
+            payload: JSON.stringify(payload),
+            statusCode,
+            errorMessage: errorMessage.substring(0, 1000),
+            attempts: attempt,
+            status: success ? 'success' : 'failed',
+            deliveredAt: firestore_1.FieldValue.serverTimestamp()
+        });
+    });
+    await Promise.all(promises);
 });
 //# sourceMappingURL=index.js.map

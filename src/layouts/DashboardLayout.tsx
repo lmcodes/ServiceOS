@@ -17,7 +17,8 @@ import {
   User as UserIcon,
   ShieldCheck,
   BarChart3,
-  CreditCard
+  CreditCard,
+  Code
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -59,6 +60,7 @@ export const DashboardLayout: React.FC = () => {
     { to: '/dashboard/staff', icon: <Users size={18} />, label: t('dashboard.menuStaff'), roles: ['owner', 'admin'] },
     { to: '/dashboard/analytics', icon: <BarChart3 size={18} />, label: t('dashboard.menuAnalytics'), roles: ['owner', 'admin'] },
     { to: '/dashboard/subscription', icon: <CreditCard size={18} />, label: t('dashboard.menuSubscription'), roles: ['owner'] },
+    { to: '/dashboard/developer', icon: <Code size={18} />, label: t('dashboard.menuDeveloper', 'Developer Portal'), roles: ['owner', 'admin'] },
     { to: '/dashboard/settings', icon: <LayoutDashboard size={18} />, label: t('dashboard.menuSettings'), roles: ['owner'] },
   ];
 

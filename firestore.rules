@@ -176,5 +176,27 @@ service cloud.firestore {
       allow read: if isOwnerOrAdmin(resource.data.tenantId);
       allow write: if false; // Enforced system-only creation to prevent client spoofing
     }
+
+    // 12. API Keys
+    match /apiKeys/{keyId} {
+      allow read: if isOwnerOrAdmin(resource.data.tenantId);
+      allow create: if isOwnerOrAdmin(request.resource.data.tenantId);
+      allow update: if isOwnerOrAdmin(resource.data.tenantId) && isOwnerOrAdmin(request.resource.data.tenantId);
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId);
+    }
+
+    // 13. Webhooks Config
+    match /webhooks/{webhookId} {
+      allow read: if isOwnerOrAdmin(resource.data.tenantId);
+      allow create: if isOwnerOrAdmin(request.resource.data.tenantId);
+      allow update: if isOwnerOrAdmin(resource.data.tenantId) && isOwnerOrAdmin(request.resource.data.tenantId);
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId);
+    }
+
+    // 14. Webhook Logs
+    match /webhookLogs/{logId} {
+      allow read: if isOwnerOrAdmin(resource.data.tenantId);
+      allow write: if false; // System-only creation
+    }
   }
 }

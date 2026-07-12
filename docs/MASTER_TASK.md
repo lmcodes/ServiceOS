@@ -467,9 +467,9 @@
 ## 🔌 PHASE 9 — V5: Developer Portal
 
 ### DEV-01 · API & Webhooks
-- [ ] `DeveloperPage.tsx` — generate API tokens
-- [ ] Cloud Functions: Public REST API endpoints
-- [ ] Webhook system — fire on queue status changes
+- [x] `DeveloperPage.tsx` — generate API tokens
+- [x] Cloud Functions: Public REST API endpoints
+- [x] Webhook system — fire on queue status changes
 
 ---
 
@@ -485,8 +485,8 @@
 | 5 | Settings | ✅ เสร็จแล้ว | 100% |
 | 6 | V2 Workflow Engine | ✅ เสร็จแล้ว | 100% |
 | 7 | V3 Appointments | ✅ เสร็จแล้ว | 100% |
-| 8 | V4 Analytics & Billing | ⬜ ยังไม่เริ่ม | 0% |
-| 9 | V5 Developer Portal | ⬜ ยังไม่เริ่ม | 0% |
+| 8 | V4 Analytics & Billing | ✅ เสร็จแล้ว | 100% |
+| 9 | V5 Developer Portal | ✅ เสร็จแล้ว | 100% |
 
 ---
 

@@ -89,6 +89,7 @@
     "menuStaff": "รายชื่อพนักงาน",
     "menuAnalytics": "แดชบอร์ดวิเคราะห์ผล",
     "menuSubscription": "แพ็คเกจและการเรียกเก็บเงิน",
+    "menuDeveloper": "พอร์ทัลนักพัฒนา",
     "menuSettings": "ตั้งค่าโปรไฟล์",
     "logoutButton": "ออกจากระบบ",
     "timezonePrefix": "เขตเวลา",
@@ -541,6 +542,29 @@
       "cardholderName": "ชื่อบนบัตร",
       "mockAlert": "นี่คือระบบจำลองการจ่ายเงิน การกดปุ่มด้านล่างจะส่งอีเวนต์ checkout.session.completed ไปยัง Webhook โดยตรงเพื่ออัปเกรดสถานะแพ็คเกจของคุณ",
       "payAndSubscribe": "ชำระเงินและสมัครสมาชิก"
+    },
+    "developer": {
+      "title": "พอร์ทัลนักพัฒนา",
+      "subtitle": "จัดการรหัส API และจุดเชื่อมต่อระบบส่งข้อมูล Webhook",
+      "unauthorizedTitle": "ปฏิเสธการเข้าถึง",
+      "unauthorizedDesc": "เฉพาะเจ้าของธุรกิจหลักหรือผู้ดูแลระบบเท่านั้นที่สามารถเข้าถึงเครื่องมือนักพัฒนาได้",
+      "tabApiKeys": "คีย์ API",
+      "tabWebhooks": "เว็บฮุก (Webhooks)",
+      "tabLogs": "ประวัติการทำงานเว็บฮุก",
+      "apiKeyName": "ชื่อคีย์",
+      "apiKeySecret": "รหัสลับคีย์ API",
+      "apiKeyStatus": "สถานะ",
+      "apiKeyCreated": "สร้างเมื่อ",
+      "btnGenerateKey": "สร้างคีย์ API ใหม่",
+      "btnCreateWebhook": "เพิ่มเว็บฮุกใหม่",
+      "webhookUrl": "URL รับข้อมูล",
+      "webhookSecret": "รหัสลับลงชื่อ",
+      "webhookEvents": "เหตุการณ์",
+      "webhookStatus": "เปิดใช้งาน",
+      "btnSave": "บันทึก",
+      "btnCancel": "ยกเลิก",
+      "logStatus": "รหัสสถานะ HTTP",
+      "logDelivered": "เวลาส่งข้อมูล"
     }
   }
 }

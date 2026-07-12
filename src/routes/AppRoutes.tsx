@@ -35,6 +35,9 @@ import AppointmentsPage from '@/features/appointments/components/AppointmentsPag
 import { AnalyticsPage } from '@/features/analytics/components/AnalyticsPage';
 import { SubscriptionPage } from '@/features/billing/components/SubscriptionPage';
 
+// Developer Portal Feature
+import { DeveloperPage } from '@/features/developer/components/DeveloperPage';
+
 
 // Mock Landing Page
 const MockLanding: React.FC = () => {
@@ -152,6 +155,16 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['owner']}>
               <SubscriptionPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Developer Portal (Owner, Admin) */}
+        <Route 
+          path="developer" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin']}>
+              <DeveloperPage />
             </ProtectedRoute>
           } 
         />

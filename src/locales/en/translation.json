@@ -89,6 +89,7 @@
     "menuStaff": "Staff Directory",
     "menuAnalytics": "Analytics Dashboard",
     "menuSubscription": "Plan & Billing",
+    "menuDeveloper": "Developer Portal",
     "menuSettings": "Tenant Profile",
     "logoutButton": "Log out",
     "timezonePrefix": "Timezone",
@@ -541,6 +542,29 @@
       "cardholderName": "Name on card",
       "mockAlert": "This is a mock checkout flow. Clicking pay will send a simulated checkout.session.completed event directly to the webhook to update your subscription.",
       "payAndSubscribe": "Pay and Subscribe"
+    },
+    "developer": {
+      "title": "Developer Portal",
+      "subtitle": "Manage API keys and Webhook integration endpoints",
+      "unauthorizedTitle": "Access Denied",
+      "unauthorizedDesc": "Only tenant owners or administrators can access developer tools.",
+      "tabApiKeys": "API Keys",
+      "tabWebhooks": "Webhooks",
+      "tabLogs": "Webhook Logs",
+      "apiKeyName": "Name",
+      "apiKeySecret": "Secret Key",
+      "apiKeyStatus": "Status",
+      "apiKeyCreated": "Created At",
+      "btnGenerateKey": "Generate API Key",
+      "btnCreateWebhook": "Add Webhook",
+      "webhookUrl": "Payload URL",
+      "webhookSecret": "Signing Secret",
+      "webhookEvents": "Events",
+      "webhookStatus": "Active Status",
+      "btnSave": "Save",
+      "btnCancel": "Cancel",
+      "logStatus": "Status Code",
+      "logDelivered": "Delivered At"
     }
   }
 }
