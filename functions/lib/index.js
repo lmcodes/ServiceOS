@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.inviteStaff = exports.setUserRole = exports.onUserCreated = void 0;
+exports.stripeWebhook = exports.createCheckoutSession = exports.onQueueItemWrite = exports.inviteStaff = exports.setUserRole = exports.onUserCreated = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const stripe_1 = require("stripe");
 admin.initializeApp();
 const db = admin.firestore();
 /**
@@ -185,6 +186,326 @@ exports.inviteStaff = (0, https_1.onCall)(async (request) => {
             throw error;
         }
         throw new https_1.HttpsError('internal', error.message || 'Failed to invite staff.');
+    }
+});
+/**
+ * 4. Firestore Trigger: onQueueItemWrite
+ * Aggregates daily queue volume, wait times, service times, and breakdowns per branch.
+ */
+exports.onQueueItemWrite = functions.firestore
+    .document('queues/{queueItemId}')
+    .onWrite(async (change) => {
+    const beforeData = change.before.exists ? change.before.data() : null;
+    const afterData = change.after.exists ? change.after.data() : null;
+    const data = afterData || beforeData;
+    if (!data)
+        return;
+    const { tenantId, branchId, serviceId } = data;
+    if (!tenantId || !branchId)
+        return;
+    // Use ticket createdAt timestamp or fallback to current time
+    const createdAtSeconds = data.createdAt ? (data.createdAt.seconds || data.createdAt._seconds || Math.floor(Date.now() / 1000)) : Math.floor(Date.now() / 1000);
+    const date = new Date(createdAtSeconds * 1000);
+    let timezone = 'Asia/Bangkok';
+    try {
+        const branchSnap = await db.collection('branches').doc(branchId).get();
+        if (branchSnap.exists) {
+            const branchData = branchSnap.data();
+            if (branchData && branchData.timezone) {
+                timezone = branchData.timezone;
+            }
+        }
+    }
+    catch (err) {
+        console.error(`[onQueueItemWrite] Error fetching branch ${branchId}:`, err);
+    }
+    let dateStr = '2026-07-11';
+    try {
+        dateStr = new Intl.DateTimeFormat('en-CA', {
+            timeZone: timezone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(date);
+    }
+    catch (err) {
+        console.error('[onQueueItemWrite] Error formatting dateStr:', err);
+    }
+    let hourStr = '09:00';
+    try {
+        const hr = new Intl.DateTimeFormat('en-US', {
+            timeZone: timezone,
+            hour: '2-digit',
+            hour12: false
+        }).format(date);
+        hourStr = `${hr}:00`;
+    }
+    catch (err) {
+        console.error('[onQueueItemWrite] Error formatting hourStr:', err);
+    }
+    const metricsDocRef = db
+        .collection('branches')
+        .doc(branchId)
+        .collection('dailyMetrics')
+        .doc(dateStr);
+    let deltaCreated = 0;
+    let deltaCompleted = 0;
+    let deltaNoShows = 0;
+    let deltaCancelled = 0;
+    let deltaWaitTimeSeconds = 0;
+    let deltaWaitTimeCount = 0;
+    let deltaServiceTimeSeconds = 0;
+    let deltaServiceTimeCount = 0;
+    const serviceBreakdownDelta = {};
+    const hourlyTrafficDelta = {};
+    // Ticket Created
+    if (!beforeData && afterData) {
+        deltaCreated = 1;
+        if (serviceId)
+            serviceBreakdownDelta[serviceId] = 1;
+        hourlyTrafficDelta[hourStr] = 1;
+    }
+    // Ticket Updated Status
+    if (beforeData && afterData) {
+        const beforeStatus = beforeData.status;
+        const afterStatus = afterData.status;
+        if (beforeStatus !== afterStatus) {
+            if (afterStatus === 'COMPLETED') {
+                deltaCompleted = 1;
+                // Wait time: servingStartedAt - createdAt
+                const startSec = afterData.servingStartedAt?.seconds || afterData.servingStartedAt?._seconds;
+                const createdSec = afterData.createdAt?.seconds || afterData.createdAt?._seconds;
+                if (startSec && createdSec && startSec >= createdSec) {
+                    deltaWaitTimeSeconds = startSec - createdSec;
+                    deltaWaitTimeCount = 1;
+                }
+                // Service time: completedAt - servingStartedAt
+                const completedSec = afterData.completedAt?.seconds || afterData.completedAt?._seconds;
+                if (completedSec && startSec && completedSec >= startSec) {
+                    deltaServiceTimeSeconds = completedSec - startSec;
+                    deltaServiceTimeCount = 1;
+                }
+            }
+            else if (afterStatus === 'NO_SHOW') {
+                deltaNoShows = 1;
+            }
+            else if (afterStatus === 'CANCELLED') {
+                deltaCancelled = 1;
+            }
+        }
+    }
+    try {
+        await db.runTransaction(async (transaction) => {
+            const docSnap = await transaction.get(metricsDocRef);
+            let currentMetrics = {
+                totalQueuesCreated: 0,
+                totalQueuesCompleted: 0,
+                totalNoShows: 0,
+                totalCancelled: 0,
+                totalWaitTimeSeconds: 0,
+                totalWaitTimeCount: 0,
+                totalServiceTimeSeconds: 0,
+                totalServiceTimeCount: 0,
+                serviceBreakdown: {},
+                hourlyTraffic: {}
+            };
+            if (docSnap.exists) {
+                const docData = docSnap.data();
+                if (docData) {
+                    currentMetrics = {
+                        totalQueuesCreated: docData.totalQueuesCreated || 0,
+                        totalQueuesCompleted: docData.totalQueuesCompleted || 0,
+                        totalNoShows: docData.totalNoShows || 0,
+                        totalCancelled: docData.totalCancelled || 0,
+                        totalWaitTimeSeconds: docData.totalWaitTimeSeconds || 0,
+                        totalWaitTimeCount: docData.totalWaitTimeCount || 0,
+                        totalServiceTimeSeconds: docData.totalServiceTimeSeconds || 0,
+                        totalServiceTimeCount: docData.totalServiceTimeCount || 0,
+                        serviceBreakdown: docData.serviceBreakdown || {},
+                        hourlyTraffic: docData.hourlyTraffic || {}
+                    };
+                }
+            }
+            const nextMetrics = {
+                tenantId,
+                branchId,
+                totalQueuesCreated: currentMetrics.totalQueuesCreated + deltaCreated,
+                totalQueuesCompleted: currentMetrics.totalQueuesCompleted + deltaCompleted,
+                totalNoShows: currentMetrics.totalNoShows + deltaNoShows,
+                totalCancelled: currentMetrics.totalCancelled + deltaCancelled,
+                totalWaitTimeSeconds: currentMetrics.totalWaitTimeSeconds + deltaWaitTimeSeconds,
+                totalWaitTimeCount: currentMetrics.totalWaitTimeCount + deltaWaitTimeCount,
+                totalServiceTimeSeconds: currentMetrics.totalServiceTimeSeconds + deltaServiceTimeSeconds,
+                totalServiceTimeCount: currentMetrics.totalServiceTimeCount + deltaServiceTimeCount,
+                serviceBreakdown: { ...currentMetrics.serviceBreakdown },
+                hourlyTraffic: { ...currentMetrics.hourlyTraffic }
+            };
+            for (const [sId, count] of Object.entries(serviceBreakdownDelta)) {
+                nextMetrics.serviceBreakdown[sId] = (nextMetrics.serviceBreakdown[sId] || 0) + count;
+            }
+            for (const [hStr, count] of Object.entries(hourlyTrafficDelta)) {
+                nextMetrics.hourlyTraffic[hStr] = (nextMetrics.hourlyTraffic[hStr] || 0) + count;
+            }
+            const avgWaitTimeSeconds = nextMetrics.totalWaitTimeCount > 0
+                ? Math.round(nextMetrics.totalWaitTimeSeconds / nextMetrics.totalWaitTimeCount)
+                : 0;
+            const avgServiceTimeSeconds = nextMetrics.totalServiceTimeCount > 0
+                ? Math.round(nextMetrics.totalServiceTimeSeconds / nextMetrics.totalServiceTimeCount)
+                : 0;
+            transaction.set(metricsDocRef, {
+                ...nextMetrics,
+                avgWaitTimeSeconds,
+                avgServiceTimeSeconds,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        });
+        console.log(`[onQueueItemWrite] Updated metrics for branch ${branchId} on date ${dateStr}`);
+    }
+    catch (err) {
+        console.error('[onQueueItemWrite] Error in metrics transaction:', err);
+    }
+});
+/**
+ * 5. HTTPS Callable Function: createCheckoutSession
+ * Generates Stripe Checkout url or local mock payment url.
+ */
+exports.createCheckoutSession = (0, https_1.onCall)(async (request) => {
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'Must be authenticated');
+    }
+    const tenantId = request.auth.token.tenantId;
+    const { planId, successUrl, cancelUrl } = request.data;
+    if (!planId || !successUrl || !cancelUrl) {
+        throw new https_1.HttpsError('invalid-argument', 'Missing planId, successUrl or cancelUrl');
+    }
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) {
+        // Return mock checkout url
+        const mockUrl = `${successUrl}?mock_checkout=true&planId=${planId}`;
+        return { url: mockUrl };
+    }
+    const stripe = new stripe_1.default(stripeKey, { apiVersion: '2024-04-10' });
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: `ServiceOS ${planId.toUpperCase()} Plan`,
+                        },
+                        unit_amount: planId === 'professional' ? 2900 : 9900,
+                        recurring: { interval: 'month' },
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'subscription',
+            metadata: { tenantId, planId },
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+        });
+        return { url: session.url };
+    }
+    catch (error) {
+        console.error('Error creating Stripe session:', error);
+        throw new https_1.HttpsError('internal', error.message || 'Stripe error');
+    }
+});
+/**
+ * 6. HTTPS HTTP Webhook Function: stripeWebhook
+ * Listens to stripe events to activate or cancel subscriptions.
+ */
+exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, stripe-signature');
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    const sig = req.headers['stripe-signature'];
+    let event;
+    if (process.env.FUNCTIONS_EMULATOR === 'true' && (!stripeKey || !sig)) {
+        console.log('[stripeWebhook] Mock Webhook triggered in emulator mode');
+        event = req.body;
+    }
+    else {
+        if (!stripeKey || !sig) {
+            res.status(400).send('Missing signature or stripe key');
+            return;
+        }
+        const stripe = new stripe_1.default(stripeKey, { apiVersion: '2024-04-10' });
+        try {
+            event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET || '');
+        }
+        catch (err) {
+            console.error('Webhook signature verification failed:', err);
+            res.status(400).send(`Webhook Error: ${err.message}`);
+            return;
+        }
+    }
+    const session = event.data.object;
+    const now = new Date();
+    try {
+        if (event.type === 'checkout.session.completed') {
+            const tenantId = session.metadata?.tenantId;
+            const planId = session.metadata?.planId || 'professional';
+            if (tenantId) {
+                await db.collection('subscriptions').doc(tenantId).set({
+                    tenantId,
+                    status: 'active',
+                    stripeSubscriptionId: session.subscription || 'mock_sub_id',
+                    stripeCustomerId: session.customer || 'mock_cust_id',
+                    planId,
+                    limits: {
+                        branches: planId === 'professional' ? 10 : 9999,
+                        servicesPerBranch: planId === 'professional' ? 20 : 9999,
+                        usersPerBranch: planId === 'professional' ? 50 : 9999,
+                        queueItemsPerDay: planId === 'professional' ? 500 : 99999,
+                        smsIncluded: planId === 'professional' ? 100 : 1000
+                    },
+                    usage: {
+                        smsSentThisMonth: 0,
+                        queuesCreatedThisMonth: 0
+                    },
+                    currentPeriodEndsAt: admin.firestore.Timestamp.fromDate(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)),
+                    createdAt: firestore_1.FieldValue.serverTimestamp(),
+                    updatedAt: firestore_1.FieldValue.serverTimestamp()
+                });
+                await db.collection('tenants').doc(tenantId).update({
+                    subscriptionId: session.subscription || 'mock_sub_id',
+                    updatedAt: firestore_1.FieldValue.serverTimestamp()
+                });
+                console.log(`[stripeWebhook] Activated subscription for tenant ${tenantId} on plan ${planId}`);
+            }
+        }
+        else if (event.type === 'customer.subscription.deleted') {
+            const query = await db.collection('subscriptions')
+                .where('stripeSubscriptionId', '==', session.id)
+                .limit(1)
+                .get();
+            if (!query.empty) {
+                const subDoc = query.docs[0];
+                const tenantId = subDoc.id;
+                await subDoc.ref.update({
+                    status: 'cancelled',
+                    updatedAt: firestore_1.FieldValue.serverTimestamp()
+                });
+                await db.collection('tenants').doc(tenantId).update({
+                    subscriptionId: '',
+                    updatedAt: firestore_1.FieldValue.serverTimestamp()
+                });
+                console.log(`[stripeWebhook] Subscription cancelled for tenant ${tenantId}`);
+            }
+        }
+        res.status(200).json({ received: true });
+    }
+    catch (error) {
+        console.error('Error handling webhook event:', error);
+        res.status(500).send('Internal server error');
     }
 });
 //# sourceMappingURL=index.js.map

@@ -449,18 +449,18 @@
 ## 💳 PHASE 8 — V4: Analytics & Billing
 
 ### ANL-01 · Analytics Dashboard
-- [ ] `AnalyticsPage.tsx` — owner/admin only:
-  - [ ] กราฟ daily queue volume (7/30 วัน)
-  - [ ] Average wait time trends
-  - [ ] Busiest hours heatmap
-  - [ ] Per-service breakdown
-- [ ] อ่านข้อมูลจาก `dailyMetrics` sub-collection
+- [x] `AnalyticsPage.tsx` — owner/admin only:
+  - [x] กราฟ daily queue volume (7/30 วัน)
+  - [x] Average wait time trends
+  - [x] Busiest hours heatmap
+  - [x] Per-service breakdown
+- [x] อ่านข้อมูลจาก `dailyMetrics` sub-collection
 
 ### BILL-01 · Stripe Integration
-- [ ] ติดตั้ง Stripe SDK ใน Cloud Functions
-- [ ] สร้าง Cloud Function `createCheckoutSession`
-- [ ] Cloud Function `stripeWebhook` — handle subscription events
-- [ ] `SubscriptionPage.tsx` — แสดง plan, ปุ่ม Upgrade, Billing Portal link
+- [x] ติดตั้ง Stripe SDK ใน Cloud Functions
+- [x] สร้าง Cloud Function `createCheckoutSession`
+- [x] Cloud Function `stripeWebhook` — handle subscription events
+- [x] `SubscriptionPage.tsx` — แสดง plan, ปุ่ม Upgrade, Billing Portal link
 
 ---
 

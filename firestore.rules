@@ -103,7 +103,9 @@ service cloud.firestore {
 
       // dailyMetrics subcollection
       match /dailyMetrics/{dateStr} {
-        allow read, write: if hasBranchAccess(resource.data.tenantId, branchId);
+        allow read: if hasBranchAccess(resource.data.tenantId, branchId);
+        allow write: if hasBranchAccess(request.resource.data.tenantId, branchId) || 
+                      (resource != null && hasBranchAccess(resource.data.tenantId, branchId));
       }
     }
 

@@ -2,10 +2,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { useAuth } from '@/context/AuthContext';
-import { Tenant } from '@/types/firestore';
+import { Tenant, Subscription } from '@/types/firestore';
 
 interface TenantContextType {
   tenant: Tenant | null;
+  subscription: Subscription | null;
   loading: boolean;
   error: Error | null;
 }
@@ -15,14 +16,16 @@ const TenantContext = createContext<TenantContextType | undefined>(undefined);
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [tenant, setTenant] = useState<Tenant | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Only fetch tenant details if we have an active tenantId associated with the user
+    // Only fetch details if we have an active tenantId associated with the user
     if (!user || !user.tenantId) {
-      setTenant(prev => prev !== null ? null : prev);
-      setLoading(prev => prev !== false ? false : prev);
+      setTenant(null);
+      setSubscription(null);
+      setLoading(false);
       return;
     }
 
@@ -30,8 +33,18 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setError(null);
 
     const docRef = doc(db, 'tenants', user.tenantId);
-    
-    const unsubscribe = onSnapshot(
+    const subRef = doc(db, 'subscriptions', user.tenantId);
+
+    let tenantLoaded = false;
+    let subLoaded = false;
+
+    const checkLoadingFinished = () => {
+      if (tenantLoaded && subLoaded) {
+        setLoading(false);
+      }
+    };
+
+    const unsubscribeTenant = onSnapshot(
       docRef,
       (docSnap) => {
         if (docSnap.exists()) {
@@ -40,20 +53,62 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setError(new Error('Tenant document not found'));
           setTenant(null);
         }
-        setLoading(false);
+        tenantLoaded = true;
+        checkLoadingFinished();
       },
       (err) => {
         console.error('Error fetching tenant details:', err);
         setError(err as Error);
-        setLoading(false);
+        tenantLoaded = true;
+        checkLoadingFinished();
       }
     );
 
-    return () => unsubscribe();
+    const unsubscribeSub = onSnapshot(
+      subRef,
+      (subSnap) => {
+        if (subSnap.exists()) {
+          setSubscription({ tenantId: subSnap.id, ...subSnap.data() } as Subscription);
+        } else {
+          // Default to Starter (Free) plan limits if no subscription document exists
+          setSubscription({
+            tenantId: user.tenantId,
+            planId: 'starter',
+            status: 'active',
+            limits: {
+              branches: 1,
+              servicesPerBranch: 2,
+              usersPerBranch: 5,
+              queueItemsPerDay: 50,
+              smsIncluded: 0
+            },
+            usage: {
+              smsSentThisMonth: 0,
+              queuesCreatedThisMonth: 0
+            },
+            currentPeriodEndsAt: { seconds: Math.floor(Date.now() / 1000) + 365*24*60*60, nanoseconds: 0 },
+            createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 },
+            updatedAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+          } as unknown as Subscription);
+        }
+        subLoaded = true;
+        checkLoadingFinished();
+      },
+      (err) => {
+        console.error('Error fetching subscription details:', err);
+        subLoaded = true;
+        checkLoadingFinished();
+      }
+    );
+
+    return () => {
+      unsubscribeTenant();
+      unsubscribeSub();
+    };
   }, [user]);
 
   return (
-    <TenantContext.Provider value={{ tenant, loading, error }}>
+    <TenantContext.Provider value={{ tenant, subscription, loading, error }}>
       {children}
     </TenantContext.Provider>
   );

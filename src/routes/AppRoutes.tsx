@@ -31,6 +31,10 @@ import { SettingsPage } from '@/features/settings/components/SettingsPage';
 import BookingPage from '@/features/appointments/components/BookingPage';
 import AppointmentsPage from '@/features/appointments/components/AppointmentsPage';
 
+// Analytics & Billing Feature
+import { AnalyticsPage } from '@/features/analytics/components/AnalyticsPage';
+import { SubscriptionPage } from '@/features/billing/components/SubscriptionPage';
+
 
 // Mock Landing Page
 const MockLanding: React.FC = () => {
@@ -128,6 +132,26 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['owner']}>
               <SettingsPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Analytics (Owner, Admin) */}
+        <Route 
+          path="analytics" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin']}>
+              <AnalyticsPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Subscription & Billing (Owner only) */}
+        <Route 
+          path="subscription" 
+          element={
+            <ProtectedRoute allowedRoles={['owner']}>
+              <SubscriptionPage />
             </ProtectedRoute>
           } 
         />
