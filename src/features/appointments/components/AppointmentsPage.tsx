@@ -201,7 +201,7 @@ export const AppointmentsPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <CalendarIcon className="w-7 h-7 text-brand-655" />
+            <CalendarIcon className="w-7 h-7 text-brand-655 dark:text-brand-400" />
             {t('pages.appointments.consoleTitle')}
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -280,7 +280,7 @@ export const AppointmentsPage: React.FC = () => {
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('pages.appointments.statScheduled')}</span>
             <span className="text-xl font-black text-slate-900 dark:text-white mt-1 block">{stats.scheduled}</span>
           </div>
-          <div className="w-10 h-10 bg-brand-50 dark:bg-brand-950/20 text-brand-655 border border-brand-100 dark:border-brand-900/50 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-brand-50 dark:bg-brand-950/40 text-brand-655 dark:text-brand-400 border border-brand-100 dark:border-brand-900/50 rounded-xl flex items-center justify-center">
             <Clock className="w-5 h-5" />
           </div>
         </div>
@@ -360,7 +360,7 @@ export const AppointmentsPage: React.FC = () => {
                 onClick={() => setStatusFilter(s)}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   statusFilter === s
-                    ? 'bg-white dark:bg-slate-900 text-brand-655 shadow-sm'
+                    ? 'bg-white dark:bg-slate-900 text-brand-655 dark:text-brand-400 shadow-sm'
                     : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
@@ -435,7 +435,7 @@ export const AppointmentsPage: React.FC = () => {
                             ? 'bg-emerald-50 dark:bg-emerald-955/20 text-emerald-600 border border-emerald-100/50 dark:border-emerald-900/30'
                             : appt.status === 'NO_SHOW'
                             ? 'bg-amber-50 dark:bg-amber-955/20 text-amber-600 border border-amber-100/50 dark:border-amber-900/30'
-                            : 'bg-red-50 dark:bg-red-955/20 text-red-655 border border-red-100/50 dark:border-red-900/30'
+                            : 'bg-red-50 dark:bg-red-955/40 text-red-655 dark:text-red-400 border border-red-100/50 dark:border-red-900/30'
                         }`}>
                           {appt.status === 'CONFIRMED' ? t('pages.appointments.filterConfirmed') : appt.status === 'CHECKED_IN' ? t('pages.appointments.filterCheckedIn') : appt.status === 'NO_SHOW' ? t('pages.appointments.filterNoShow') : t('pages.appointments.filterCancelled')}
                         </span>

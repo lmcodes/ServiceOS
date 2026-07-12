@@ -104,8 +104,8 @@ export const BranchListPage: React.FC = () => {
 
       {/* Empty State */}
       {!isFetching && branches.length === 0 && (
-        <div className="flex flex-col items-center justify-center p-12 bg-slate-50/50 dark:bg-slate-900/35 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-center max-w-md mx-auto mt-12">
-          <div className="p-4 bg-brand-50 dark:bg-brand-950/20 text-brand-655 rounded-2xl mb-4">
+        <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl text-center max-w-md mx-auto mt-12 shadow-sm">
+          <div className="p-4 bg-brand-50 dark:bg-brand-950/40 text-brand-655 dark:text-brand-400 rounded-2xl mb-4 border border-brand-100/50 dark:border-brand-900/30">
             <Plus className="w-8 h-8" />
           </div>
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
@@ -139,7 +139,7 @@ export const BranchListPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-brand-50 dark:bg-brand-950/20 text-brand-655 rounded-2xl">
+                  <div className="p-3 bg-brand-50 dark:bg-brand-950/40 text-brand-655 dark:text-brand-400 rounded-2xl border border-brand-100/50 dark:border-brand-900/30">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>

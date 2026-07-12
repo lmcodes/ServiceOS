@@ -277,7 +277,7 @@ export const StaffListPage: React.FC = () => {
                         {/* Name and avatar */}
                         <td className="p-4 pl-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-950/20 text-brand-655 font-bold text-sm flex items-center justify-center border border-brand-100/40 dark:border-brand-900/30">
+                            <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-655 dark:text-brand-400 font-bold text-sm flex items-center justify-center border border-brand-100/40 dark:border-brand-900/30">
                               {initials}
                             </div>
                             <div>

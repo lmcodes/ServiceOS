@@ -234,8 +234,8 @@ export const ServiceListPage: React.FC = () => {
 
           {/* No branches warning */}
           {!isLoadingBranches && branches.length === 0 && (
-            <div className="flex flex-col items-center justify-center p-12 bg-slate-50/50 dark:bg-slate-900/35 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-center max-w-md mx-auto mt-12">
-              <div className="p-4 bg-red-50 dark:bg-red-955/20 text-red-655 rounded-2xl mb-4">
+            <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl text-center max-w-md mx-auto mt-12 shadow-sm">
+              <div className="p-4 bg-red-50 dark:bg-red-955/40 text-red-655 dark:text-red-405 rounded-2xl mb-4 border border-red-100/50 dark:border-red-900/30">
                 <Building2 className="w-8 h-8" />
               </div>
               <h3 className="text-base font-bold text-slate-850 dark:text-white">
@@ -249,8 +249,8 @@ export const ServiceListPage: React.FC = () => {
 
           {/* Empty State for services */}
           {!isLoadingBranches && branches.length > 0 && !isLoadingServices && services.length === 0 && (
-            <div className="flex flex-col items-center justify-center p-12 bg-slate-50/50 dark:bg-slate-900/35 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-center max-w-md mx-auto mt-12">
-              <div className="p-4 bg-brand-50 dark:bg-brand-950/20 text-brand-655 rounded-2xl mb-4">
+            <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl text-center max-w-md mx-auto mt-12 shadow-sm">
+              <div className="p-4 bg-brand-50 dark:bg-brand-950/40 text-brand-655 dark:text-brand-400 rounded-2xl mb-4 border border-brand-100/50 dark:border-brand-900/30">
                 <Sparkles className="w-8 h-8" />
               </div>
               <h3 className="text-base font-bold text-slate-850 dark:text-white">
@@ -368,8 +368,8 @@ export const ServiceListPage: React.FC = () => {
       {activeTab === 'workflows' && (
         <div className="space-y-6">
           {workflows.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 bg-slate-50/50 dark:bg-slate-900/35 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-center max-w-md mx-auto mt-12">
-              <div className="p-4 bg-brand-50 dark:bg-brand-950/20 text-brand-655 rounded-2xl mb-4">
+            <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl text-center max-w-md mx-auto mt-12 shadow-sm">
+              <div className="p-4 bg-brand-50 dark:bg-brand-950/40 text-brand-655 dark:text-brand-400 rounded-2xl mb-4 border border-brand-100/50 dark:border-brand-900/30">
                 <WorkflowIcon className="w-8 h-8" />
               </div>
               <h3 className="text-base font-bold text-slate-850 dark:text-white">

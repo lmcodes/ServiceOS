@@ -33,3 +33,24 @@ html.light .glass-card {
   background: rgba(255, 255, 255, 0.45);
   border: 1px solid rgba(15, 23, 42, 0.04);
 }
+
+/* Dark mode text contrast & readability boost */
+html.dark .text-slate-400 {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+html.dark .text-slate-450 {
+  color: #e2e8f0 !important; /* slate-200 */
+}
+html.dark .text-slate-500 {
+  color: #94a3b8 !important; /* slate-400 */
+}
+html.dark .text-slate-550 {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+html.dark .text-slate-655 {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+

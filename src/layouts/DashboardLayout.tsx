@@ -100,7 +100,7 @@ export const DashboardLayout: React.FC = () => {
           {/* Logo & Header */}
           <div className="flex items-center justify-between mb-8 px-2">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-lg bg-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/20 overflow-hidden">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-brand-600 to-brand-500 dark:from-brand-500 dark:to-brand-400 flex items-center justify-center shadow-lg shadow-brand-500/20 dark:shadow-brand-400/10 overflow-hidden border border-brand-400/10 dark:border-white/20">
                 {tenant?.logo ? (
                   <img src={tenant.logo} alt="Logo" className="w-full h-full object-cover" />
                 ) : (

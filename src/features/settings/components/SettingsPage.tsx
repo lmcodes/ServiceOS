@@ -266,7 +266,7 @@ export const SettingsPage: React.FC = () => {
               {t('pages.settings.logoLabel')}
             </h3>
 
-            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/20">
+            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl bg-white dark:bg-slate-900/40 shadow-sm">
               
               {/* Logo Preview */}
               <div className="relative w-24 h-24 rounded-2xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-850 flex items-center justify-center overflow-hidden shadow-inner flex-shrink-0">

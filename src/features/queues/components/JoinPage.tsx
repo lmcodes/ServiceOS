@@ -191,7 +191,7 @@ export const JoinPage: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-14 h-14 bg-brand-100 dark:bg-brand-950/40 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-brand-200/50 dark:border-brand-900/50 shadow-md">
-            <Building2 className="w-7 h-7 text-brand-655" />
+            <Building2 className="w-7 h-7 text-brand-655 dark:text-brand-400" />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
             {branch.name}
@@ -224,7 +224,7 @@ export const JoinPage: React.FC = () => {
             </p>
 
             {services.length === 0 ? (
-              <div className="p-8 text-center bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+              <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 shadow-sm">
                 <p className="text-sm text-slate-500 dark:text-slate-400 italic">
                   No active services available at this branch right now.
                 </p>

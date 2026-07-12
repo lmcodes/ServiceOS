@@ -322,7 +322,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
 
           <div className="p-5 bg-slate-50/50 dark:bg-slate-955/15 border border-slate-200/60 dark:border-slate-800 rounded-2xl space-y-4 h-fit">
             <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-              <Settings2 className="w-4 h-4 text-brand-655" />
+              <Settings2 className="w-4 h-4 text-brand-655 dark:text-brand-400" />
               {t('pages.workflows.rulesHeader')}
             </h4>
             <div className="flex items-center justify-between">
@@ -361,7 +361,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
               <button
                 type="button"
                 onClick={handleAddStage}
-                className="flex items-center gap-1 py-1 px-2.5 bg-brand-50 dark:bg-brand-955/20 text-brand-655 border border-brand-100 dark:border-brand-900/40 hover:bg-brand-100 dark:hover:bg-brand-900/35 font-bold text-[10px] rounded-lg cursor-pointer transition-colors"
+                className="flex items-center gap-1 py-1 px-2.5 bg-brand-50 dark:bg-brand-955/40 text-brand-655 dark:text-brand-400 border border-brand-100 dark:border-brand-900/40 hover:bg-brand-100 dark:hover:bg-brand-900/35 font-bold text-[10px] rounded-lg cursor-pointer transition-colors"
               >
                 <Plus className="w-3 h-3" />
                 {t('pages.workflows.addStage')}
@@ -437,10 +437,10 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                     {/* Stage Title details */}
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/60">
                       <h4 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <Sliders className="w-4 h-4 text-brand-655" />
+                        <Sliders className="w-4 h-4 text-brand-655 dark:text-brand-400" />
                         {t('pages.workflows.configureStageTitle', { index: selectedStageIndex + 1, name: currentStage.name })}
                       </h4>
-                      <span className="text-[10px] text-brand-655 dark:text-brand-400 font-bold uppercase tracking-wider bg-brand-50 dark:bg-brand-955/30 border border-brand-100 dark:border-brand-900/40 px-2 py-0.5 rounded-lg">
+                      <span className="text-[10px] text-brand-655 dark:text-brand-400 font-bold uppercase tracking-wider bg-brand-50 dark:bg-brand-955/40 border border-brand-100 dark:border-brand-900/40 px-2 py-0.5 rounded-lg">
                         {t('pages.workflows.stageId')}: {currentStage.id}
                       </span>
                     </div>
@@ -538,7 +538,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                                   }}
                                   className={`py-1.5 px-3 border rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                                     isChecked
-                                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/20 text-brand-655'
+                                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40 text-brand-655 dark:text-brand-400'
                                       : 'border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-450 hover:bg-slate-50'
                                   }`}
                                 >

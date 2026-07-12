@@ -273,7 +273,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                 <button
                   type="button"
                   onClick={handleAddField}
-                  className="flex items-center gap-1 py-1.5 px-3 bg-brand-50 dark:bg-brand-950/20 text-brand-655 hover:bg-brand-100/50 dark:hover:bg-brand-900/30 border border-brand-100 dark:border-brand-900/40 font-semibold text-xs rounded-lg transition-colors cursor-pointer"
+                  className="flex items-center gap-1 py-1.5 px-3 bg-brand-50 dark:bg-brand-950/40 text-brand-655 dark:text-brand-400 hover:bg-brand-100/50 dark:hover:bg-brand-900/30 border border-brand-100 dark:border-brand-900/40 font-semibold text-xs rounded-lg transition-colors cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>{t('pages.services.form.addField')}</span>
