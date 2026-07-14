@@ -425,7 +425,7 @@ export const QueueConsolePage: React.FC = () => {
       {/* Main Board Section */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
         {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-100 dark:border-slate-800/80 px-6 pt-4 bg-slate-50/50 dark:bg-slate-955/20">
+        <div className="flex border-b border-slate-100 dark:border-slate-800/80 px-6 pt-4 bg-slate-50/50 dark:bg-slate-900/20">
           {(['all', 'waiting', 'serving'] as const).map((tab) => (
             <button
               key={tab}
@@ -469,11 +469,11 @@ export const QueueConsolePage: React.FC = () => {
                 return (
                   <div
                     key={ticket.id}
-                    className={`bg-white dark:bg-slate-955 border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between ${
+                    className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between ${
                       ticket.status === 'CALLED'
-                        ? 'border-amber-300 dark:border-amber-900 bg-amber-50/5 dark:bg-amber-955/5 animate-pulse'
+                        ? 'border-amber-300 dark:border-amber-900 bg-amber-50/5 dark:bg-amber-950/5 animate-pulse'
                         : ticket.status === 'SERVING'
-                        ? 'border-emerald-250 dark:border-emerald-900 bg-emerald-50/5 dark:bg-emerald-955/5'
+                        ? 'border-emerald-200 dark:border-emerald-900 bg-emerald-50/5 dark:bg-emerald-950/5'
                         : 'border-slate-200/80 dark:border-slate-800'
                     }`}
                   >
@@ -527,10 +527,10 @@ export const QueueConsolePage: React.FC = () => {
                           <span
                             className={`text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full border ${
                               ticket.status === 'CALLED'
-                                ? 'bg-amber-100 dark:bg-amber-955/40 border-amber-250 text-amber-700 dark:text-amber-400'
+                                ? 'bg-amber-100 dark:bg-amber-950/40 border-amber-200 text-amber-700 dark:text-amber-400'
                                 : ticket.status === 'SERVING'
-                                ? 'bg-emerald-100 dark:bg-emerald-955/40 border-emerald-250 text-emerald-700 dark:text-emerald-455'
-                                : 'bg-blue-100 dark:bg-blue-955/40 border-blue-200 text-blue-700 dark:text-blue-455'
+                                ? 'bg-emerald-100 dark:bg-emerald-950/40 border-emerald-200 text-emerald-700 dark:text-emerald-455'
+                                : 'bg-blue-100 dark:bg-blue-950/40 border-blue-200 text-blue-700 dark:text-blue-455'
                             }`}
                           >
                             {ticket.status}
