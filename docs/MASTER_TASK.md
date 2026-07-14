@@ -1,6 +1,6 @@
 # ServiceOS — Master Task Tracker
 
-> Last Updated: 2026-07-10 | Stack: React + Vite + TypeScript + TailwindCSS + Firebase
+> Last Updated: 2026-07-14 | Stack: React + Vite + TypeScript + TailwindCSS + Firebase
 
 ---
 
@@ -493,6 +493,8 @@
 | 13 | V9 Kiosk Terminal & Static QR | ⬜ ยังไม่เริ่ม | 0% |
 | 14 | V10 Display Media & Templates | ⬜ ยังไม่เริ่ม | 0% |
 | 15 | V11 TTS Voice Announcement | ⬜ ยังไม่เริ่ม | 0% |
+| 16 | V12 LINE Messaging API Notification | ⬜ ยังไม่เริ่ม | 0% |
+| 17 | V13 Web Push Notifications + Service Worker | ⬜ ยังไม่เริ่ม | 0% |
 
 ---
 
@@ -505,6 +507,8 @@ Step 20: CG-01~04  → Counter Groups, VIP Priority, One-Stop
 Step 21: KI-01~02  → Kiosk Terminal & Static QR
 Step 22: DM-01~03  → Display Media & Templates
 Step 23: TTS-01~03 → TTS Voice Announcement
+Step 24: LN-01~04  → LINE Messaging API Queue Notification
+Step 25: WP-01~04  → Web Push Notifications + Service Worker
 ```
 
 ---
@@ -724,6 +728,127 @@ Step 23: TTS-01~03 → TTS Voice Announcement
 
 ---
 
+## 🔔 PHASE 16 — V12: LINE Messaging API Queue Notification
+
+> เป้าหมาย: แก้ปัญหาเสียงแจ้งเตือนคิวไม่ดังเมื่อลูกค้าปิดหน้าจอ/สลับแอป โดยส่ง Push Message ผ่าน LINE โดยตรงเมื่อถึงคิว
+
+> **⚠️ หมายเหตุ:** ใช้ **LINE Login + Messaging API** เท่านั้น — LINE Notify ถูก deprecated ตั้งแต่ April 2025 และปิดให้บริการสมบูรณ์แล้ว
+
+### สิ่งที่ต้องเตรียมก่อนพัฒนา
+- [ ] สมัคร LINE Official Account ที่ [manager.line.biz](https://manager.line.biz)
+- [ ] สร้าง LINE Login Channel ที่ [developers.line.biz](https://developers.line.biz) (สำหรับ OAuth)
+- [ ] สร้าง LINE Messaging API Channel (สำหรับส่ง Push Message)
+- [ ] ตั้งค่า Callback URL ใน LINE Developer Console: `https://[domain]/line-callback`
+- [ ] บันทึก secrets ลง Firebase Secret Manager:
+  - `LINE_CHANNEL_ID` (Login Channel)
+  - `LINE_CHANNEL_SECRET` (Login Channel)
+  - `LINE_MESSAGING_ACCESS_TOKEN` (Messaging API Channel)
+
+### Flow การทำงานโดยรวม
+
+```
+ลูกค้าสแกน QR → JoinPage (กรอกฟอร์ม)
+    ↓ คลิก "รับคิว + แจ้งเตือน LINE"
+Redirect → LINE OAuth
+    ↓ ลูกค้า Authorize
+Redirect → /line-callback?code=xxx&state=queueId
+    ↓ LineCallbackPage เรียก Cloud Function
+exchangeLINECode → แลก code → lineUserId
+    ↓ บันทึก lineUserId ใน queue document
+Staff กด "เรียกคิว" → status = CALLED
+    ↓ Firestore Trigger: onQueueStatusChangedLINE
+ส่ง Push Message → ลูกค้าได้รับ LINE notification
+```
+
+---
+
+### LN-01 · Database Schema
+- [ ] อัปเดต `QueueItem` interface ใน `src/types/firestore.d.ts`:
+  - [ ] เพิ่ม `lineUserId?: string` — LINE User ID จาก OAuth
+  - [ ] เพิ่ม `lineLinkedAt?: FirestoreTimestamp` — เวลาที่ link LINE
+  - [ ] เพิ่ม `lineNotified?: boolean` — ส่งแจ้งเตือนแล้วหรือยัง
+  - [ ] เพิ่ม `lineNotifiedAt?: FirestoreTimestamp` — เวลาที่ส่ง
+- [ ] (Optional) เพิ่ม collection `lineConnections` สำหรับจำ LINE ลูกค้าประจำ:
+  - [ ] fields: `lineUserId`, `displayName`, `pictureUrl`, `branchId`, `linkedAt`
+- [ ] อัปเดต Firestore Security Rules สำหรับ field ใหม่
+
+### LN-02 · Cloud Functions
+- [ ] เพิ่ม `axios` dependency ใน `functions/package.json`
+- [ ] สร้าง `exchangeLINECode` (HTTPS Callable):
+  - [ ] รับ `{ code, queueId, redirectUri }` จาก Frontend
+  - [ ] POST ไปยัง `https://api.line.me/oauth2/v2.1/token` เพื่อแลก code → access_token
+  - [ ] ใช้ access_token เรียก LINE Profile API (`/v2/profile`) → ได้ `userId`, `displayName`
+  - [ ] อัปเดต queue document: `lineUserId`, `lineLinkedAt`
+  - [ ] **ไม่เปิดเผย** `LINE_CHANNEL_SECRET` ออกฝั่ง Frontend
+  - [ ] Validate: queueId ต้องมีอยู่จริงใน Firestore และ status ยังเป็น WAITING
+- [ ] สร้าง `onQueueStatusChangedLINE` (Firestore Trigger):
+  - [ ] Trigger: `queues/{queueId}` onWrite
+  - [ ] ตรวจสอบ: status เปลี่ยนจาก WAITING → CALLED เท่านั้น
+  - [ ] ตรวจสอบ: ticket มี `lineUserId` และ `lineNotified !== true`
+  - [ ] ส่ง Push Message ผ่าน LINE Messaging API:
+    ```
+    POST https://api.line.me/v2/bot/message/push
+    Authorization: Bearer {MESSAGING_ACCESS_TOKEN}
+    { to: lineUserId, messages: [{ type: 'text', text: '...' }] }
+    ```
+  - [ ] ข้อความแจ้งเตือน:
+    ```
+    🔔 ถึงคิวของคุณแล้ว!
+
+    คิวหมายเลข A-012
+    กรุณาเข้ารับบริการที่เคาน์เตอร์
+    ```
+  - [ ] อัปเดต: `lineNotified: true`, `lineNotifiedAt: serverTimestamp()`
+  - [ ] Error handling: log ใน `notifications` collection หาก LINE API ล้มเหลว
+
+### LN-03 · Frontend
+- [ ] สร้าง `src/features/lineNotification/hooks/useLINELink.ts`:
+  - [ ] function `buildLINEAuthURL(queueId, branchId)` → สร้าง LINE OAuth URL
+  - [ ] parameters: `client_id`, `redirect_uri`, `state=queueId`, `scope=profile`
+  - [ ] function `redirectToLINE(queueId)` → `window.location.href = authUrl`
+- [ ] สร้าง `src/features/lineNotification/components/LineCallbackPage.tsx`:
+  - [ ] อ่าน `?code=xxx&state=queueId` จาก URL params
+  - [ ] เรียก Cloud Function `exchangeLINECode({ code, queueId, redirectUri })`
+  - [ ] แสดง loading → success (navigate ไป `/status/:queueId`) → error
+- [ ] สร้าง `src/features/lineNotification/components/LINEConnectButton.tsx`:
+  - [ ] ปุ่มสีเขียว LINE พร้อม icon
+  - [ ] รับ `queueId` เป็น prop
+  - [ ] กด → เรียก `redirectToLINE(queueId)`
+- [ ] แก้ไข `src/features/queues/components/JoinPage.tsx`:
+  - [ ] หลัง `createQueueItem` สำเร็จ: แสดง modal/banner ถามว่าต้องการรับแจ้งเตือน LINE
+  - [ ] ถ้าเลือก "รับแจ้งเตือน" → redirect ไป LINE OAuth
+  - [ ] ถ้าข้าม → navigate ไป `/status/:id` เหมือนเดิม
+- [ ] แก้ไข `src/features/queues/components/TicketStatusPage.tsx`:
+  - [ ] ตรวจสอบ `ticket.lineUserId` — ถ้ายังไม่มีและ status เป็น WAITING → แสดงปุ่ม `LINEConnectButton`
+  - [ ] ถ้า linked แล้ว → แสดง badge "LINE แจ้งเตือนเปิดอยู่" พร้อมชื่อ LINE
+- [ ] แก้ไข `src/routes/AppRoutes.tsx`:
+  - [ ] เพิ่ม route `/line-callback` → `LineCallbackPage` (ใต้ PublicLayout)
+
+### LN-04 · Environment & Security
+- [ ] เพิ่มใน `.env` / `.env.example`:
+  ```env
+  VITE_LINE_CHANNEL_ID=your_line_login_channel_id
+  VITE_LINE_CALLBACK_URL=http://localhost:3000/line-callback
+  ```
+- [ ] เพิ่ม secrets ใน Firebase Functions config (Secret Manager หรือ `.env` ของ Functions):
+  ```
+  LINE_CHANNEL_SECRET=...
+  LINE_MESSAGING_ACCESS_TOKEN=...
+  ```
+- [ ] ตรวจสอบ Firestore Security Rules:
+  - [ ] ลูกค้าอัปเดต `lineUserId` ของตัวเองได้ผ่าน Cloud Function เท่านั้น (ไม่ allow direct client write)
+
+**🧪 ทดสอบ:**
+1. JoinPage → กรอกชื่อ → submit → คลิก "รับแจ้งเตือน LINE" → redirect ไป LINE OAuth
+2. Authorize → กลับมา `/line-callback` → ตรวจ Firestore ว่า queue doc มี `lineUserId`
+3. TicketStatusPage → แสดง badge "LINE แจ้งเตือนเปิดอยู่"
+4. Staff กด "Call Next" → ตรวจสอบว่าได้รับ LINE message บนมือถือ
+5. Firestore ตรวจสอบ `lineNotified: true`
+6. กด recall อีกครั้ง → **ไม่**ส่งซ้ำ (lineNotified ป้องกัน spam)
+
+---
+
+
 ## 🗂️ ลำดับงานที่แนะนำสำหรับ AI Codegen
 
 ให้ AI สร้างโค้ดทีละ task ตามลำดับนี้:
@@ -746,9 +871,137 @@ Step 14: WF-02   → Multi-stage Queue
 Step 15: AP-01   → Booking Calendar
 Step 16: AP-02   → Appointment Check-In
 Step 17: DEV-01  → Developer Portal & Webhooks
+Step 18: QR-01   → Queue Range System
+Step 24: LN-01   → LINE Schema (firestore.d.ts)
+Step 25: LN-02   → Cloud Functions (exchangeLINECode + onQueueStatusChangedLINE)
+Step 26: LN-03   → Frontend (LineCallbackPage + LINEConnectButton + JoinPage + TicketStatusPage + Routes)
+Step 27: LN-04   → Environment & Security
+Step 28: WP-01   → Service Worker + VAPID Setup
+Step 29: WP-02   → Firebase Cloud Messaging (FCM) Integration
+Step 30: WP-03   → Frontend (usePushNotification hook + PermissionPrompt + JoinPage + TicketStatusPage)
+Step 31: WP-04   → Cloud Function (sendWebPushOnCall) + Firestore Schema
 ```
 
 ---
 
-*อัปเดตไฟล์นี้ทุกครั้งที่ task เสร็จ โดยเปลี่ยน `[ ]` → `[x]` และอัปเดต Progress Summary*
+## 🌐 PHASE 17 — V13: Web Push Notifications + Service Worker
 
+> เป้าหมาย: แก้ปัญหาเสียงแจ้งเตือนคิวไม่ทำงานเมื่อ Browser ถูก Suspend / ปิดหน้าจอ โดยใช้ **Web Push API + Service Worker** ซึ่งทำงานได้แม้หน้าต่าง Browser จะถูกซ่อนหรือปิดอยู่
+
+> **⭐ แนะนำที่สุดสำหรับ Background Notification** — ทำงานได้บน Chrome/Edge/Android โดยไม่ต้องติดตั้งแอป ไม่ต้องมีบัญชี LINE รองรับ iOS 16.4+ (ผ่าน Add to Home Screen)
+
+> **เปรียบเทียบกับ Phase 16 (LINE):**
+> | | Web Push (Phase 17) | LINE (Phase 16) |
+> |---|---|---|
+> | ต้องมีบัญชี | ❌ ไม่ต้อง | ✅ ต้องมี LINE |
+> | Background | ✅ ทำงานได้ | ✅ ทำงานได้ |
+> | iOS Support | ⚠️ 16.4+ เท่านั้น | ✅ ทุก version |
+> | Setup ฝั่ง server | ✅ ใช้ FCM ฟรี | ❌ ต้องมี LINE OA |
+> | UX | Native popup | LINE chat |
+
+### Flow การทำงานโดยรวม
+
+```
+ลูกค้าสแกน QR → JoinPage
+    ↓ แสดง Permission Prompt "อนุญาตรับแจ้งเตือน?"
+Browser Notification Permission → granted
+    ↓ Service Worker ลงทะเบียน FCM
+ได้ PushSubscription token (FCM token)
+    ↓ บันทึก fcmToken ใน queue document
+Staff กด "เรียกคิว" → status = CALLED
+    ↓ Firestore Trigger: sendWebPushOnCall
+Cloud Function ส่ง FCM Push Message
+    ↓ Service Worker รับ push event
+แสดง Native OS Notification popup บนมือถือ/PC
+```
+
+---
+
+### WP-01 · Service Worker & VAPID Setup
+- [ ] สร้าง `public/firebase-messaging-sw.js` (Service Worker สำหรับ FCM):
+  - [ ] import `importScripts` Firebase App + Messaging
+  - [ ] `messaging.onBackgroundMessage()` — รับ push เมื่อ app ปิด/hidden
+  - [ ] แสดง `self.registration.showNotification()` พร้อม icon + badge + click action
+  - [ ] Notification click → เปิด `/status/:ticketId` ใน browser tab
+- [ ] เปิดใช้งาน **Firebase Cloud Messaging (FCM)** ใน Firebase Console:
+  - [ ] สร้าง Web Push certificate → ได้ **VAPID Key**
+  - [ ] เพิ่ม `VITE_FIREBASE_VAPID_KEY` ใน `.env`
+- [ ] อัปเดต `src/config/firebase.ts`:
+  - [ ] `import { getMessaging } from 'firebase/messaging'`
+  - [ ] export `messaging` instance
+
+### WP-02 · FCM Token Management
+- [ ] อัปเดต `QueueItem` interface ใน `src/types/firestore.d.ts`:
+  - [ ] เพิ่ม `fcmToken?: string` — FCM registration token
+  - [ ] เพิ่ม `fcmTokenSavedAt?: FirestoreTimestamp`
+  - [ ] เพิ่ม `pushNotified?: boolean` — ส่ง web push แล้วหรือยัง
+  - [ ] เพิ่ม `pushNotifiedAt?: FirestoreTimestamp`
+- [ ] สร้าง Cloud Function `sendWebPushOnCall` (Firestore Trigger):
+  - [ ] Trigger: `queues/{queueId}` onWrite
+  - [ ] ตรวจสอบ: status เปลี่ยนจาก WAITING → CALLED
+  - [ ] ตรวจสอบ: ticket มี `fcmToken` และ `pushNotified !== true`
+  - [ ] ส่ง FCM Push ผ่าน Firebase Admin SDK:
+    ```typescript
+    await admin.messaging().send({
+      token: fcmToken,
+      notification: {
+        title: '🔔 ถึงคิวของคุณแล้ว!',
+        body: `คิวหมายเลข ${queueNumber} — กรุณาเข้ารับบริการ`,
+      },
+      webpush: {
+        fcmOptions: { link: `/status/${queueId}` },
+        notification: { icon: '/icons/icon-192.png', badge: '/icons/badge-72.png' }
+      }
+    });
+    ```
+  - [ ] อัปเดต: `pushNotified: true`, `pushNotifiedAt: serverTimestamp()`
+  - [ ] Error handling: ถ้า token หมดอายุ (error code `registration-token-not-registered`) → ล้าง `fcmToken`
+
+### WP-03 · Frontend Integration
+- [ ] สร้าง `src/features/pushNotification/hooks/usePushNotification.ts`:
+  - [ ] `requestPermission()` — ขอสิทธิ์ `Notification.permission`
+  - [ ] `getFCMToken()` — เรียก `getToken(messaging, { vapidKey })` → ได้ token
+  - [ ] `saveTokenToQueue(queueId, token)` — บันทึก `fcmToken` ลง Firestore queue doc
+  - [ ] Handle permission states: `default` / `granted` / `denied`
+  - [ ] `onMessage()` — รับ push เมื่อ app ยังเปิดอยู่ (foreground)
+- [ ] สร้าง `src/features/pushNotification/components/PushPermissionPrompt.tsx`:
+  - [ ] Card/Banner "อนุญาตรับแจ้งเตือนเมื่อถึงคิว?"
+  - [ ] ปุ่ม "อนุญาต" (สีหลัก) + ปุ่ม "ข้ามไปก่อน" (secondary)
+  - [ ] แสดงสถานะ: รอ / granted / denied (พร้อมคำแนะนำวิธีเปิดในการตั้งค่า)
+  - [ ] ถ้า `denied` → แสดงขั้นตอนเปิดใช้งาน notification ใน browser settings
+- [ ] แก้ไข `src/features/queues/components/JoinPage.tsx`:
+  - [ ] หลัง `createQueueItem` สำเร็จ: แสดง `PushPermissionPrompt` เป็นขั้นตอนแรก
+  - [ ] เมื่อกด "อนุญาต" → `requestPermission()` → `getFCMToken()` → `saveTokenToQueue()`
+  - [ ] เมื่อสำเร็จ → navigate ไป `/status/:id`
+  - [ ] ถ้าเบราว์เซอร์ไม่รองรับ Notification API → ข้ามขั้นตอนนี้อัตโนมัติ
+- [ ] แก้ไข `src/features/queues/components/TicketStatusPage.tsx`:
+  - [ ] ตรวจสอบ `ticket.fcmToken` — ถ้ายังไม่มี → แสดงปุ่ม "เปิดรับแจ้งเตือน"
+  - [ ] ถ้ามีแล้ว → แสดง badge "🔔 แจ้งเตือนเปิดอยู่"
+  - [ ] Foreground handler: เมื่อ `onMessage()` trigger → แสดง in-app toast/banner
+
+### WP-04 · PWA Manifest & Icons
+- [ ] อัปเดต `public/manifest.json`:
+  - [ ] `display: "standalone"`, `background_color`, `theme_color`
+  - [ ] Icons ขนาด 192x192, 512x512 สำหรับ Home Screen
+- [ ] สร้าง `public/icons/icon-192.png`, `icon-512.png`, `badge-72.png`
+- [ ] อัปเดต `index.html`:
+  - [ ] `<link rel="manifest" href="/manifest.json" />`
+  - [ ] `<meta name="theme-color" content="..." />`
+  - [ ] `<link rel="apple-touch-icon" href="/icons/icon-192.png" />`
+- [ ] ทดสอบ Add to Home Screen บน iOS 16.4+ เพื่อรับ Push
+
+**🧪 ทดสอบ:**
+1. JoinPage → กรอกชื่อ → รับคิว → แสดง Permission Prompt
+2. กด "อนุญาต" → Browser แสดง native permission dialog → กด Allow
+3. ตรวจ Firestore ว่า queue doc มี `fcmToken`
+4. Staff กด "Call Next" → ตรวจสอบว่าได้รับ Native OS notification บนมือถือ
+   - ✅ เมื่อ Browser เปิดอยู่ → in-app toast
+   - ✅ เมื่อ Browser ปิดหน้าจอ → OS notification popup
+   - ✅ เมื่อ Browser ปิดแอป (Android) → notification ยังดัง
+5. คลิก notification → เปิด `/status/:ticketId` โดยตรง
+6. Firestore ตรวจสอบ `pushNotified: true`
+7. ทดสอบบน iOS 16.4+ (Add to Home Screen) → ได้รับ push notification
+
+---
+
+*อัปเดตไฟล์นี้ทุกครั้งที่ task เสร็จ โดยเปลี่ยน `[ ]` → `[x]` และอัปเดต Progress Summary*
