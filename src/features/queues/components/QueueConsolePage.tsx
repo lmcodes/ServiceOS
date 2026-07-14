@@ -456,7 +456,7 @@ export const QueueConsolePage: React.FC = () => {
             <div className="flex flex-col items-center justify-center py-16 text-slate-400">
               <Inbox className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-3" />
               <p className="text-sm font-semibold">{t('pages.queues.noTickets')}</p>
-              <p className="text-xs text-slate-450 dark:text-slate-555 mt-1">
+              <p className="text-xs text-slate-450 dark:text-slate-400 mt-1">
                 {t('pages.queues.noTicketsDesc')}
               </p>
             </div>

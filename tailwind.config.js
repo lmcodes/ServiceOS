@@ -28,7 +28,9 @@ export default {
           200: '#cbd5e1', // light mode card border (standard slate-300)
           300: '#94a3b8', // standard slate-400
           400: '#64748b', // standard slate-500
+          450: '#55657d', // mid-tone slate for light mode
           500: '#475569', // standard slate-600
+          550: '#3c4b5f', // mid-dark slate for light mode
           600: '#334155', // standard slate-700
           650: '#475569',
           655: '#475569', // Slate 600
