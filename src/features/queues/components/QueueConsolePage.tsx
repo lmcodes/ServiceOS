@@ -27,7 +27,7 @@ import {
 
 export const QueueConsolePage: React.FC = () => {
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // State
   const [counter, setCounter] = useState(() => localStorage.getItem('serviceos_staff_counter') || '');
@@ -492,31 +492,57 @@ export const QueueConsolePage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Current stage badge */}
+                        {/* Current stage badge & step count */}
                         {ticket.currentStageId && stagesMap[ticket.currentStageId] && (
-                          <span className="px-2 py-0.5 bg-brand-50 dark:bg-brand-950/20 text-[10px] font-bold text-brand-600 dark:text-brand-400 rounded-lg w-fit border border-brand-100 dark:border-brand-900/40 flex items-center gap-1 mt-1">
-                            <WorkflowIcon className="w-3 h-3 animate-pulse" />
-                            Stage: {stagesMap[ticket.currentStageId].name}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            <span className="px-2 py-0.5 bg-brand-50 dark:bg-brand-950/20 text-[10px] font-bold text-brand-600 dark:text-brand-400 rounded-lg border border-brand-100 dark:border-brand-900/40 flex items-center gap-1">
+                              <WorkflowIcon className="w-3 h-3 animate-pulse" />
+                              {i18n.language === 'th' ? 'บริการย่อย: ' : 'Stage: '}{stagesMap[ticket.currentStageId].name}
+                            </span>
+                            {(() => {
+                              const serviceObj = services[ticket.serviceId];
+                              const wf = serviceObj?.workflowId ? workflowsMap[serviceObj.workflowId] : null;
+                              if (wf?.stageIds) {
+                                const idx = wf.stageIds.indexOf(ticket.currentStageId);
+                                if (idx !== -1) {
+                                  return (
+                                    <span className="text-[9px] text-slate-455 dark:text-slate-500 font-extrabold bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-1.5 py-0.5 rounded">
+                                      {i18n.language === 'th' ? `ขั้นตอน ${idx + 1}/${wf.stageIds.length}` : `Step ${idx + 1}/${wf.stageIds.length}`}
+                                    </span>
+                                  );
+                                }
+                              }
+                              return null;
+                            })()}
+                          </div>
                         )}
                       </div>
 
-                      {/* Queue Number */}
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                          {ticket.queueNumber}
-                        </span>
-                        <span
-                          className={`text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full border ${
-                            ticket.status === 'CALLED'
-                              ? 'bg-amber-100 dark:bg-amber-955/40 border-amber-250 text-amber-700 dark:text-amber-400'
-                              : ticket.status === 'SERVING'
-                              ? 'bg-emerald-100 dark:bg-emerald-955/40 border-emerald-250 text-emerald-700 dark:text-emerald-450'
-                              : 'bg-blue-100 dark:bg-blue-955/40 border-blue-200 text-blue-700 dark:text-blue-450'
-                          }`}
-                        >
-                          {ticket.status}
-                        </span>
+                      {/* Queue Number & Calling/Serving Counter Info */}
+                      <div className="flex items-center justify-between mb-2 mt-2">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tight font-outfit">
+                            {ticket.queueNumber}
+                          </span>
+                          <span
+                            className={`text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full border ${
+                              ticket.status === 'CALLED'
+                                ? 'bg-amber-100 dark:bg-amber-955/40 border-amber-250 text-amber-700 dark:text-amber-400'
+                                : ticket.status === 'SERVING'
+                                ? 'bg-emerald-100 dark:bg-emerald-955/40 border-emerald-250 text-emerald-700 dark:text-emerald-455'
+                                : 'bg-blue-100 dark:bg-blue-955/40 border-blue-200 text-blue-700 dark:text-blue-455'
+                            }`}
+                          >
+                            {ticket.status}
+                          </span>
+                        </div>
+
+                        {/* Called/Serving Counter number */}
+                        {(ticket.status === 'CALLED' || ticket.status === 'SERVING') && ticket.calledByCounter && (
+                          <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-1 border border-emerald-200 dark:border-emerald-900 rounded-lg">
+                            {i18n.language === 'th' ? `ช่อง ${ticket.calledByCounter}` : `Counter ${ticket.calledByCounter}`}
+                          </span>
+                        )}
                       </div>
 
                       {/* Customer Info */}
@@ -526,6 +552,17 @@ export const QueueConsolePage: React.FC = () => {
                       {(ticket.customerPhone || ticket.customerEmail) && (
                         <p className="text-[11px] text-slate-500 mt-1 truncate">
                           {ticket.customerPhone} {ticket.customerPhone && ticket.customerEmail && '•'} {ticket.customerEmail}
+                        </p>
+                      )}
+
+                      {/* Waiting service details (only for WAITING status) */}
+                      {ticket.status === 'WAITING' && (
+                        <p className="text-[10px] text-brand-600 dark:text-brand-400 font-extrabold mt-2 flex items-center gap-1">
+                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
+                          {i18n.language === 'th' ? 'กำลังรอรับบริการ: ' : 'Waiting for: '}
+                          {ticket.currentStageId && stagesMap[ticket.currentStageId] 
+                            ? stagesMap[ticket.currentStageId].name 
+                            : serviceName}
                         </p>
                       )}
 

@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { subscribeBranch } from '@/features/branches/repository/branchRepository';
 import { getServices } from '@/features/services/repository/serviceRepository';
 import { subscribeDisplayQueues } from '../repository/queueRepository';
-import { Branch, Service, QueueItem } from '@/types/firestore';
+import { getWorkflows, getWorkflowWithStages } from '@/features/workflows/repository/workflowRepository';
+import { Branch, Service, QueueItem, Workflow, WorkflowStage } from '@/types/firestore';
 import { playCallingChime } from '@/shared/utils/audio';
 import { 
   Volume2, 
@@ -26,6 +27,8 @@ export const DisplayPage: React.FC = () => {
   const [branch, setBranch] = useState<Branch | null>(null);
   const [tickets, setTickets] = useState<QueueItem[]>([]);
   const [services, setServices] = useState<Record<string, Service>>({});
+  const [workflows, setWorkflows] = useState<Record<string, Workflow>>({});
+  const [stages, setStages] = useState<Record<string, WorkflowStage>>({});
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
@@ -61,6 +64,39 @@ export const DisplayPage: React.FC = () => {
 
     return () => unsubscribe();
   }, [branchId]);
+
+  // Fetch Workflows and Stages based on branch.tenantId
+  useEffect(() => {
+    const tenantId = branch?.tenantId;
+    if (!tenantId) return;
+
+    const loadWorkflowsAndStages = async () => {
+      try {
+        const wfList = await getWorkflows(tenantId);
+        const wfMap: Record<string, Workflow> = {};
+        const stgMap: Record<string, WorkflowStage> = {};
+
+        await Promise.all(
+          wfList.map(async (wf) => {
+            wfMap[wf.id] = wf;
+            const data = await getWorkflowWithStages(wf.id);
+            if (data) {
+              data.stages.forEach((stage) => {
+                stgMap[stage.id] = stage;
+              });
+            }
+          })
+        );
+
+        setWorkflows(wfMap);
+        setStages(stgMap);
+      } catch (err) {
+        console.error('Failed to load workflows/stages for display:', err);
+      }
+    };
+
+    loadWorkflowsAndStages();
+  }, [branch?.tenantId]);
 
   // Fetch Services mapping
   useEffect(() => {
@@ -312,10 +348,35 @@ export const DisplayPage: React.FC = () => {
                     {primaryCalledTicket.queueNumber}
                   </h1>
 
-                  {/* Service Name */}
-                  <p className="text-xl sm:text-2xl text-slate-300 font-extrabold tracking-tight">
-                    {services[primaryCalledTicket.serviceId]?.name || 'Unknown Service'}
-                  </p>
+                  {/* Service & Sub-service (Workflow Stage) */}
+                  <div className="space-y-1.5 mt-2">
+                    <p className="text-xl sm:text-2xl text-slate-350 font-bold tracking-tight">
+                      {services[primaryCalledTicket.serviceId]?.name || 'Unknown Service'}
+                    </p>
+                    {primaryCalledTicket.currentStageId && stages[primaryCalledTicket.currentStageId] && (
+                      <div className="flex flex-col items-center justify-center gap-1.5 mt-2">
+                        <span className="px-3 py-1 bg-brand-500/10 border border-brand-500/30 text-brand-400 font-extrabold text-sm uppercase rounded-xl tracking-wider">
+                          {i18n.language === 'th' ? 'บริการย่อย: ' : 'Sub-service: '}{stages[primaryCalledTicket.currentStageId].name}
+                        </span>
+                        {/* Step number */}
+                        {(() => {
+                          const serviceObj = services[primaryCalledTicket.serviceId];
+                          const wf = serviceObj?.workflowId ? workflows[serviceObj.workflowId] : null;
+                          if (wf?.stageIds) {
+                            const idx = wf.stageIds.indexOf(primaryCalledTicket.currentStageId);
+                            if (idx !== -1) {
+                              return (
+                                <span className="text-xs font-bold text-slate-400">
+                                  {i18n.language === 'th' ? `(ขั้นตอนที่ ${idx + 1} จาก ${wf.stageIds.length})` : `(Step ${idx + 1} of ${wf.stageIds.length})`}
+                                </span>
+                              );
+                            }
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Counter indicator */}
@@ -376,9 +437,16 @@ export const DisplayPage: React.FC = () => {
                 >
                   <div>
                     <h4 className="text-xl font-black text-white">{ticket.queueNumber}</h4>
-                    <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider truncate max-w-28 mt-0.5">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider truncate max-w-[130px] mt-0.5">
                       {services[ticket.serviceId]?.name || 'Service'}
                     </p>
+                    {/* Show what they are waiting for (Sub-service/Stage) */}
+                    {ticket.currentStageId && stages[ticket.currentStageId] && (
+                      <p className="text-[9px] text-brand-400 font-bold mt-0.5 flex items-center gap-1">
+                        <span className="inline-block w-1 h-1 rounded-full bg-brand-500 animate-pulse" />
+                        {i18n.language === 'th' ? `รอ: ${stages[ticket.currentStageId].name}` : `Waiting: ${stages[ticket.currentStageId].name}`}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-1 text-slate-600">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">

@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import { QueueItem, Service, Branch } from '@/types/firestore';
+import { QueueItem, Service, Branch, Workflow, WorkflowStage } from '@/types/firestore';
 import { subscribeQueueItem, cancelQueueItem, subscribeWaitingAheadCount } from '../repository/queueRepository';
+import { getWorkflowWithStages } from '@/features/workflows/repository/workflowRepository';
 import { playCallingChime } from '@/shared/utils/audio';
 import { 
   Clock, 
@@ -21,13 +22,15 @@ import { SettingsSwitcher } from '@/shared/components/SettingsSwitcher';
 
 export const TicketStatusPage: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // State
   const [ticket, setTicket] = useState<QueueItem | null>(null);
   const [service, setService] = useState<Service | null>(null);
   const [branch, setBranch] = useState<Branch | null>(null);
   const [peopleAhead, setPeopleAhead] = useState<number>(0);
+  const [workflow, setWorkflow] = useState<Workflow | null>(null);
+  const [stages, setStages] = useState<WorkflowStage[]>([]);
   
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
@@ -94,6 +97,40 @@ export const TicketStatusPage: React.FC = () => {
       unsubBranch();
     };
   }, [ticket]);
+
+  // Fetch workflow and stages
+  useEffect(() => {
+    if (!service?.workflowId) {
+      setWorkflow(null);
+      setStages([]);
+      return;
+    }
+
+    const fetchWorkflowData = async () => {
+      try {
+        const data = await getWorkflowWithStages(service.workflowId!);
+        if (data) {
+          setWorkflow(data.workflow);
+          setStages(data.stages);
+        }
+      } catch (err) {
+        console.error('Failed to fetch workflow details:', err);
+      }
+    };
+
+    fetchWorkflowData();
+  }, [service?.workflowId]);
+
+  // Calculate workflow stage information
+  const currentStageIndex = ticket?.currentStageId && workflow?.stageIds
+    ? workflow.stageIds.indexOf(ticket.currentStageId)
+    : -1;
+  
+  const currentStageName = ticket?.currentStageId && stages.length > 0
+    ? stages.find(s => s.id === ticket.currentStageId)?.name
+    : null;
+
+  const totalStagesCount = workflow?.stageIds?.length || 0;
 
   // Subscribe to people ahead count
   useEffect(() => {
@@ -265,17 +302,108 @@ export const TicketStatusPage: React.FC = () => {
             {ticket.customerName}
           </p>
 
-          {/* Status Badge */}
-          <div className={`p-4 border rounded-2xl ${statusStyle.bg} mb-8 flex flex-col items-center justify-center transition-all`}>
-            <span className={`text-sm font-bold uppercase tracking-wide ${statusStyle.text}`}>
-              {statusStyle.label}
-            </span>
-            {ticket.status === 'CALLED' && (
-              <span className="text-[11px] text-amber-700/80 dark:text-amber-400/80 font-semibold mt-1">
-                Please proceed to the reception / serving counter immediately.
+          {/* Status Badge & Step/Counter details */}
+          <div className={`p-5 border rounded-2xl ${statusStyle.bg} mb-6 flex flex-col items-center justify-center transition-all space-y-3`}>
+            <div className="flex flex-col items-center">
+              <span className={`text-[10px] uppercase font-extrabold tracking-widest opacity-80 ${statusStyle.text}`}>
+                {t('pages.appointments.tableStatus')}
               </span>
+              <span className={`text-base font-black uppercase tracking-wide mt-0.5 ${statusStyle.text}`}>
+                {statusStyle.label}
+              </span>
+            </div>
+
+            {/* Waiting for service info */}
+            {ticket.status === 'WAITING' && (
+              <div className="text-xs font-semibold text-slate-550 dark:text-slate-400 border-t border-slate-200/50 dark:border-slate-800/50 pt-2 w-full text-center">
+                <span>
+                  {i18n.language === 'th' ? 'กำลังรอรับบริการ: ' : 'Waiting for: '}
+                </span>
+                <span className="text-brand-655 dark:text-brand-400 font-bold">
+                  {currentStageName || (service ? service.name : '')}
+                </span>
+                {currentStageName && (
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">
+                    ({i18n.language === 'th' ? 'บริการหลัก: ' : 'Main service: '}{service?.name})
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Called by counter info */}
+            {ticket.status === 'CALLED' && (
+              <div className="text-xs font-semibold text-slate-700 dark:text-slate-350 border-t border-slate-200/50 dark:border-slate-800/50 pt-2 w-full text-center space-y-1">
+                <div>
+                  {i18n.language === 'th' ? 'กรุณาติดต่อที่: ' : 'Please proceed to: '}
+                  <span className="text-amber-700 dark:text-amber-400 font-extrabold text-sm block sm:inline">
+                    {i18n.language === 'th' ? `ช่องบริการ ${ticket.calledByCounter || '1'}` : `Counter ${ticket.calledByCounter || '1'}`}
+                  </span>
+                </div>
+                {currentStageName && (
+                  <div className="text-[10px] text-slate-500">
+                    {i18n.language === 'th' ? 'สำหรับบริการย่อย: ' : 'For sub-service: '}
+                    <span className="font-bold text-amber-700 dark:text-amber-450">{currentStageName}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Currently serving info */}
+            {ticket.status === 'SERVING' && (
+              <div className="text-xs font-semibold text-slate-750 dark:text-slate-350 border-t border-slate-200/50 dark:border-slate-800/50 pt-2 w-full text-center space-y-1">
+                <div>
+                  {i18n.language === 'th' ? 'กำลังรับบริการที่: ' : 'Currently serving at: '}
+                  <span className="text-emerald-700 dark:text-emerald-450 font-extrabold text-sm block sm:inline">
+                    {i18n.language === 'th' ? `ช่องบริการ ${ticket.calledByCounter || '1'}` : `Counter ${ticket.calledByCounter || '1'}`}
+                  </span>
+                </div>
+                {currentStageName && (
+                  <div className="text-[10px] text-slate-550">
+                    {i18n.language === 'th' ? 'ขั้นตอนย่อย: ' : 'Sub-service stage: '}
+                    <span className="font-bold text-emerald-750 dark:text-emerald-450">{currentStageName}</span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
+
+          {/* Workflow progress/step visualization */}
+          {currentStageIndex !== -1 && totalStagesCount > 0 && (
+            <div className="mb-6 p-4 bg-slate-50/50 dark:bg-slate-900/40 border border-slate-150/50 dark:border-slate-800 rounded-2xl text-left">
+              <div className="flex justify-between items-center text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                <span>{i18n.language === 'th' ? 'ความคืบหน้าการรับบริการ' : 'Service Progress'}</span>
+                <span className="text-brand-655 dark:text-brand-400">
+                  {i18n.language === 'th' ? `ขั้นตอน ${currentStageIndex + 1} จาก ${totalStagesCount}` : `Step ${currentStageIndex + 1} of ${totalStagesCount}`}
+                </span>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-brand-655 h-full rounded-full transition-all duration-500" 
+                  style={{ width: `${((currentStageIndex + 1) / totalStagesCount) * 100}%` }}
+                />
+              </div>
+              <div className="flex flex-wrap gap-1 mt-3">
+                {stages.map((stg, idx) => {
+                  const isPast = idx < currentStageIndex;
+                  const isCurrent = idx === currentStageIndex;
+                  return (
+                    <span 
+                      key={stg.id} 
+                      className={`text-[9px] px-2 py-0.5 rounded-md border font-semibold ${
+                        isCurrent 
+                          ? 'bg-brand-500/10 border-brand-500 text-brand-600 dark:text-brand-400 font-extrabold'
+                          : isPast
+                          ? 'bg-slate-100 dark:bg-slate-800/50 border-slate-200 text-slate-400 line-through'
+                          : 'bg-slate-50 dark:bg-slate-900/20 border-slate-200 text-slate-400 dark:text-slate-600'
+                      }`}
+                    >
+                      {idx + 1}. {stg.name}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Real-time stats (only when WAITING) */}
           {ticket.status === 'WAITING' && (
