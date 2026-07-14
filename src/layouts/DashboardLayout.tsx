@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   BarChart3,
   CreditCard,
-  Code
+  Code,
+  SlidersHorizontal
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -57,6 +58,7 @@ export const DashboardLayout: React.FC = () => {
     { to: '/dashboard/appointments', icon: <Calendar size={18} />, label: t('dashboard.menuAppointments'), roles: ['owner', 'admin', 'manager', 'staff'] },
     { to: '/dashboard/branches', icon: <MapPin size={18} />, label: t('dashboard.menuBranches'), roles: ['owner', 'admin', 'manager'] },
     { to: '/dashboard/services', icon: <Settings size={18} />, label: t('dashboard.menuServices'), roles: ['owner', 'admin'] },
+    { to: '/dashboard/queue-ranges', icon: <SlidersHorizontal size={18} />, label: t('dashboard.menuQueueRanges'), roles: ['owner', 'admin'] },
     { to: '/dashboard/staff', icon: <Users size={18} />, label: t('dashboard.menuStaff'), roles: ['owner', 'admin'] },
     { to: '/dashboard/analytics', icon: <BarChart3 size={18} />, label: t('dashboard.menuAnalytics'), roles: ['owner', 'admin'] },
     { to: '/dashboard/subscription', icon: <CreditCard size={18} />, label: t('dashboard.menuSubscription'), roles: ['owner'] },

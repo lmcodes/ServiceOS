@@ -217,7 +217,7 @@ export const inviteStaff = onCall(async (request) => {
  * 4. Firestore Trigger: onQueueItemWrite
  * Aggregates daily queue volume, wait times, service times, and breakdowns per branch.
  */
-export const onQueueItemWrite = functions.firestore
+export const onQueueItemWrite = functions.region('asia-southeast3').firestore
   .document('queues/{queueItemId}')
   .onWrite(async (change) => {
     const beforeData = change.before.exists ? change.before.data() : null;
@@ -951,7 +951,7 @@ export const api = functions.https.onRequest(async (req, res) => {
  * 8. Firestore Trigger: onQueueItemWriteWebhook
  * Sends webhook notification to registered URLs when queue items change status.
  */
-export const onQueueItemWriteWebhook = functions.firestore
+export const onQueueItemWriteWebhook = functions.region('asia-southeast3').firestore
   .document('queues/{queueItemId}')
   .onWrite(async (change, context) => {
     const queueItemId = context.params.queueItemId;

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { X, Plus, Trash2, Save, Sliders } from 'lucide-react';
-import { Service, ServiceCustomField, Workflow } from '@/types/firestore';
+import { Service, ServiceCustomField, Workflow, QueueRange } from '@/types/firestore';
 import { CreateServiceInput } from '../types';
 
 interface ServiceFormProps {
@@ -11,6 +11,7 @@ interface ServiceFormProps {
   onSubmit: (data: any) => Promise<void>;
   isLoading: boolean;
   workflows: Workflow[];
+  queueRanges: QueueRange[];
 }
 
 export const ServiceForm: React.FC<ServiceFormProps> = ({
@@ -19,6 +20,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   onSubmit,
   isLoading,
   workflows,
+  queueRanges,
 }) => {
   const { t } = useTranslation();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -32,6 +34,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   const [maxConcurrent, setMaxConcurrent] = useState(initialData?.maxConcurrent || 1);
   const [customFields, setCustomFields] = useState<ServiceCustomField[]>(initialData?.customFields || []);
   const [workflowId, setWorkflowId] = useState<string | null>(initialData?.workflowId || null);
+  const [queueRangeId, setQueueRangeId] = useState<string | null>(initialData?.queueRangeId || null);
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -119,6 +122,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
           label: f.label.trim(),
         })),
         workflowId,
+        queueRangeId,
       };
       await onSubmit(payload);
     } catch (err: any) {
@@ -244,6 +248,27 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
+                  {t('pages.services.form.queueRangeLabel')}
+                </label>
+                <select
+                  value={queueRangeId || ''}
+                  onChange={(e) => setQueueRangeId(e.target.value || null)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none cursor-pointer"
+                >
+                  <option value="">{t('pages.services.form.queueRangeNone')}</option>
+                  {queueRanges.map((qr) => (
+                    <option key={qr.id} value={qr.id}>
+                      {qr.prefix ? `[${qr.prefix}] ` : ''}{qr.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">
+                  {t('pages.services.form.queueRangeHint')}
+                </p>
               </div>
             </div>
 

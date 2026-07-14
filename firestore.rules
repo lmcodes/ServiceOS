@@ -198,5 +198,16 @@ service cloud.firestore {
       allow read: if isOwnerOrAdmin(resource.data.tenantId);
       allow write: if false; // System-only creation
     }
+
+    // 15. Queue Ranges (Phase 10) — tenant-level counter ranges
+    match /queueRanges/{rangeId} {
+      allow read: if true; // Public QR join flow reads range config during ticket creation transaction
+      allow create: if isOwnerOrAdmin(request.resource.data.tenantId);
+      allow update: if isOwnerOrAdmin(resource.data.tenantId) ||
+                    // Allow public counter increment (ticket creation transaction)
+                    request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['currentNumber', 'lastResetDate', 'updatedAt']);
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId);
+    }
   }
 }

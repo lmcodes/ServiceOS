@@ -23,6 +23,7 @@ import TicketStatusPage from '@/features/queues/components/TicketStatusPage';
 import QueueConsolePage from '@/features/queues/components/QueueConsolePage';
 import { DisplayPage } from '@/features/queues/components/DisplayPage';
 import StaffListPage from '@/features/staff/components/StaffListPage';
+import QueueRangePage from '@/features/queueRanges/components/QueueRangePage';
 
 
 import { SettingsPage } from '@/features/settings/components/SettingsPage';
@@ -117,6 +118,14 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin']}>
               <ServiceListPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="queue-ranges" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin']}>
+              <QueueRangePage />
             </ProtectedRoute>
           } 
         />

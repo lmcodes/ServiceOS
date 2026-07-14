@@ -140,6 +140,7 @@ export interface Service {
   price?: number;
   currency?: string;
   workflowId?: string;
+  queueRangeId?: string; // Phase 10: linked queue range
   requiresResource: boolean;
   resourceType?: string;
   maxConcurrent: number;
@@ -148,6 +149,27 @@ export interface Service {
   icon?: string;
   color?: string;
   customFields: ServiceCustomField[];
+  createdAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+}
+
+/**
+ * QueueRange — Phase 10 (V6)
+ * Tenant-level collection defining a named number range with prefix and reset policy.
+ */
+export type QueueRangeResetPolicy = 'daily' | 'manual' | 'never';
+
+export interface QueueRange {
+  id: string; // Document ID
+  tenantId: string;
+  name: string; // e.g. "A-Series"
+  prefix: string; // e.g. "A" (max 3 chars)
+  startNumber: number; // e.g. 1
+  endNumber: number; // e.g. 99
+  padLength: number; // e.g. 3 → "001"
+  resetPolicy: QueueRangeResetPolicy; // daily | manual | never
+  currentNumber: number; // current counter — increments on each ticket
+  lastResetDate?: string; // YYYY-MM-DD — last daily reset date
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }

@@ -3,7 +3,10 @@
     "loading": "Loading...",
     "sending": "Sending...",
     "errorConnection": "Connection error. Please try again.",
-    "or": "or"
+    "or": "or",
+    "languageToggle": "ไทย",
+    "cancel": "Cancel",
+    "save": "Save Changes"
   },
   "validation": {
     "emailInvalid": "Invalid email format",
@@ -25,7 +28,16 @@
     "passwordMinPlaceholder": "At least 6 characters",
     "typePasswordAgain": "Type password again",
     "resetLinkSentTo": "We sent a reset link to",
-    "checkInboxNote": "Please check your inbox (including Spam folder). The link will expire in 1 hour."
+    "checkInboxNote": "Please check your inbox (including Spam folder). The link will expire in 1 hour.",
+    "errorInvalidCredentials": "Invalid email or password",
+    "errorEmailAlreadyInUse": "This email is already in use. Please sign in instead.",
+    "errorWeakPassword": "Password must be at least 6 characters",
+    "errorInvalidEmail": "Invalid email format",
+    "errorTooManyRequests": "Too many requests. Account temporarily locked.",
+    "errorPopupClosed": "Google sign-in was closed by user",
+    "errorNetworkRequestFailed": "No internet connection",
+    "errorInvalidApiKey": "Invalid Firebase configuration. Please contact administrator.",
+    "errorDefault": "An error occurred. Please try again."
   },
   "login": {
     "title": "Sign In",
@@ -73,6 +85,8 @@
     "submitButton": "Create Workspace & Proceed",
     "logoutLink": "Sign Out",
     "switchAccount": "Sign in with a different account?",
+    "errorSaveFailed": "Failed to save onboarding information. Please try again.",
+    "errorUserNotFound": "Logged in user not found",
     "businessTypes": {
       "restaurant": "Restaurant / Cafe",
       "clinic": "Clinic (Medical / Aesthetic)",
@@ -86,6 +100,7 @@
     "menuAppointments": "Appointments",
     "menuBranches": "Branches",
     "menuServices": "Services",
+    "menuQueueRanges": "Queue Ranges",
     "menuStaff": "Staff Directory",
     "menuAnalytics": "Analytics Dashboard",
     "menuSubscription": "Plan & Billing",
@@ -120,7 +135,76 @@
       "nowCallingLabel": "Now Calling",
       "proceedToCounter": "Proceed to Counter {{counter}}",
       "waitingListLabel": "Waiting List",
-      "haveTicketReady": "Please have your ticket ready"
+      "haveTicketReady": "Please have your ticket ready",
+      "enableAudioTitle": "Enable Audio Notifications?",
+      "enableAudioDesc": "Web browsers prevent autoplay audio by default. Please click the button below to enable chime sounds when tickets are called.",
+      "enableAudioBtn": "Enable TV Audio Alert",
+      "justCalled": "Just Called",
+      "noActiveCalls": "No Active Calls",
+      "noActiveCallsDesc": "When staff call a ticket, it will appear here with sound alert.",
+      "noWaitingTickets": "No Waiting Tickets",
+      "proceedInstruction": "Please proceed to your assigned service counter when called."
+    },
+    "queueRanges": {
+      "title": "Queue Ranges",
+      "subtitle": "Configure custom prefixed number ranges to link with services, separating counts from branches.",
+      "addBtn": "Add Range",
+      "addRange": "Add Queue Range",
+      "editRange": "Edit Queue Range",
+      "formSubtitle": "Configure daily running queue numbers for specific services",
+      "previewTitle": "Live Range Preview",
+      "quickPresets": "Quick Presets",
+      "presets": {
+        "clinic": "Clinic (A-001 ~ A-99)",
+        "restaurant": "Restaurant (001 ~ 199)",
+        "bank": "Bank (B-001 ~ B-299)",
+        "clinicName": "A-Series (Clinic)",
+        "restaurantName": "Main Range (Restaurant)",
+        "bankName": "B-Series (Bank)"
+      },
+      "searchPlaceholder": "Search ranges by name or prefix...",
+      "errorLoad": "Failed to load queue ranges",
+      "errorDelete": "Failed to delete queue range",
+      "errorReset": "Failed to reset queue counter",
+      "successCreate": "Queue range created successfully",
+      "successUpdate": "Queue range updated successfully",
+      "successDelete": "Queue range deleted successfully",
+      "successReset": "Queue counter reset successfully",
+      "confirmDelete": "Are you sure you want to delete this range? Services linked to this range will fall back to legacy branch-level counters.",
+      "confirmReset": "Are you sure you want to reset this counter? The next issued ticket will start back from the starting number.",
+      "noRangesTitle": "No Queue Ranges Found",
+      "noRangesDesc": "Create prefixed queue ranges to assign them to services. Link ranges for separate counters.",
+      "form": {
+        "nameLabel": "Range Name",
+        "namePlaceholder": "e.g. Clinic Queue, VIP Tickets",
+        "prefixLabel": "Prefix (Optional)",
+        "prefixPlaceholder": "e.g. A, VIP",
+        "padLengthLabel": "Number Padding",
+        "padOption1": "None (1)",
+        "padOption2": "2 Digits (01)",
+        "padOption3": "3 Digits (001)",
+        "padOption4": "4 Digits (0001)",
+        "startLabel": "Start Number",
+        "endLabel": "End Number",
+        "resetPolicyLabel": "Reset Policy",
+        "policyDaily": "Daily Reset (Recommended)",
+        "policyManual": "Manual Reset Only",
+        "policyNever": "Never Reset (Infinite Counter)",
+        "submitCreate": "Create Range"
+      },
+      "table": {
+        "name": "Range Name",
+        "prefix": "Prefix",
+        "range": "Range Bounds",
+        "reset": "Reset Policy",
+        "counter": "Current Counter",
+        "actions": "Actions"
+      },
+      "tooltips": {
+        "reset": "Reset Counter",
+        "edit": "Edit Range",
+        "delete": "Delete Range"
+      }
     },
     "appointments": {
       "title": "Appointment Schedule",
@@ -279,7 +363,10 @@
         "fieldRequired": "Required Input",
         "submitCreate": "Create Service",
         "submitUpdate": "Save Changes",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "queueRangeLabel": "Queue Range Assignment",
+        "queueRangeNone": "None (Use branch-level counter)",
+        "queueRangeHint": "If a Queue Range is selected, tickets for this service will use the range's prefix and counter instead of the branch default."
       },
       "fieldTypes": {
         "text": "Short Answer",

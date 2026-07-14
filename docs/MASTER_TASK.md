@@ -487,6 +487,240 @@
 | 7 | V3 Appointments | ✅ เสร็จแล้ว | 100% |
 | 8 | V4 Analytics & Billing | ✅ เสร็จแล้ว | 100% |
 | 9 | V5 Developer Portal | ✅ เสร็จแล้ว | 100% |
+| 10 | V6: Queue Range System | ✅ เสร็จแล้ว | 100% |
+| 11 | V7 Sub-Service & Workflow Templates | ⬜ ยังไม่เริ่ม | 0% |
+| 12 | V8 Counter Groups, VIP Priority & One-Stop | ⬜ ยังไม่เริ่ม | 0% |
+| 13 | V9 Kiosk Terminal & Static QR | ⬜ ยังไม่เริ่ม | 0% |
+| 14 | V10 Display Media & Templates | ⬜ ยังไม่เริ่ม | 0% |
+| 15 | V11 TTS Voice Announcement | ⬜ ยังไม่เริ่ม | 0% |
+
+---
+
+## 🗂️ ลำดับงานที่แนะนำสำหรับ AI Codegen (Phase 10–15)
+
+```
+Step 18: QR-01~03  → Queue Range System
+Step 19: SS-01~03  → Sub-Service & Workflow Step Templates
+Step 20: CG-01~04  → Counter Groups, VIP Priority, One-Stop
+Step 21: KI-01~02  → Kiosk Terminal & Static QR
+Step 22: DM-01~03  → Display Media & Templates
+Step 23: TTS-01~03 → TTS Voice Announcement
+```
+
+---
+
+## 🔢 PHASE 10 — V6: Queue Range System ✅
+
+> เป้าหมาย: แต่ละบริการมีช่วงเลขคิวเป็นของตัวเอง ไม่ผูกกับสาขา
+
+### QR-01 · Queue Range Data Model
+- [x] เพิ่ม collection `queueRanges` (tenant-level, แยกจาก branch/service):
+  - [x] fields: `id`, `tenantId`, `name`, `prefix`, `startNumber`, `endNumber`, `padLength`, `resetPolicy` (`daily`/`manual`/`never`), `createdAt`
+- [x] อัปเดต `Service` type: เพิ่ม `queueRangeId?: string`
+- [x] Firestore Security Rules สำหรับ `queueRanges`
+
+### QR-02 · Queue Range Management UI
+- [x] `QueueRangePage.tsx` (`/dashboard/queue-ranges`): ตาราง ranges + ปุ่มสร้าง
+- [x] Register route `/dashboard/queue-ranges` ใน `AppRoutes.tsx`
+- [x] เพิ่ม "Queue Ranges" ใน sidebar `DashboardLayout.tsx`
+- [x] `QueueRangeForm.tsx` (Modal):
+  - [x] Input: ชื่อ, Prefix (e.g. `A`), Start, End, Pad Length, Reset Policy
+  - [x] Preview live: เช่น `A-001` … `A-099`
+  - [x] Preset templates: คลินิก (`A-001~A-099`), ร้านอาหาร (`001~199`), ธนาคาร (`B-001~B-299`)
+  - [x] Validation ด้วย `zod` (start < end, prefix max 3 chars)
+
+### QR-03 · เชื่อม Queue Range กับ Service
+- [x] `ServiceForm.tsx`: dropdown "เลือก Queue Range" จาก tenant ranges
+- [x] `ServiceListPage.tsx`: subscribe tenant `queueRanges` และส่งไปยัง `ServiceForm`
+- [x] `serviceRepository.ts`: บันทึก/อัปเดต `queueRangeId` ลง Firestore
+- [x] `queueRepository.ts`: `createQueueItem` ใช้ `queueRangeId` → increment range counter (Firestore transaction)
+- [ ] Cloud Function scheduler: reset counter ตาม `resetPolicy` (daily = ตี 0) _(เหลือสำหรับ Phase ถัดไป)_
+- [x] แสดง error "คิวเต็ม" เมื่อถึง endNumber (`QUEUE_FULL` error code)
+
+**🧪 ทดสอบ:**
+1. Range "A-Series" prefix=A start=1 end=99 → บริการ A ออก `A-001`
+2. Range "B-Series" → บริการ B ออก `B-001` แยกอิสระ
+3. ถึง end=99 → แสดง error "คิวเต็ม"
+4. Daily reset → ตี 0 counter กลับเป็น start
+
+> **สถานะ:** ✅ Core integration สมบูรณ์แล้ว (Client-side). Cloud Function auto-reset (daily cron) ยังเหลือเป็น Phase ถัดไป
+
+---
+
+## 🧩 PHASE 11 — V7: Sub-Service & Workflow Step Templates
+
+> เป้าหมาย: Workflow step เลือกจาก Sub-Services ที่สร้างไว้ล่วงหน้า + preset ตามประเภทธุรกิจ
+
+### SS-01 · Sub-Service Data Model
+- [ ] เพิ่ม collection `subServices` (tenant-level):
+  - [ ] fields: `id`, `tenantId`, `name` (TH+EN), `icon`, `estimatedMinutes`, `category`, `createdAt`
+- [ ] Firestore Security Rules สำหรับ `subServices`
+
+### SS-02 · Sub-Service Management UI
+- [ ] `SubServicePage.tsx` (`/dashboard/sub-services`): grid + ปุ่มเพิ่ม
+- [ ] `SubServiceForm.tsx` (Modal):
+  - [ ] Input: ชื่อ TH + EN, Icon picker, เวลาโดยประมาณ
+  - [ ] ปุ่ม "โหลด Preset" ตาม business type ของ tenant:
+    - `clinic` → ตรวจสอบสิทธิ์, คัดกรอง, พบแพทย์, ชำระเงิน, จ่ายยา
+    - `restaurant` → ลงทะเบียน, รอโต๊ะ, สั่งอาหาร, รับอาหาร, ชำระเงิน
+    - `bank` → รับคิว, ดำเนินการ, ตรวจสอบ, ชำระ/เบิกถอน
+    - `general` → รับคิว, รอ, บริการ, เสร็จสิ้น
+
+### SS-03 · Workflow Builder อัปเดต
+- [ ] `WorkflowBuilderPage.tsx`: "เพิ่ม Stage" → popup เลือกจาก Sub-Services ที่มีอยู่
+- [ ] ยังสร้าง Stage แบบ custom ได้ (ไม่ต้องผูก sub-service)
+- [ ] อัปเดต `WorkflowStage` type: เพิ่ม `subServiceId?: string`
+- [ ] แสดง icon + ชื่อ + เวลา จาก sub-service
+
+**🧪 ทดสอบ:**
+1. Tenant clinic → กด "โหลด Preset" → ได้ 5 steps อัตโนมัติ
+2. ลากเรียงลำดับ steps ได้
+3. เพิ่ม step custom ที่ไม่อยู่ใน preset ได้
+
+---
+
+## 🏷️ PHASE 12 — V8: Counter Groups, VIP Priority & One-Stop
+
+> เป้าหมาย: Counter รับหลายบริการ, VIP time-based priority, One-Stop service
+
+### CG-01 · Counter Data Model
+- [ ] เพิ่ม collection `counters` (branch-level):
+  - [ ] fields: `id`, `branchId`, `name`, `primaryServiceIds[]`, `secondaryServiceIds[]`, `oneStopServiceIds[]`, `isActive`
+- [ ] อัปเดต `Counter` type ใน `firestore.d.ts`
+
+### CG-02 · Counter Management UI
+- [ ] `CounterManagePage.tsx` (`/dashboard/counters`): ตาราง + ปุ่มเพิ่ม
+- [ ] `CounterForm.tsx` (Modal):
+  - [ ] Input: ชื่อ Counter (เช่น "เค้าเตอร์ A", "โต๊ะ 2 คน", "โต๊ะ 4 คน")
+  - [ ] Primary Services: multi-select (งานหลัก)
+  - [ ] Secondary Services: multi-select (ช่วยงานรองเมื่อว่าง)
+  - [ ] One-Stop Services: multi-select (ใครมาก่อนได้ก่อน ไม่แยกคิว)
+
+### CG-03 · VIP Customer Priority System
+- [ ] เพิ่ม collection `customerGroups` (tenant-level):
+  - [ ] fields: `id`, `tenantId`, `name`, `priorityLevel` (1=ปกติ, 2–10=VIP), `timeMin` (นาที), `timeMax` (นาที), `color`, `badge`
+  - [ ] default: ทุกคน `priorityLevel: 1`
+- [ ] `CustomerGroupPage.tsx` (`/dashboard/customer-groups`): ตาราง + ปุ่มเพิ่ม
+- [ ] `CustomerGroupForm.tsx` (Modal): ชื่อ, level, timeMin, timeMax, สี
+- [ ] Logic:
+  - `elapsed < timeMin` → เข้าคิวปกติ (เหมือนคิวทั่วไป)
+  - `timeMin ≤ elapsed < timeMax` → highlight สีในรายการคิวปกติ (เตือน)
+  - `elapsed ≥ timeMax` → แทรกคิวทันที (priority สูงสุด)
+- [ ] อัปเดต `QueueItem`: เพิ่ม `customerGroupId?`, `priorityLevel`, `joinedAt`
+- [ ] `queueRepository.ts`: `callNextTicket` คำนวณ effective priority จาก elapsed time + level
+
+### CG-04 · Staff Console อัปเดต
+- [ ] Dropdown "Counter/Station" filter งานที่รับผิดชอบ
+- [ ] Badge VIP บน ticket cards พร้อมสีตาม group
+- [ ] Highlight เมื่ออยู่ใน timeMin~timeMax window
+- [ ] "Call Next" เรียง: VIP overtime > VIP warning > normal (FIFO)
+
+**🧪 ทดสอบ:**
+1. Counter "เปิดบัญชี" → Call Next → ดึงคิวเปิดบัญชีก่อน
+2. ไม่มีคิวหลัก → ดึง secondary (ถอนเงิน) อัตโนมัติ
+3. VIP timeMax=10 นาที → หลัง 10 นาที แทรกแถวทันที
+4. One-Stop: ฝาก+ถอน+จ่ายบิล เรียงตาม joinedAt
+
+---
+
+## 📟 PHASE 13 — V9: Kiosk Terminal & Static QR
+
+> เป้าหมาย: หน้าจอ Kiosk ที่สาขา + QR สติกเกอร์แบบถาวร
+
+### KI-01 · Kiosk Terminal Page
+- [ ] สร้าง route `/kiosk/:branchId` (Public, FullScreen)
+- [ ] `KioskPage.tsx`:
+  - [ ] ปุ่มบริการขนาดใหญ่ (ดึงจาก active services)
+  - [ ] กดปุ่ม → ออกคิวทันที (ไม่ต้องกรอก)
+  - [ ] ถ้า service มี `requireName: true` → soft keyboard กรอกชื่อ-นามสกุล (ไม่บังคับ)
+  - [ ] แสดงเลขคิวบน Modal ขนาดใหญ่ + ปุ่ม Print slip (Browser Print API)
+  - [ ] Auto-reset หน้าจอหลัง idle timeout (default 30 วิ, config ได้)
+- [ ] `KioskSettingsPage.tsx` (dashboard):
+  - [ ] เลือก services ที่แสดง, idle timeout, ธีมสี, logo
+  - [ ] Generate URL + QR สำหรับ Kiosk mode
+
+### KI-02 · Static QR (สติกเกอร์หน้าร้าน)
+- [ ] `StaticQRPage.tsx` (`/dashboard/static-qr`):
+  - [ ] เลือก service → Generate QR
+  - [ ] URL: `/join/:branchId?service=:serviceId&autoJoin=true`
+  - [ ] Preview โปสเตอร์ A4 / สติกเกอร์ขนาดต่างๆ
+  - [ ] ดาวน์โหลด PNG / Print PDF
+- [ ] `JoinPage.tsx` อัปเดต: รับ `?autoJoin=true&service=xxx` → ออกคิวทันที
+- [ ] ถ้า `requireName: true` → แสดงฟอร์มชื่อ (ไม่บังคับ) ก่อนออกคิว
+
+**🧪 ทดสอบ:**
+1. Kiosk URL บน tablet → เห็นปุ่มบริการขนาดใหญ่
+2. กด "พบแพทย์" → กรอกชื่อ (optional) → ออกคิว → แสดงเลขคิว
+3. Scan Static QR → ออกคิวทันทีโดยไม่เลือก service
+4. Idle 30 วิ → กลับหน้าหลักอัตโนมัติ
+
+---
+
+## 🎬 PHASE 14 — V10: Display Media & Templates
+
+> เป้าหมาย: TV Display แสดงสื่อ (รูป/วิดีโอ) สลับกับเลขคิว ตาม template
+
+### DM-01 · Media Library
+- [ ] เพิ่ม collection `mediaLibrary` (tenant-level):
+  - [ ] fields: `id`, `tenantId`, `name`, `type` (`image`/`video`/`url`), `storageUrl`, `duration` (วินาที)
+- [ ] `MediaLibraryPage.tsx` (`/dashboard/media`):
+  - [ ] Grid แสดง media + ปุ่ม Upload
+  - [ ] รองรับ รูปภาพ, วิดีโอ (Firebase Storage), URL/YouTube embed
+
+### DM-02 · Display Template System
+- [ ] เพิ่ม collection `displayTemplates` (branch-level):
+  - [ ] fields: `id`, `branchId`, `name`, `layout`, `mediaPlaylist[]`, `queuePosition`, `transitionSeconds`
+  - [ ] layouts: `queue-only` / `split-media` (60/40) / `fullscreen-media-with-ticker`
+- [ ] `DisplayTemplatePage.tsx` (`/dashboard/display-settings`):
+  - [ ] Preset layout cards พร้อม preview
+  - [ ] Playlist builder: เพิ่ม/เรียง media + กำหนดเวลาแต่ละชิ้น
+  - [ ] บันทึก + ตั้งเป็น active template
+
+### DM-03 · DisplayPage อัปเดต
+- [ ] อ่าน active `displayTemplate` (real-time) → render ตาม layout
+  - `queue-only` → เหมือนเดิม
+  - `split-media` → media ซ้าย, คิวขวา
+  - `fullscreen-media-with-ticker` → media เต็มจอ, ticker ล่าง
+- [ ] Media player: image slideshow + video loop
+- [ ] เมื่อมีคิวใหม่ → overlay ใหญ่แสดงเลขคิว 5 วิ → กลับ media
+
+**🧪 ทดสอบ:**
+1. Template "split-media" + รูปโปรโมชั่น 3 รูป → TV สไลด์ซ้าย+คิวขวา
+2. มีคิวใหม่ → overlay เลขคิว 5 วิ → กลับ slideshow
+3. เปลี่ยน template → TV อัปเดตภายใน 5 วิ
+
+---
+
+## 🔊 PHASE 15 — V11: TTS Voice Announcement
+
+> เป้าหมาย: เมื่อเรียกคิว ระบบอ่านเลขคิวออกเสียงอัตโนมัติ
+
+### TTS-01 · TTS Settings
+- [ ] เพิ่ม `voiceSettings` ใน branch doc:
+  - [ ] `ttsEnabled`, `ttsEngine` (`browser`/`google-cloud`/`openai`/`custom-api`), `ttsLanguage`, `ttsVoice`, `ttsApiKey`, `ttsTemplate`, `ttsVolume`, `repeatCount`
+- [ ] `VoiceSettingsPage.tsx` (`/dashboard/voice-settings`):
+  - [ ] เลือก engine + config
+  - [ ] ปุ่ม "ทดสอบเสียง" (preview TTS)
+  - [ ] Template ข้อความ: เช่น `"หมายเลข {{number}} โปรดไปที่ {{counter}}"`
+
+### TTS-02 · TTS Integration บน Display
+- [ ] สร้าง `src/utils/tts.ts`:
+  - [ ] `speakQueue(ticketNumber, counterName, settings)` — function หลัก
+  - [ ] **Browser TTS**: `window.speechSynthesis.speak()` (ไม่ต้อง API key)
+  - [ ] **Google Cloud TTS**: POST `/v1/text:synthesize` → AudioContent base64 → Web Audio
+  - [ ] **OpenAI TTS**: POST `/v1/audio/speech` → stream → Web Audio
+  - [ ] **Custom API**: POST URL ที่กำหนด → audio blob
+  - [ ] Queue audio: เล่นทีละใบ ไม่ตัดกัน (audio queue)
+- [ ] `DisplayPage.tsx`: เมื่อ `calledTickets` เปลี่ยน → เรียก `speakQueue()`
+
+### TTS-03 · Cloud Function TTS Proxy (Optional)
+- [ ] Cloud Function `ttsProxy`: รับ text + engine → return audio (ซ่อน API key จาก client)
+- [ ] Firebase App Check ป้องกัน abuse
+
+**🧪 ทดสอบ:**
+1. Browser TTS → เรียกคิว → ได้ยิน "หมายเลข เอ หนึ่ง ศูนย์ หนึ่ง โปรดไปที่ เค้าเตอร์ เอ"
+2. Google Cloud TTS → เสียงเป็นธรรมชาติขึ้น
+3. เรียกหลายคิวพร้อมกัน → เล่นทีละใบ ไม่ตัดกัน
 
 ---
 

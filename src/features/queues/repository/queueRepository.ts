@@ -14,6 +14,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { QueueItem, WorkflowHistoryEntry } from '@/types/firestore';
+import { incrementQueueRangeCounter } from '@/features/queueRanges/repository/queueRangeRepository';
+
 
 const QUEUES_COLLECTION = 'queues';
 const BRANCHES_COLLECTION = 'branches';
@@ -48,7 +50,8 @@ function getTodayDateInTimezone(timezone: string): string {
 
 /**
  * Creates a new queue item using a Firestore transaction.
- * Resets the daily running queue counter if the date changes.
+ * - If the service has a `queueRangeId`, uses the QueueRange counter (Phase 10).
+ * - Otherwise falls back to the legacy branch-level daily counter.
  */
 export async function createQueueItem(
   branchId: string,
@@ -63,6 +66,74 @@ export async function createQueueItem(
   const branchRef = doc(db, BRANCHES_COLLECTION, branchId);
   const queueRef = doc(collection(db, QUEUES_COLLECTION));
 
+  // ── Phase 10: check if service has a queue range ──────────────────────────
+  const serviceRef = doc(db, 'services', serviceId);
+  const serviceSnap = await getDoc(serviceRef);
+  const serviceData = serviceSnap.exists() ? serviceSnap.data() : null;
+  const queueRangeId: string | null = serviceData?.queueRangeId || null;
+
+  // If a range is linked, use the range counter (outside the branch transaction)
+  if (queueRangeId) {
+    // incrementQueueRangeCounter handles its own transaction and throws QUEUE_FULL
+    const formattedQueueNumber = await incrementQueueRangeCounter(queueRangeId);
+
+    // Now run a separate transaction to create the queue item
+    await runTransaction(db, async (transaction) => {
+      const branchSnap = await transaction.get(branchRef);
+      if (!branchSnap.exists()) throw new Error('Branch does not exist');
+      const branchData = branchSnap.data();
+
+      // Resolve workflow
+      let workflowId: string | null = null;
+      let currentStageId: string | null = null;
+      let workflowHistory: WorkflowHistoryEntry[] = [];
+      if (serviceData?.workflowId) {
+        const wfRef = doc(db, 'workflows', serviceData.workflowId);
+        const wfSnap = await transaction.get(wfRef);
+        if (wfSnap.exists()) {
+          const wfData = wfSnap.data();
+          const stageIds = wfData.stageIds || [];
+          if (stageIds.length > 0) {
+            workflowId = serviceData.workflowId;
+            currentStageId = stageIds[0];
+            workflowHistory = [{
+              stageId: currentStageId as string,
+              enteredAt: new Date() as any,
+              exitedAt: null,
+              durationSeconds: null,
+              assignedUserId: null,
+              assignedResourceId: null
+            }];
+          }
+        }
+      }
+
+      transaction.set(queueRef, {
+        tenantId: branchData.tenantId,
+        branchId,
+        serviceId,
+        queueRangeId,
+        queueNumber: formattedQueueNumber,
+        sequenceNumber: Date.now(),
+        customerName: customerData.name,
+        customerPhone: customerData.phone || '',
+        customerEmail: customerData.email || '',
+        status: 'WAITING',
+        priority: 0,
+        calledCount: 0,
+        customData: customerData.customData || {},
+        workflowId,
+        currentStageId,
+        workflowHistory,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    });
+
+    return { id: queueRef.id, queueNumber: formattedQueueNumber };
+  }
+
+  // ── Legacy: branch-level daily counter ────────────────────────────────────
   const result = await runTransaction(db, async (transaction) => {
     // 1. ALL READ OPERATIONS FIRST
     const branchSnap = await transaction.get(branchRef);
@@ -71,27 +142,27 @@ export async function createQueueItem(
     }
 
     // Check if the service maps to a workflow template
-    const serviceRef = doc(db, 'services', serviceId);
-    const serviceSnap = await transaction.get(serviceRef);
+    const serviceRefInner = doc(db, 'services', serviceId);
+    const serviceSnapInner = await transaction.get(serviceRefInner);
     
     let workflowId: string | null = null;
     let currentStageId: string | null = null;
     let workflowHistory: WorkflowHistoryEntry[] = [];
 
-    if (serviceSnap.exists()) {
-      const serviceData = serviceSnap.data();
-      if (serviceData.workflowId) {
-        const workflowRef = doc(db, 'workflows', serviceData.workflowId);
+    if (serviceSnapInner.exists()) {
+      const sd = serviceSnapInner.data();
+      if (sd.workflowId) {
+        const workflowRef = doc(db, 'workflows', sd.workflowId);
         const workflowSnap = await transaction.get(workflowRef);
         if (workflowSnap.exists()) {
           const workflowData = workflowSnap.data();
           const stageIds = workflowData.stageIds || [];
           if (stageIds.length > 0) {
-            workflowId = serviceData.workflowId;
+            workflowId = sd.workflowId;
             currentStageId = stageIds[0];
             workflowHistory = [{
               stageId: currentStageId as string,
-              enteredAt: new Date() as any, // Local timestamp inside transaction
+              enteredAt: new Date() as any,
               exitedAt: null,
               durationSeconds: null,
               assignedUserId: null,

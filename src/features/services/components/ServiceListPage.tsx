@@ -8,10 +8,11 @@ import { useBranches } from '@/features/branches/hooks/useBranches';
 import { useServices } from '../hooks/useServices';
 import { useCreateService } from '../hooks/useCreateService';
 import { useUpdateService } from '../hooks/useUpdateService';
-import { Service, Workflow } from '@/types/firestore';
+import { Service, Workflow, QueueRange } from '@/types/firestore';
 import { ServiceForm } from './ServiceForm';
 import { useAuth } from '@/context/AuthContext';
 import { subscribeWorkflows, deleteWorkflow } from '@/features/workflows/repository/workflowRepository';
+import { subscribeQueueRanges } from '@/features/queueRanges/repository/queueRangeRepository';
 import { WorkflowBuilderPage } from '@/features/workflows/components/WorkflowBuilderPage';
 
 export const ServiceListPage: React.FC = () => {
@@ -49,6 +50,8 @@ export const ServiceListPage: React.FC = () => {
 
   // Workflows state
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  // Queue Ranges state
+  const [queueRanges, setQueueRanges] = useState<QueueRange[]>([]);
 
   // Subscribe to workflows
   useEffect(() => {
@@ -60,6 +63,21 @@ export const ServiceListPage: React.FC = () => {
       },
       (err) => {
         console.error('Failed to subscribe workflows:', err);
+      }
+    );
+    return () => unsub();
+  }, [user]);
+
+  // Subscribe to queue ranges
+  useEffect(() => {
+    if (!user?.tenantId) return;
+    const unsub = subscribeQueueRanges(
+      user.tenantId,
+      (list) => {
+        setQueueRanges(list);
+      },
+      (err) => {
+        console.error('Failed to subscribe queue ranges:', err);
       }
     );
     return () => unsub();
@@ -467,6 +485,7 @@ export const ServiceListPage: React.FC = () => {
           onSubmit={handleFormSubmit}
           isLoading={createMutation.isPending || updateMutation.isPending}
           workflows={workflows}
+          queueRanges={queueRanges}
         />
       )}
     </div>
