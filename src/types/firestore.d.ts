@@ -205,6 +205,20 @@ export interface WorkflowStage {
   allowedResourceTypes: string[];
   transitionRules: WorkflowTransitionRules;
   guards: WorkflowStageGuard[];
+  subServiceId?: string; // Links to SubService
+}
+
+export interface SubService {
+  id: string; // Document ID
+  tenantId: string;
+  name: {
+    th: string;
+    en: string;
+  };
+  icon: string; // lucide icon name
+  estimatedMinutes: number;
+  category: string;
+  createdAt: FirestoreTimestamp;
 }
 
 export interface Workflow {

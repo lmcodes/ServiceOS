@@ -4,13 +4,15 @@ import {
   X, Plus, Trash2, ArrowUp, ArrowDown, Save, Sliders, AlertTriangle, 
   Settings2, ShieldAlert, Clock, FileText, UserCheck, HelpCircle
 } from 'lucide-react';
-import { WorkflowStage, WorkflowStageGuard } from '@/types/firestore';
+import * as LucideIcons from 'lucide-react';
+import { WorkflowStage, WorkflowStageGuard, SubService } from '@/types/firestore';
 import { useAuth } from '@/context/AuthContext';
 import { 
   createWorkflow, 
   updateWorkflow, 
   getWorkflowWithStages 
 } from '../repository/workflowRepository';
+import { getSubServices } from '../repository/subServiceRepository';
 
 interface WorkflowBuilderPageProps {
   workflowId: string | null;
@@ -21,7 +23,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
   workflowId,
   onClose
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
 
   // General States
@@ -33,10 +35,22 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
   const [stages, setStages] = useState<WorkflowStage[]>([]);
   const [selectedStageIndex, setSelectedStageIndex] = useState<number | null>(null);
 
+  // Sub-Services Library
+  const [subServices, setSubServices] = useState<SubService[]>([]);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+
   // Indicators
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load available sub-services
+  useEffect(() => {
+    if (!user?.tenantId) return;
+    getSubServices(user.tenantId)
+      .then(setSubServices)
+      .catch(err => console.error('Failed to load sub-services for builder:', err));
+  }, [user?.tenantId]);
 
   // Load existing workflow details if editing
   useEffect(() => {
@@ -91,6 +105,21 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
       guards: []
     };
     
+    setStages(prev => [...prev, newStage]);
+    setSelectedStageIndex(stages.length);
+  };
+
+  const handleAddSubServiceStage = (sub: SubService) => {
+    const newStageId = `stage_${stages.length}_${Date.now()}`;
+    const subName = i18n.language === 'th' ? sub.name.th || sub.name.en : sub.name.en || sub.name.th;
+    const newStage: WorkflowStage = {
+      id: newStageId,
+      name: subName,
+      allowedResourceTypes: [],
+      transitionRules: { nextStages: [], allowSkip: false, allowRevert: false },
+      guards: [],
+      subServiceId: sub.id
+    };
     setStages(prev => [...prev, newStage]);
     setSelectedStageIndex(stages.length);
   };
@@ -354,74 +383,137 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
           
           {/* Chronological Stages Sidebar */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between relative">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 {t('pages.workflows.chronologicalStages')} ({stages.length})
               </h3>
-              <button
-                type="button"
-                onClick={handleAddStage}
-                className="flex items-center gap-1 py-1 px-2.5 bg-brand-50 dark:bg-brand-955/40 text-brand-655 dark:text-brand-400 border border-brand-100 dark:border-brand-900/40 hover:bg-brand-100 dark:hover:bg-brand-900/35 font-bold text-[10px] rounded-lg cursor-pointer transition-colors"
-              >
-                <Plus className="w-3 h-3" />
-                {t('pages.workflows.addStage')}
-              </button>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddMenu(!showAddMenu)}
+                  className="flex items-center gap-1 py-1 px-2.5 bg-brand-50 dark:bg-brand-955/40 text-brand-655 dark:text-brand-400 border border-brand-100 dark:border-brand-900/40 hover:bg-brand-100 dark:hover:bg-brand-900/35 font-bold text-[10px] rounded-lg cursor-pointer transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  {t('pages.workflows.addStage')}
+                </button>
+
+                {showAddMenu && (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setShowAddMenu(false)}></div>
+                    <div className="absolute right-0 mt-1 w-56 bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-xl shadow-lg py-1 z-30 animate-in fade-in duration-100 max-h-60 overflow-y-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleAddStage();
+                          setShowAddMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Custom Stage (Blank)</span>
+                      </button>
+                      {subServices.length > 0 && (
+                        <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                      )}
+                      {subServices.map((sub) => {
+                        const subName = i18n.language === 'th' ? sub.name.th || sub.name.en : sub.name.en || sub.name.th;
+                        const IconComponent = (LucideIcons as any)[sub.icon] || LucideIcons.HelpCircle;
+                        return (
+                          <button
+                            type="button"
+                            key={sub.id}
+                            onClick={() => {
+                              handleAddSubServiceStage(sub);
+                              setShowAddMenu(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-750 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                          >
+                            <IconComponent className="w-3.5 h-3.5 text-brand-500" />
+                            <span className="truncate">{subName}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
-              {stages.map((stage, index) => (
-                <div
-                  key={stage.id}
-                  onClick={() => setSelectedStageIndex(index)}
-                  className={`p-3.5 border rounded-2xl flex items-center justify-between cursor-pointer transition-all ${
-                    selectedStageIndex === index
-                      ? 'border-brand-600 bg-brand-50/20 dark:bg-brand-955/5 shadow-sm'
-                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-950/30'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-5.5 h-5.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-455 font-bold text-xs flex items-center justify-center border border-slate-200 dark:border-slate-700">
-                      {index + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-850 dark:text-white truncate">
-                        {stage.name || t('pages.workflows.unnamedStage')}
-                      </p>
-                      {stage.transitionRules?.nextStages?.length > 0 && (
-                        <span className="text-[9px] text-slate-450 font-medium">
-                          {t('pages.workflows.nextRoutesCount', { count: stage.transitionRules.nextStages.length })}
+              {stages.map((stage, index) => {
+                const linkedSub = stage.subServiceId ? subServices.find(s => s.id === stage.subServiceId) : null;
+                const displayName = stage.name || (linkedSub ? (i18n.language === 'th' ? linkedSub.name.th : linkedSub.name.en) : t('pages.workflows.unnamedStage'));
+                const IconComponent = linkedSub ? ((LucideIcons as any)[linkedSub.icon] || LucideIcons.HelpCircle) : null;
+
+                return (
+                  <div
+                    key={stage.id}
+                    onClick={() => setSelectedStageIndex(index)}
+                    className={`p-3.5 border rounded-2xl flex items-center justify-between cursor-pointer transition-all ${
+                      selectedStageIndex === index
+                        ? 'border-brand-600 bg-brand-50/20 dark:bg-brand-955/5 shadow-sm'
+                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-950/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative flex-shrink-0">
+                        <span className="w-5.5 h-5.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-455 font-bold text-xs flex items-center justify-center border border-slate-205 dark:border-slate-700">
+                          {index + 1}
                         </span>
-                      )}
+                        {IconComponent && (
+                          <span className="absolute -top-1 -right-1 bg-brand-555 text-white rounded-full p-0.5 border border-white dark:border-slate-900">
+                            <IconComponent className="w-2.5 h-2.5" />
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-850 dark:text-white truncate">
+                          {displayName}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {stage.transitionRules?.nextStages?.length > 0 && (
+                            <span className="text-[9px] text-slate-450 font-medium">
+                              {t('pages.workflows.nextRoutesCount', { count: stage.transitionRules.nextStages.length })}
+                            </span>
+                          )}
+                          {linkedSub && (
+                            <span className="text-[9px] text-brand-655 dark:text-brand-400 font-bold flex items-center gap-0.5">
+                              <Clock className="w-2.5 h-2.5 text-brand-500" />
+                              {linkedSub.estimatedMinutes}m
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => handleMoveStage(index, 'up')}
+                        className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                      >
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === stages.length - 1}
+                        onClick={() => handleMoveStage(index, 'down')}
+                        className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                      >
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveStage(index)}
+                        className="p-1 hover:bg-red-50 dark:hover:bg-red-955/20 rounded text-slate-400 hover:text-red-500 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      disabled={index === 0}
-                      onClick={() => handleMoveStage(index, 'up')}
-                      className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
-                    >
-                      <ArrowUp className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={index === stages.length - 1}
-                      onClick={() => handleMoveStage(index, 'down')}
-                      className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
-                    >
-                      <ArrowDown className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveStage(index)}
-                      className="p-1 hover:bg-red-50 dark:hover:bg-red-955/20 rounded text-slate-400 hover:text-red-500 cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -445,6 +537,74 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                       </span>
                     </div>
 
+                    {/* Sub-Service linkage info and select picker */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-slate-205 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-950/20">
+                      <div className="md:col-span-1 space-y-1.5">
+                        <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
+                          {t('pages.workflows.linkSubService', 'Link Sub-Service')}
+                        </label>
+                        <select
+                          value={currentStage.subServiceId || ''}
+                          onChange={(e) => {
+                            const val = e.target.value || undefined;
+                            handleStageFieldChange(selectedStageIndex, 'subServiceId', val);
+                            if (val) {
+                              const sub = subServices.find(s => s.id === val);
+                              if (sub) {
+                                const subName = i18n.language === 'th' ? sub.name.th || sub.name.en : sub.name.en || sub.name.th;
+                                handleStageFieldChange(selectedStageIndex, 'name', subName);
+                              }
+                            }
+                          }}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-805 border border-slate-205 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white outline-none cursor-pointer"
+                        >
+                          <option value="">-- None (Custom) --</option>
+                          {subServices.map(sub => (
+                            <option key={sub.id} value={sub.id}>
+                              {i18n.language === 'th' ? sub.name.th || sub.name.en : sub.name.en || sub.name.th}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {currentStage.subServiceId ? (
+                        (() => {
+                          const linkedSub = subServices.find(s => s.id === currentStage.subServiceId);
+                          if (!linkedSub) return <div className="md:col-span-2 text-xs text-slate-400 italic flex items-center">Sub-service not found</div>;
+                          const IconComponent = (LucideIcons as any)[linkedSub.icon] || LucideIcons.HelpCircle;
+
+                          return (
+                            <div className="md:col-span-2 p-3 bg-brand-50/40 dark:bg-brand-950/15 border border-brand-100 dark:border-brand-900/40 rounded-xl flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg text-brand-655 dark:text-brand-400 border border-slate-100 dark:border-slate-700/50">
+                                  <IconComponent className="w-4.5 h-4.5" />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-slate-900 dark:text-white">
+                                    {i18n.language === 'th' ? linkedSub.name.th || linkedSub.name.en : linkedSub.name.en || linkedSub.name.th}
+                                  </p>
+                                  <p className="text-[10px] text-slate-500 font-medium">
+                                    Category: <strong className="text-slate-700 dark:text-slate-300">{linkedSub.category}</strong> | Est: <strong className="text-slate-700 dark:text-slate-300">{linkedSub.estimatedMinutes}m</strong>
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleStageFieldChange(selectedStageIndex, 'subServiceId', undefined)}
+                                className="py-1 px-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-red-500 hover:text-red-650 text-[10px] font-bold rounded-lg border border-slate-205 dark:border-slate-700 transition-colors cursor-pointer"
+                              >
+                                Unlink
+                              </button>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <div className="md:col-span-2 p-3 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-xs text-slate-400 italic">
+                          This stage is not linked to any sub-service templates.
+                        </div>
+                      )}
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Name input */}
                       <div className="space-y-1.5">
@@ -455,7 +615,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                           type="text"
                           value={currentStage.name}
                           onChange={(e) => handleStageFieldChange(selectedStageIndex, 'name', e.target.value)}
-                          className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-205 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-brand-500"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-805 border border-slate-205 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-brand-500"
                           placeholder={t('pages.workflows.stageNamePlaceholder')}
                         />
                       </div>
@@ -474,7 +634,7 @@ export const WorkflowBuilderPage: React.FC<WorkflowBuilderPageProps> = ({
                             const arr = val.split(',').map(s => s.trim()).filter(Boolean);
                             handleStageFieldChange(selectedStageIndex, 'allowedResourceTypes', arr);
                           }}
-                          className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-205 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-brand-500"
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-805 border border-slate-205 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-brand-500"
                           placeholder={t('pages.workflows.allowedRolesPlaceholder')}
                         />
                       </div>

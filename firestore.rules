@@ -209,5 +209,13 @@ service cloud.firestore {
                       .hasOnly(['currentNumber', 'lastResetDate', 'updatedAt']);
       allow delete: if isOwnerOrAdmin(resource.data.tenantId);
     }
+
+    // 16. Sub Services (Phase 11) — tenant-level sub-service definitions
+    match /subServices/{subServiceId} {
+      allow read: if true;
+      allow create: if isOwnerOrAdmin(request.resource.data.tenantId);
+      allow update: if isOwnerOrAdmin(resource.data.tenantId) && isOwnerOrAdmin(request.resource.data.tenantId);
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId);
+    }
   }
 }

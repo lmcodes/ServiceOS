@@ -553,28 +553,30 @@ Step 25: WP-01~04  → Web Push Notifications + Service Worker
 
 ## 🧩 PHASE 11 — V7: Sub-Service & Workflow Step Templates
 
+> **สถานะ:** ✅ เสร็จสมบูรณ์ (2026-07-14)
+
 > เป้าหมาย: Workflow step เลือกจาก Sub-Services ที่สร้างไว้ล่วงหน้า + preset ตามประเภทธุรกิจ
 
 ### SS-01 · Sub-Service Data Model
-- [ ] เพิ่ม collection `subServices` (tenant-level):
-  - [ ] fields: `id`, `tenantId`, `name` (TH+EN), `icon`, `estimatedMinutes`, `category`, `createdAt`
-- [ ] Firestore Security Rules สำหรับ `subServices`
+- [x] เพิ่ม collection `subServices` (tenant-level):
+  - [x] fields: `id`, `tenantId`, `name` (TH+EN), `icon`, `estimatedMinutes`, `category`, `createdAt`
+- [x] Firestore Security Rules สำหรับ `subServices`
 
 ### SS-02 · Sub-Service Management UI
-- [ ] `SubServicePage.tsx` (`/dashboard/sub-services`): grid + ปุ่มเพิ่ม
-- [ ] `SubServiceForm.tsx` (Modal):
-  - [ ] Input: ชื่อ TH + EN, Icon picker, เวลาโดยประมาณ
-  - [ ] ปุ่ม "โหลด Preset" ตาม business type ของ tenant:
+- [x] `SubServicePage.tsx` (`/dashboard/sub-services`): grid + ปุ่มเพิ่ม
+- [x] `SubServiceForm.tsx` (Modal):
+  - [x] Input: ชื่อ TH + EN, Icon picker, เวลาโดยประมาณ
+  - [x] ปุ่ม "โหลด Preset" ตาม business type ของ tenant:
     - `clinic` → ตรวจสอบสิทธิ์, คัดกรอง, พบแพทย์, ชำระเงิน, จ่ายยา
     - `restaurant` → ลงทะเบียน, รอโต๊ะ, สั่งอาหาร, รับอาหาร, ชำระเงิน
     - `bank` → รับคิว, ดำเนินการ, ตรวจสอบ, ชำระ/เบิกถอน
     - `general` → รับคิว, รอ, บริการ, เสร็จสิ้น
 
 ### SS-03 · Workflow Builder อัปเดต
-- [ ] `WorkflowBuilderPage.tsx`: "เพิ่ม Stage" → popup เลือกจาก Sub-Services ที่มีอยู่
-- [ ] ยังสร้าง Stage แบบ custom ได้ (ไม่ต้องผูก sub-service)
-- [ ] อัปเดต `WorkflowStage` type: เพิ่ม `subServiceId?: string`
-- [ ] แสดง icon + ชื่อ + เวลา จาก sub-service
+- [x] `WorkflowBuilderPage.tsx`: "เพิ่ม Stage" → popup เลือกจาก Sub-Services ที่มีอยู่
+- [x] ยังสร้าง Stage แบบ custom ได้ (ไม่ต้องผูก sub-service)
+- [x] อัปเดต `WorkflowStage` type: เพิ่ม `subServiceId?: string`
+- [x] แสดง icon + ชื่อ + เวลา จาก sub-service
 
 **🧪 ทดสอบ:**
 1. Tenant clinic → กด "โหลด Preset" → ได้ 5 steps อัตโนมัติ

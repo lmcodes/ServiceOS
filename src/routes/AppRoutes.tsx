@@ -24,6 +24,7 @@ import QueueConsolePage from '@/features/queues/components/QueueConsolePage';
 import { DisplayPage } from '@/features/queues/components/DisplayPage';
 import StaffListPage from '@/features/staff/components/StaffListPage';
 import QueueRangePage from '@/features/queueRanges/components/QueueRangePage';
+import { SubServicePage } from '@/features/workflows/components/SubServicePage';
 
 
 import { SettingsPage } from '@/features/settings/components/SettingsPage';
@@ -126,6 +127,14 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin']}>
               <QueueRangePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="sub-services" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin']}>
+              <SubServicePage />
             </ProtectedRoute>
           } 
         />
