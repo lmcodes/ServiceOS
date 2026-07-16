@@ -10,6 +10,7 @@ export interface CreateServiceInput {
   customFields: ServiceCustomField[];
   workflowId?: string | null;
   queueRangeId?: string | null;
+  requireName?: boolean;
 }
 
 export interface UpdateServiceInput {
@@ -23,4 +24,5 @@ export interface UpdateServiceInput {
   customFields?: ServiceCustomField[];
   workflowId?: string | null;
   queueRangeId?: string | null;
+  requireName?: boolean;
 }

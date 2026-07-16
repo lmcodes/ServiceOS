@@ -22,7 +22,9 @@ import {
   SlidersHorizontal,
   Layers,
   Monitor,
-  UserCheck
+  UserCheck,
+  Tablet,
+  QrCode
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -64,6 +66,8 @@ export const DashboardLayout: React.FC = () => {
     { to: '/dashboard/queue-ranges', icon: <SlidersHorizontal size={18} />, label: t('dashboard.menuQueueRanges'), roles: ['owner', 'admin'] },
     { to: '/dashboard/sub-services', icon: <Layers size={18} />, label: t('dashboard.menuSubServices', 'Sub-Services'), roles: ['owner', 'admin'] },
     { to: '/dashboard/counters', icon: <Monitor size={18} />, label: t('dashboard.menuCounters', 'Counters'), roles: ['owner', 'admin', 'manager'] },
+    { to: '/dashboard/kiosk-settings', icon: <Tablet size={18} />, label: t('dashboard.menuKioskSettings', 'Kiosk Settings'), roles: ['owner', 'admin', 'manager'] },
+    { to: '/dashboard/static-qr', icon: <QrCode size={18} />, label: t('dashboard.menuStaticQR', 'Static QR'), roles: ['owner', 'admin', 'manager'] },
     { to: '/dashboard/customer-groups', icon: <UserCheck size={18} />, label: t('dashboard.menuCustomerGroups', 'Customer Groups'), roles: ['owner', 'admin'] },
     { to: '/dashboard/staff', icon: <Users size={18} />, label: t('dashboard.menuStaff'), roles: ['owner', 'admin'] },
     { to: '/dashboard/analytics', icon: <BarChart3 size={18} />, label: t('dashboard.menuAnalytics'), roles: ['owner', 'admin'] },

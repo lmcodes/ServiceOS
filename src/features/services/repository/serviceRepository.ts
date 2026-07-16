@@ -91,6 +91,7 @@ export async function createService(
     customFields: input.customFields,
     workflowId: input.workflowId || null,
     queueRangeId: input.queueRangeId || null,
+    requireName: input.requireName ?? false,
     isActive: true,
     sortOrder: nextSortOrder,
     createdAt: serverTimestamp(),
@@ -118,6 +119,7 @@ export async function updateService(serviceId: string, input: UpdateServiceInput
   if (input.customFields !== undefined) updateData.customFields = input.customFields;
   if (input.workflowId !== undefined) updateData.workflowId = input.workflowId;
   if (input.queueRangeId !== undefined) updateData.queueRangeId = input.queueRangeId;
+  if (input.requireName !== undefined) updateData.requireName = input.requireName;
 
   await updateDoc(serviceRef, updateData);
 }

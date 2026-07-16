@@ -103,6 +103,8 @@
     "menuQueueRanges": "Queue Ranges",
     "menuSubServices": "Sub-Services",
     "menuCounters": "Counters",
+    "menuKioskSettings": "Kiosk Settings",
+    "menuStaticQR": "Static QR Labels",
     "menuCustomerGroups": "Customer Groups",
     "menuStaff": "Staff Directory",
     "menuAnalytics": "Analytics Dashboard",

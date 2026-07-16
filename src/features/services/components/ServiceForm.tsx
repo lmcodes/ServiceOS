@@ -35,6 +35,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   const [customFields, setCustomFields] = useState<ServiceCustomField[]>(initialData?.customFields || []);
   const [workflowId, setWorkflowId] = useState<string | null>(initialData?.workflowId || null);
   const [queueRangeId, setQueueRangeId] = useState<string | null>(initialData?.queueRangeId || null);
+  const [requireName, setRequireName] = useState(initialData?.requireName ?? false);
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -123,6 +124,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
         })),
         workflowId,
         queueRangeId,
+        requireName,
       };
       await onSubmit(payload);
     } catch (err: any) {
@@ -273,19 +275,36 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
             </div>
 
             {/* Toggles */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-800 rounded-xl">
-              <span className="text-xs text-slate-750 dark:text-slate-350">
-                {t('pages.services.form.requiresResource')}
-              </span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={requiresResource}
-                  onChange={(e) => setRequiresResource(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:height-4 after:w-4 after:h-4 after:transition-all dark:border-slate-600 peer-checked:bg-brand-655 cursor-pointer"></div>
-              </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-800 rounded-xl">
+                <span className="text-xs text-slate-750 dark:text-slate-350">
+                  {t('pages.services.form.requiresResource')}
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={requiresResource}
+                    onChange={(e) => setRequiresResource(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:height-4 after:w-4 after:h-4 after:transition-all dark:border-slate-600 peer-checked:bg-brand-655 cursor-pointer"></div>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-800 rounded-xl">
+                <span className="text-xs text-slate-750 dark:text-slate-350">
+                  {t('pages.services.form.requireName', 'Require Customer Name on Kiosk/QR')}
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={requireName}
+                    onChange={(e) => setRequireName(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:height-4 after:w-4 after:h-4 after:transition-all dark:border-slate-600 peer-checked:bg-brand-655 cursor-pointer"></div>
+                </label>
+              </div>
             </div>
 
             {/* Custom Fields Section */}

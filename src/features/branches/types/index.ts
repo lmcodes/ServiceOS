@@ -23,6 +23,12 @@ export interface CreateBranchInput {
     maxQueueSize: number;
     requirePhone: boolean;
   };
+  kioskSettings?: {
+    showLogo: boolean;
+    idleTimeoutSeconds: number;
+    themeColor: 'brand' | 'blue' | 'emerald' | 'violet' | 'amber';
+    allowedServiceIds: string[];
+  };
 }
 
 export type UpdateBranchInput = Partial<CreateBranchInput> & {

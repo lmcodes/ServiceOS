@@ -634,25 +634,25 @@ Step 25: WP-01~04  → Web Push Notifications + Service Worker
 > เป้าหมาย: หน้าจอ Kiosk ที่สาขา + QR สติกเกอร์แบบถาวร
 
 ### KI-01 · Kiosk Terminal Page
-- [ ] สร้าง route `/kiosk/:branchId` (Public, FullScreen)
-- [ ] `KioskPage.tsx`:
-  - [ ] ปุ่มบริการขนาดใหญ่ (ดึงจาก active services)
-  - [ ] กดปุ่ม → ออกคิวทันที (ไม่ต้องกรอก)
-  - [ ] ถ้า service มี `requireName: true` → soft keyboard กรอกชื่อ-นามสกุล (ไม่บังคับ)
-  - [ ] แสดงเลขคิวบน Modal ขนาดใหญ่ + ปุ่ม Print slip (Browser Print API)
-  - [ ] Auto-reset หน้าจอหลัง idle timeout (default 30 วิ, config ได้)
-- [ ] `KioskSettingsPage.tsx` (dashboard):
-  - [ ] เลือก services ที่แสดง, idle timeout, ธีมสี, logo
-  - [ ] Generate URL + QR สำหรับ Kiosk mode
+- [x] สร้าง route `/kiosk/:branchId` (Public, FullScreen)
+- [x] `KioskPage.tsx`:
+  - [x] ปุ่มบริการขนาดใหญ่ (ดึงจาก active services)
+  - [x] กดปุ่ม → ออกคิวทันที (ไม่ต้องกรอก)
+  - [x] ถ้า service มี `requireName: true` → soft keyboard กรอกชื่อ-นามสกุล (ไม่บังคับ)
+  - [x] แสดงเลขคิวบน Modal ขนาดใหญ่ + ปุ่ม Print slip (Browser Print API)
+  - [x] Auto-reset หน้าจอหลัง idle timeout (default 30 วิ, config ได้)
+- [x] `KioskSettingsPage.tsx` (dashboard):
+  - [x] เลือก services ที่แสดง, idle timeout, ธีมสี, logo
+  - [x] Generate URL + QR สำหรับ Kiosk mode
 
 ### KI-02 · Static QR (สติกเกอร์หน้าร้าน)
-- [ ] `StaticQRPage.tsx` (`/dashboard/static-qr`):
-  - [ ] เลือก service → Generate QR
-  - [ ] URL: `/join/:branchId?service=:serviceId&autoJoin=true`
-  - [ ] Preview โปสเตอร์ A4 / สติกเกอร์ขนาดต่างๆ
-  - [ ] ดาวน์โหลด PNG / Print PDF
-- [ ] `JoinPage.tsx` อัปเดต: รับ `?autoJoin=true&service=xxx` → ออกคิวทันที
-- [ ] ถ้า `requireName: true` → แสดงฟอร์มชื่อ (ไม่บังคับ) ก่อนออกคิว
+- [x] `StaticQRPage.tsx` (`/dashboard/static-qr`):
+  - [x] เลือก service → Generate QR
+  - [x] URL: `/join/:branchId?service=:serviceId&autoJoin=true`
+  - [x] Preview โปสเตอร์ A4 / สติกเกอร์ขนาดต่างๆ
+  - [x] ดาวน์โหลด PNG / Print PDF
+- [x] `JoinPage.tsx` อัปเดต: รับ `?autoJoin=true&service=xxx` → ออกคิวทันที
+- [x] ถ้า `requireName: true` → แสดงฟอร์มชื่อ (ไม่บังคับ) ก่อนออกคิว
 
 **🧪 ทดสอบ:**
 1. Kiosk URL บน tablet → เห็นปุ่มบริการขนาดใหญ่

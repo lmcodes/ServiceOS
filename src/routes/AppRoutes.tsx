@@ -22,6 +22,9 @@ import JoinPage from '@/features/queues/components/JoinPage';
 import TicketStatusPage from '@/features/queues/components/TicketStatusPage';
 import QueueConsolePage from '@/features/queues/components/QueueConsolePage';
 import { DisplayPage } from '@/features/queues/components/DisplayPage';
+import { KioskPage } from '@/features/queues/components/KioskPage';
+import { KioskSettingsPage } from '@/features/queues/components/KioskSettingsPage';
+import { StaticQRPage } from '@/features/queues/components/StaticQRPage';
 import StaffListPage from '@/features/staff/components/StaffListPage';
 import QueueRangePage from '@/features/queueRanges/components/QueueRangePage';
 import { SubServicePage } from '@/features/workflows/components/SubServicePage';
@@ -89,6 +92,7 @@ export const AppRoutes: React.FC = () => {
       {/* Public TV Display Screen */}
       <Route element={<DisplayLayout />}>
         <Route path="/display/:branchId" element={<DisplayPage />} />
+        <Route path="/kiosk/:branchId" element={<KioskPage />} />
       </Route>
 
 
@@ -145,6 +149,22 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
               <CounterManagePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="kiosk-settings" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
+              <KioskSettingsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="static-qr" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
+              <StaticQRPage />
             </ProtectedRoute>
           } 
         />

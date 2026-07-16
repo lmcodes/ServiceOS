@@ -71,6 +71,12 @@ export interface Branch {
     maxQueueSize: number; // 0 = unlimited
     requirePhone: boolean;
   };
+  kioskSettings?: {
+    showLogo: boolean;
+    idleTimeoutSeconds: number;
+    themeColor: 'brand' | 'blue' | 'emerald' | 'violet' | 'amber';
+    allowedServiceIds: string[];
+  };
   status: 'active' | 'inactive';
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
@@ -149,6 +155,7 @@ export interface Service {
   icon?: string;
   color?: string;
   customFields: ServiceCustomField[];
+  requireName?: boolean; // Phase 13
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }

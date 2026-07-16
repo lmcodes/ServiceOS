@@ -119,6 +119,9 @@ export async function updateBranch(branchId: string, input: UpdateBranchInput): 
   if (input.settings !== undefined) {
     updateData.settings = input.settings;
   }
+  if (input.kioskSettings !== undefined) {
+    updateData.kioskSettings = input.kioskSettings;
+  }
 
   await updateDoc(branchRef, updateData);
 }

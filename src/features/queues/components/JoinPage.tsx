@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { doc, onSnapshot, query, collection, where } from 'firebase/firestore';
 import { db } from '@/config/firebase';
@@ -23,6 +23,9 @@ export const JoinPage: React.FC = () => {
   const { branchId } = useParams<{ branchId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const autoJoin = searchParams.get('autoJoin') === 'true';
+  const serviceParamId = searchParams.get('service');
 
   // State
   const [branch, setBranch] = useState<Branch | null>(null);
@@ -117,6 +120,40 @@ export const JoinPage: React.FC = () => {
 
     return () => unsub();
   }, [branch?.tenantId]);
+
+  // Handle auto-join QR code parameters flow
+  useEffect(() => {
+    if (loading || !branch || services.length === 0 || !autoJoin || !serviceParamId) return;
+
+    const targetService = services.find((s) => s.id === serviceParamId);
+    if (!targetService) {
+      console.warn('Auto-join service not found in active list');
+      return;
+    }
+
+    setSelectedService(targetService);
+
+    // If requireName is false (or not set), book immediately!
+    if (!targetService.requireName) {
+      const executeAutoJoin = async () => {
+        setSubmitting(true);
+        setError(null);
+        try {
+          const result = await createQueueItem(branchId!, targetService.id, {
+            name: 'Walk-in Guest',
+            priorityLevel: 1
+          });
+          navigate(`/status/${result.id}`);
+        } catch (err: any) {
+          console.error('Auto-join queue registration failed:', err);
+          setError(err?.message || 'Failed to auto-join the queue.');
+        } finally {
+          setSubmitting(false);
+        }
+      };
+      executeAutoJoin();
+    }
+  }, [loading, branch, services, autoJoin, serviceParamId, branchId, navigate]);
 
   const handleCustomFieldChange = (key: string, value: any) => {
     setCustomData((prev) => ({ ...prev, [key]: value }));

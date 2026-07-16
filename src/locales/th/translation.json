@@ -103,6 +103,8 @@
     "menuQueueRanges": "ช่วงหมายเลขคิว",
     "menuSubServices": "ขั้นตอนย่อย (Sub-Services)",
     "menuCounters": "ช่องบริการ (Counters)",
+    "menuKioskSettings": "ตั้งค่าเครื่อง Kiosk",
+    "menuStaticQR": "ป้าย Static QR คิว",
     "menuCustomerGroups": "กลุ่มลูกค้าและลำดับความสำคัญ",
     "menuStaff": "รายชื่อพนักงาน",
     "menuAnalytics": "แดชบอร์ดวิเคราะห์ผล",
