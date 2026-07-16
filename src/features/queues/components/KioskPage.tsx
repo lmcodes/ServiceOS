@@ -32,16 +32,16 @@ import { createQueueItem } from '../repository/queueRepository';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/context/AuthContext';
 import { useTenant } from '@/context/TenantContext';
-import { 
-  Loader2, 
-  AlertCircle, 
-  Printer, 
-  ArrowLeft, 
+import { useTranslation } from 'react-i18next';
+import {
+  Loader2,
+  AlertCircle,
+  Printer,
+  ArrowLeft,
   Globe,
   CheckCircle,
   HelpCircle,
   Building,
-  QrCode,
   Edit2,
   Save,
   RotateCcw,
@@ -53,9 +53,17 @@ export const KioskPage: React.FC = () => {
   const { branchId } = useParams<{ branchId: string }>();
   const { user } = useAuth();
   const { subscription } = useTenant();
+  const { t, i18n } = useTranslation();
+
   const isOwner = user?.role === 'owner';
   const isNotFree = subscription?.planId && subscription.planId !== 'starter';
   const canEditLayout = isOwner && isNotFree;
+
+  const selectedLang = (i18n.language?.startsWith('th') ? 'th' : 'en') as 'en' | 'th';
+
+  const translate = (key: string, param?: string | number) => {
+    return t(`kiosk.${key}`, { param });
+  };
 
   // Branch & Services states
   const [branch, setBranch] = useState<Branch | null>(null);
@@ -76,14 +84,16 @@ export const KioskPage: React.FC = () => {
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Success Modal states
   const [createdTicket, setCreatedTicket] = useState<{ id: string; queueNumber: string } | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
+
   // Timer states
   const [idleCountdown, setIdleCountdown] = useState(30);
-  const [keyboardLanguage, setKeyboardLanguage] = useState<'en' | 'th'>('en');
+  const [keyboardLanguage, setKeyboardLanguage] = useState<'en' | 'th'>(
+    (i18n.language?.startsWith('th') ? 'th' : 'en') as 'en' | 'th'
+  );
 
   // Idle timeout limit
   const timeoutLimit = branch?.kioskSettings?.idleTimeoutSeconds || 30;
@@ -94,7 +104,7 @@ export const KioskPage: React.FC = () => {
 
     setLoading(true);
     const branchRef = doc(db, 'branches', branchId);
-    
+
     const unsubBranch = onSnapshot(
       branchRef,
       (snap) => {
@@ -189,7 +199,8 @@ export const KioskPage: React.FC = () => {
   const getLayoutItems = () => {
     const items = [
       ...kioskServices.map((s) => ({ id: `service-${s.id}`, type: 'service' as const, data: s })),
-      { id: 'qr-code', type: 'qr' as const, data: null }
+      { id: 'qr-code', type: 'qr' as const, data: null },
+      { id: 'language-select', type: 'language' as const, data: null }
     ];
 
     let currentX = 0;
@@ -202,8 +213,8 @@ export const KioskPage: React.FC = () => {
       }
 
       // Default values
-      const w = item.type === 'qr' ? 4 : 4;
-      const h = item.type === 'qr' ? 3 : 2;
+      const w = item.type === 'qr' ? 4 : item.type === 'language' ? 4 : 4;
+      const h = item.type === 'qr' ? 3 : item.type === 'language' ? 2 : 2;
       const x = currentX;
       const y = currentY;
 
@@ -275,14 +286,14 @@ export const KioskPage: React.FC = () => {
       if (activeDragId && dragStart) {
         const dx = Math.round((e.clientX - dragStart.mouseX) / colWidthPx);
         const dy = Math.round((e.clientY - dragStart.mouseY) / rowHeightPx);
-        
+
         setCustomLayout((prev) => {
           const currentItem = getLayoutItems().find(item => item.id === activeDragId);
           const w = currentItem?.layout.w || 4;
           const h = currentItem?.layout.h || 2;
           const newX = Math.max(0, Math.min(12 - w, dragStart.x + dx));
           const newY = Math.max(0, dragStart.y + dy);
-          
+
           const filtered = prev.filter((l) => l.id !== activeDragId);
           return [...filtered, { id: activeDragId, x: newX, y: newY, w, h }];
         });
@@ -333,14 +344,14 @@ export const KioskPage: React.FC = () => {
       if (activeDragId && dragStart) {
         const dx = Math.round((touch.clientX - dragStart.mouseX) / colWidthPx);
         const dy = Math.round((touch.clientY - dragStart.mouseY) / rowHeightPx);
-        
+
         setCustomLayout((prev) => {
           const currentItem = getLayoutItems().find(item => item.id === activeDragId);
           const w = currentItem?.layout.w || 4;
           const h = currentItem?.layout.h || 2;
           const newX = Math.max(0, Math.min(12 - w, dragStart.x + dx));
           const newY = Math.max(0, dragStart.y + dy);
-          
+
           const filtered = prev.filter((l) => l.id !== activeDragId);
           return [...filtered, { id: activeDragId, x: newX, y: newY, w, h }];
         });
@@ -463,7 +474,7 @@ export const KioskPage: React.FC = () => {
       setCustomerName('');
       setShowKeyboard(true);
     } else {
-      await handleBookTicket(service, 'Walk-in Guest');
+      await handleBookTicket(service, translate('guestWalkIn'));
     }
   };
 
@@ -473,13 +484,13 @@ export const KioskPage: React.FC = () => {
 
     try {
       const result = await createQueueItem(branchId, service.id, {
-        name: nameVal.trim() || 'Walk-in Guest',
+        name: nameVal.trim() || translate('guestWalkIn'),
         priorityLevel: 1,
       });
       setCreatedTicket(result);
       setShowSuccessModal(true);
       setShowKeyboard(false);
-      
+
       // Trigger auto-print
       setTimeout(() => {
         window.print();
@@ -570,7 +581,7 @@ export const KioskPage: React.FC = () => {
               {branch.name}
             </h2>
             <span className="text-[10px] text-slate-500 dark:text-slate-450 uppercase tracking-widest font-extrabold">
-              Kiosk Ticket Dispenser
+              {translate('kioskSubtitle')}
             </span>
           </div>
         </div>
@@ -631,17 +642,18 @@ export const KioskPage: React.FC = () => {
         <main className="flex-1 flex flex-col justify-center my-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Please Select a Service
+              {translate('selectService')}
             </h1>
             <p className="text-sm text-slate-550 dark:text-slate-400 mt-2 font-medium">
-              แตะเลือกบริการที่ท่านต้องการเพื่อรับบัตรคิว
+              {translate('selectServiceSub')}
             </p>
           </div>
 
           <div className="relative w-full overflow-x-hidden" style={{ height: `${containerHeight}px` }}>
             {layoutItems.map((item) => {
               const isQr = item.type === 'qr';
-              
+              const isLanguage = item.type === 'language';
+
               return (
                 <div key={item.id} style={{
                   position: 'absolute',
@@ -655,7 +667,7 @@ export const KioskPage: React.FC = () => {
                 }}>
                   {/* Outer container card wrapper to allow drag header overlays */}
                   <div className="relative w-full h-full group">
-                    
+
                     {/* Drag Header overlay when editing */}
                     {isEditingLayout && (
                       <>
@@ -670,7 +682,7 @@ export const KioskPage: React.FC = () => {
                           </div>
                           <span>Grid: {item.layout.x},{item.layout.y} ({item.layout.w}x{item.layout.h})</span>
                         </div>
-                        
+
                         {/* Resize handle overlay */}
                         <div
                           onMouseDown={(e) => handleResizeStart(e, item.id, item.layout.w, item.layout.h)}
@@ -684,18 +696,57 @@ export const KioskPage: React.FC = () => {
                     )}
 
                     {/* Widget Content */}
-                    {isQr ? (
-                      <div className="w-full h-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[32px] p-6 shadow-md text-center flex flex-col items-center justify-center space-y-3 overflow-hidden select-none">
-                        <div className={`p-3.5 rounded-2xl ${theme.accent} text-slate-900 dark:text-white`}>
-                          <QrCode className="w-7 h-7" />
+                    {isLanguage ? (
+                      <div className="w-full h-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[32px] p-5 shadow-md flex flex-col items-center justify-center space-y-3.5 overflow-hidden select-none">
+                        <div className="text-center min-h-0 shrink">
+                          <h3 className="text-xs font-bold text-slate-450 dark:text-slate-500 tracking-wider leading-none uppercase">
+                            {translate('languageTitle')}
+                          </h3>
                         </div>
+
+                        {/* Language Selection Buttons */}
+                        <div className="flex w-full gap-2">
+                          <button
+                            type="button"
+                            disabled={isEditingLayout}
+                            onClick={() => {
+                              setKeyboardLanguage('th');
+                              i18n.changeLanguage('th');
+                            }}
+                            className={`flex-1 py-2.5 px-2 rounded-2xl font-black text-sm transition-all border-2 cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${selectedLang === 'th'
+                              ? `${theme.border} bg-brand-50/20 dark:bg-brand-950/10 text-brand-655 dark:text-brand-400 font-extrabold`
+                              : 'border-slate-150 dark:border-slate-800 text-slate-450 hover:bg-slate-50 dark:hover:bg-slate-850 bg-white dark:bg-slate-900'
+                              }`}
+                          >
+                            <span className="text-lg">🇹🇭</span>
+                            <span>ไทย</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isEditingLayout}
+                            onClick={() => {
+                              setKeyboardLanguage('en');
+                              i18n.changeLanguage('en');
+                            }}
+                            className={`flex-1 py-2.5 px-2 rounded-2xl font-black text-sm transition-all border-2 cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${selectedLang === 'en'
+                              ? `${theme.border} bg-brand-50/20 dark:bg-brand-950/10 text-brand-655 dark:text-brand-400 font-extrabold`
+                              : 'border-slate-150 dark:border-slate-800 text-slate-450 hover:bg-slate-50 dark:hover:bg-slate-850 bg-white dark:bg-slate-900'
+                              }`}
+                          >
+                            <span className="text-lg">🇬🇧</span>
+                            <span>EN</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : isQr ? (
+                      <div className="w-full h-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[32px] p-2 shadow-md text-center flex flex-col items-center justify-center space-y-3 overflow-hidden select-none">
                         <div className="min-h-0 shrink">
                           <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                            Scan to Join on Mobile
+                            {translate('scanJoin')}
                           </h3>
                           {item.layout.h >= 3 && (
                             <p className="text-[10px] font-bold text-slate-555 dark:text-slate-455 mt-0.5 uppercase tracking-wider">
-                              สแกนรับคิวผ่านมือถือ (งดใช้กระดาษ)
+                              {translate('scanJoinSub')}
                             </p>
                           )}
                         </div>
@@ -712,8 +763,8 @@ export const KioskPage: React.FC = () => {
 
                         {item.layout.h >= 3 && (
                           <div className="text-[10px] text-slate-400 dark:text-slate-500 max-w-[240px] leading-snug truncate-3-lines">
-                            Skip paper receipts and track queue updates in real-time.
-                            <p className="mt-0.5 font-bold text-slate-450">สแกนติดตามสถานะผ่านมือถือ</p>
+                            {translate('skipPaper')}
+                            <p className="mt-0.5 font-bold text-slate-450">{translate('scanStatus')}</p>
                           </div>
                         )}
                       </div>
@@ -721,11 +772,10 @@ export const KioskPage: React.FC = () => {
                       <button
                         disabled={isEditingLayout}
                         onClick={() => handleSelectService(item.data as Service)}
-                        className={`w-full h-full flex flex-col items-center justify-between p-6 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[32px] text-center transition-all duration-200 group relative shadow-sm overflow-hidden select-none ${
-                          isEditingLayout 
-                            ? 'opacity-80 cursor-default' 
-                            : 'hover:-translate-y-1 hover:shadow-xl hover:border-brand-500/30 active:scale-[0.98] cursor-pointer'
-                        }`}
+                        className={`w-full h-full flex flex-col items-center justify-between p-6 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[32px] text-center transition-all duration-200 group relative shadow-sm overflow-hidden select-none ${isEditingLayout
+                          ? 'opacity-80 cursor-default'
+                          : 'hover:-translate-y-1 hover:shadow-xl hover:border-brand-500/30 active:scale-[0.98] cursor-pointer'
+                          }`}
                       >
                         <div className={`p-3 rounded-2xl ${theme.accent} mb-2`}>
                           <HelpCircle className="w-7 h-7" />
@@ -742,7 +792,7 @@ export const KioskPage: React.FC = () => {
                         </div>
 
                         <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-455 mt-2 block">
-                          {item.data?.estimatedDurationMinutes} Mins est.
+                          {item.data?.estimatedDurationMinutes} {translate('minsEst')}
                         </span>
                       </button>
                     )}
@@ -763,16 +813,16 @@ export const KioskPage: React.FC = () => {
             className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-900 dark:hover:text-white mb-6 uppercase tracking-wider cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to services</span>
+            <span>{translate('backToServices')}</span>
           </button>
 
           {/* Form Banner */}
           <div className="text-center mb-6">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white">
-              Please Enter Your Name
+              {translate('enterName')}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold uppercase tracking-wider">
-              Service: {selectedService.name} (Optional)
+            <p className="text-xs text-slate-500 dark:text-slate-450 mt-1 font-semibold uppercase tracking-wider">
+              {translate('serviceOptional', selectedService.name)}
             </p>
           </div>
 
@@ -782,7 +832,7 @@ export const KioskPage: React.FC = () => {
               type="text"
               readOnly
               value={customerName}
-              placeholder="Guest Customer (แตะที่แป้นพิมพ์ด้านล่างเพื่อพิมพ์ชื่อ)"
+              placeholder={translate('guestPlaceholder')}
               className="w-full text-center py-4 px-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl text-xl font-bold text-slate-900 dark:text-white outline-none shadow-md"
             />
             {customerName && (
@@ -790,7 +840,7 @@ export const KioskPage: React.FC = () => {
                 onClick={handleClear}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-red-500 hover:underline uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-955/25 cursor-pointer"
               >
-                Clear
+                {translate('clear')}
               </button>
             )}
           </div>
@@ -825,22 +875,22 @@ export const KioskPage: React.FC = () => {
                 onClick={() => handleKeyPress(' ')}
                 className="flex-1 h-12 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-350 font-bold text-xs rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer"
               >
-                Space
+                {translate('space')}
               </button>
 
               <button
                 onClick={handleBackspace}
                 className="w-24 h-12 bg-amber-50 dark:bg-amber-955/25 text-amber-600 dark:text-amber-400 font-bold text-xs rounded-xl border border-amber-250 dark:border-amber-900 shadow-sm cursor-pointer"
               >
-                Backspace
+                {translate('backspace')}
               </button>
 
               <button
-                onClick={() => handleBookTicket(selectedService, customerName || 'Walk-in Guest')}
+                onClick={() => handleBookTicket(selectedService, customerName || translate('guestWalkIn'))}
                 disabled={submitting}
                 className={`w-40 h-12 ${theme.bg} hover:bg-opacity-90 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer`}
               >
-                {submitting ? 'Confirming...' : 'Confirm Ticket'}
+                {submitting ? translate('confirming') : translate('confirmTicket')}
               </button>
             </div>
           </div>
@@ -848,7 +898,7 @@ export const KioskPage: React.FC = () => {
           {/* Idle notice */}
           <div className="text-center mt-4">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800/60 px-3 py-1 rounded-full">
-              Screen will auto-reset in {idleCountdown}s
+              {translate('autoReset', idleCountdown)}
             </span>
           </div>
         </main>
@@ -858,11 +908,11 @@ export const KioskPage: React.FC = () => {
       {showSuccessModal && createdTicket && selectedService && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-[32px] p-8 max-w-md w-full shadow-2xl text-center space-y-6 animate-in fade-in zoom-in-95 duration-200 select-none">
-            
+
             <div className="flex flex-col items-center">
               <CheckCircle className="w-14 h-14 text-emerald-500 mb-2" />
-              <h2 className="text-xl font-black text-slate-950 dark:text-white">Ticket Printed!</h2>
-              <p className="text-xs text-slate-500">โปรดหยิบบัตรคิวของท่านที่ช่องรับบัตร</p>
+              <h2 className="text-xl font-black text-slate-950 dark:text-white">{translate('ticketPrinted')}</h2>
+              <p className="text-xs text-slate-500">{translate('takeTicket')}</p>
             </div>
 
             {/* Virtual Slip Card */}
@@ -870,21 +920,21 @@ export const KioskPage: React.FC = () => {
               <span className="text-[9px] font-mono tracking-widest text-slate-400 dark:text-slate-500 uppercase block border-b border-slate-200 dark:border-slate-800 pb-2 mb-3">
                 {branch.name}
               </span>
-              
+
               <span className="text-[11px] font-bold text-slate-655 dark:text-brand-400 block mb-1">
                 {selectedService.name}
               </span>
-              
+
               <h1 className="text-5xl font-black tracking-wider text-slate-950 dark:text-white font-mono my-2 animate-pulse">
                 {createdTicket.queueNumber}
               </h1>
 
               <div className="grid grid-cols-2 gap-2 text-left pt-2 border-t border-slate-200 dark:border-slate-800 text-[10px] font-medium text-slate-500">
                 <div>
-                  <span>Date: {new Date().toLocaleDateString()}</span>
+                  <span>{translate('date')}: {new Date().toLocaleDateString(selectedLang === 'th' ? 'th-TH' : 'en-US')}</span>
                 </div>
                 <div className="text-right">
-                  <span>Time: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span>{translate('time')}: {new Date().toLocaleTimeString(selectedLang === 'th' ? 'th-TH' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
             </div>
@@ -897,7 +947,7 @@ export const KioskPage: React.FC = () => {
                 className="flex items-center justify-center gap-2 w-full py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-800 dark:text-white border border-slate-250 dark:border-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
               >
                 <Printer className="w-4.5 h-4.5" />
-                <span>Reprint Ticket</span>
+                <span>{translate('reprintTicket')}</span>
               </button>
 
               <button
@@ -905,7 +955,7 @@ export const KioskPage: React.FC = () => {
                 onClick={handleReset}
                 className={`w-full py-3 ${theme.bg} text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer`}
               >
-                Finish ({idleCountdown}s)
+                {translate('finish', idleCountdown)}
               </button>
             </div>
           </div>
@@ -919,8 +969,8 @@ export const KioskPage: React.FC = () => {
 
       {/* Hidden Thermal Slip for Printing */}
       {createdTicket && selectedService && (
-        <div 
-          id="kiosk-print-slip" 
+        <div
+          id="kiosk-print-slip"
           className="hidden text-slate-900 text-center font-mono text-xs p-4 bg-white"
           style={{ width: branch?.kioskSettings?.pageSize || '80mm' }}
         >
@@ -936,8 +986,8 @@ export const KioskPage: React.FC = () => {
                 switch (el.type) {
                   case 'logo':
                     return (
-                      <div 
-                        key={el.id} 
+                      <div
+                        key={el.id}
                         style={{ display: 'flex', justifyContent: el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center', margin: '4px 0' }}
                       >
                         <div style={{ width: '36px', height: '36px', border: '1.5px solid #000', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '9px' }}>
@@ -966,13 +1016,13 @@ export const KioskPage: React.FC = () => {
                   case 'customerName':
                     return (
                       <div key={el.id} style={combinedStyle}>
-                        {el.text || 'Name: '}{customerName || 'Walk-in Guest'}
+                        {el.text || (selectedLang === 'th' ? 'ชื่อ: ' : 'Name: ')}{customerName || translate('guestWalkIn')}
                       </div>
                     );
                   case 'dateTime':
                     return (
                       <div key={el.id} style={combinedStyle}>
-                        {new Date().toLocaleDateString()} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date().toLocaleDateString(selectedLang === 'th' ? 'th-TH' : 'en-US')} {new Date().toLocaleTimeString(selectedLang === 'th' ? 'th-TH' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     );
                   case 'text':
@@ -989,7 +1039,8 @@ export const KioskPage: React.FC = () => {
       )}
 
       {/* Custom print styling */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @media print {
           /* Hide normal web page elements */
           body * {

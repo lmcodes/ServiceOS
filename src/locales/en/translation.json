@@ -749,5 +749,35 @@
         "timeMaxLabel": "Overtime Bump Time (Mins)"
       }
     }
+  },
+  "kiosk": {
+    "selectService": "Please Select a Service",
+    "selectServiceSub": "Tap the service you want to get a queue ticket",
+    "scanJoin": "Scan to Join on Mobile",
+    "scanJoinSub": "Scan to get a queue on mobile (no paper)",
+    "skipPaper": "Skip paper receipts and track queue updates in real-time.",
+    "scanStatus": "Scan to track status on mobile",
+    "minsEst": "Mins est.",
+    "backToServices": "Back to services",
+    "enterName": "Please Enter Your Name",
+    "serviceOptional": "Service: {{param}} (Optional)",
+    "guestPlaceholder": "Guest Customer (Tap keyboard below to enter name)",
+    "clear": "Clear",
+    "space": "Space",
+    "backspace": "Backspace",
+    "confirming": "Confirming...",
+    "confirmTicket": "Confirm Ticket",
+    "autoReset": "Screen will auto-reset in {{param}}s",
+    "ticketPrinted": "Ticket Printed!",
+    "takeTicket": "Please take your ticket from the dispenser",
+    "reprintTicket": "Reprint Ticket",
+    "finish": "Finish ({{param}}s)",
+    "dailyTicket": "Daily Ticket Receipt",
+    "guestWalkIn": "Walk-in Guest",
+    "date": "Date",
+    "time": "Time",
+    "thankYou": "Thank you for your visit!",
+    "kioskSubtitle": "Kiosk Ticket Dispenser",
+    "languageTitle": "Language / เลือกภาษา"
   }
 }
