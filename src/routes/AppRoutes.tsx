@@ -28,6 +28,8 @@ import { SubServicePage } from '@/features/workflows/components/SubServicePage';
 
 
 import { SettingsPage } from '@/features/settings/components/SettingsPage';
+import CounterManagePage from '@/features/counters/components/CounterManagePage';
+import CustomerGroupPage from '@/features/customerGroups/components/CustomerGroupPage';
 
 // Appointments Feature
 import BookingPage from '@/features/appointments/components/BookingPage';
@@ -135,6 +137,22 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin']}>
               <SubServicePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="counters" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
+              <CounterManagePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="customer-groups" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin']}>
+              <CustomerGroupPage />
             </ProtectedRoute>
           } 
         />

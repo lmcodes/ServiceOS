@@ -42,6 +42,9 @@ export const QueueConsolePage: React.FC = () => {
   const [stagesMap, setStagesMap] = useState<Record<string, WorkflowStage>>({});
   const [activeStages, setActiveStages] = useState<WorkflowStage[]>([]);
   const [selectedStageFilter, setSelectedStageFilter] = useState<string>('all');
+  const [branchCounters, setBranchCounters] = useState<any[]>([]);
+  const [showCustomCounterInput, setShowCustomCounterInput] = useState(false);
+  const [customerGroupsMap, setCustomerGroupsMap] = useState<Record<string, any>>({});
 
   // Sync counter to localStorage
   useEffect(() => {
@@ -102,6 +105,74 @@ export const QueueConsolePage: React.FC = () => {
     };
     loadServices();
   }, [selectedBranchId]);
+
+  // Load counters for selected branch
+  useEffect(() => {
+    if (!selectedBranchId) return;
+
+    const q = query(
+      collection(db, 'counters'),
+      where('branchId', '==', selectedBranchId),
+      where('isActive', '==', true)
+    );
+
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list: any[] = [];
+        snap.forEach((docSnap) => {
+          list.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        setBranchCounters(list.sort((a, b) => a.name.localeCompare(b.name)));
+        
+        if (list.length > 0) {
+          const currentCounterSaved = localStorage.getItem('serviceos_staff_counter') || '';
+          const exists = list.some(c => c.name === currentCounterSaved);
+          if (!exists) {
+            setCounter(list[0].name);
+            setShowCustomCounterInput(false);
+          } else {
+            setCounter(currentCounterSaved);
+            setShowCustomCounterInput(false);
+          }
+        } else {
+          setShowCustomCounterInput(true);
+        }
+      },
+      (err) => {
+        console.error('Error fetching branch counters:', err);
+      }
+    );
+
+    return () => unsub();
+  }, [selectedBranchId]);
+
+  // Load customer groups for resolving VIP status
+  useEffect(() => {
+    const tenantId = user?.tenantId;
+    if (!tenantId) return;
+
+    const q = query(
+      collection(db, 'customerGroups'),
+      where('tenantId', '==', tenantId)
+    );
+
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const map: Record<string, any> = {};
+        snap.forEach((docSnap) => {
+          map[docSnap.id] = { id: docSnap.id, ...docSnap.data() };
+        });
+        setCustomerGroupsMap(map);
+      },
+      (err) => {
+        console.error('Error fetching customer groups:', err);
+      }
+    );
+
+    return () => unsub();
+  }, [user?.tenantId]);
 
   // Subscribe to workflows and resolve stages
   useEffect(() => {
@@ -300,13 +371,51 @@ export const QueueConsolePage: React.FC = () => {
             <span className="text-xs font-semibold text-slate-550 dark:text-slate-400 whitespace-nowrap">
               {t('pages.queues.counterLabel')}
             </span>
-            <input
-              type="text"
-              value={counter}
-              onChange={(e) => setCounter(e.target.value)}
-              placeholder={t('pages.queues.counterPlaceholder')}
-              className="w-16 px-2 py-0.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20 text-center"
-            />
+            {branchCounters.length > 0 && !showCustomCounterInput ? (
+              <select
+                value={counter}
+                onChange={(e) => {
+                  if (e.target.value === '__custom__') {
+                    setShowCustomCounterInput(true);
+                    setCounter('');
+                  } else {
+                    setCounter(e.target.value);
+                  }
+                }}
+                className="px-2 py-0.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20 cursor-pointer"
+              >
+                {branchCounters.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+                <option value="__custom__">Custom...</option>
+              </select>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={counter}
+                  onChange={(e) => setCounter(e.target.value)}
+                  placeholder={t('pages.queues.counterPlaceholder')}
+                  className="w-16 px-2 py-0.5 bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20 text-center"
+                />
+                {branchCounters.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomCounterInput(false);
+                      if (branchCounters.length > 0) {
+                        setCounter(branchCounters[0].name);
+                      }
+                    }}
+                    className="text-[10px] text-brand-655 font-bold hover:underline"
+                  >
+                    List
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Workflow Stage Filter */}
@@ -465,6 +574,15 @@ export const QueueConsolePage: React.FC = () => {
               {displayedTickets.map((ticket) => {
                 const serviceName = services[ticket.serviceId]?.name || t('pages.queues.unknownService');
                 const waitMins = getWaitDurationMinutes(ticket.createdAt);
+                
+                const vipGroup = ticket.customerGroupId ? customerGroupsMap[ticket.customerGroupId] : null;
+                const isVip = !!vipGroup;
+                const priorityLevel = ticket.priorityLevel || 1;
+                
+                const timeMin = vipGroup?.timeMin ?? 5;
+                const timeMax = vipGroup?.timeMax ?? 15;
+                const showWarning = isVip && ticket.status === 'WAITING' && waitMins >= timeMin && waitMins < timeMax;
+                const showOvertime = isVip && ticket.status === 'WAITING' && waitMins >= timeMax;
 
                 return (
                   <div
@@ -474,19 +592,36 @@ export const QueueConsolePage: React.FC = () => {
                         ? 'border-amber-300 dark:border-amber-900 bg-amber-50/5 dark:bg-amber-950/5 animate-pulse'
                         : ticket.status === 'SERVING'
                         ? 'border-emerald-200 dark:border-emerald-900 bg-emerald-50/5 dark:bg-emerald-950/5'
+                        : showOvertime
+                        ? 'border-red-500 bg-red-50/5 dark:bg-red-950/10 shadow-red-500/10 animate-pulse border-2'
+                        : showWarning
+                        ? 'border-orange-400 bg-orange-50/5 dark:bg-orange-950/10 shadow-orange-500/5 border-2'
                         : 'border-slate-200/80 dark:border-slate-800'
                     }`}
                   >
                     <div>
                       {/* Top Header Row of card */}
                       <div className="flex flex-col gap-1 pb-3 border-b border-slate-100 dark:border-slate-800/80 mb-4">
-                        <div className="flex justify-between items-center w-full">
-                          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-450 rounded-lg">
-                            {serviceName}
-                          </span>
+                        <div className="flex justify-between items-center w-full gap-2">
+                          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-455 rounded-lg truncate max-w-32">
+                              {serviceName}
+                            </span>
+                            {vipGroup && (
+                              <span 
+                                className="px-1.5 py-0.5 text-[9px] font-black uppercase rounded-lg border flex items-center gap-1 text-white shadow-sm whitespace-nowrap"
+                                style={{ 
+                                  backgroundColor: vipGroup.color || '#3b82f6', 
+                                  borderColor: vipGroup.color || '#3b82f6' 
+                                }}
+                              >
+                                {vipGroup.badge || 'VIP'} ({priorityLevel})
+                              </span>
+                            )}
+                          </div>
                           
                           {/* Time duration indicator */}
-                          <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-450 dark:text-slate-500">
+                          <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-450 dark:text-slate-500 whitespace-nowrap">
                             <Clock className="w-3.5 h-3.5" />
                             <span>{t('pages.queues.waitingDuration', { count: waitMins })}</span>
                           </div>

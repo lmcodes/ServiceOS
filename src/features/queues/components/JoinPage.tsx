@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { doc, onSnapshot, query, collection, where } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import { Branch, Service } from '@/types/firestore';
+import { Branch, Service, CustomerGroup } from '@/types/firestore';
 import { createQueueItem } from '../repository/queueRepository';
 import { 
   Building2, 
@@ -38,6 +38,8 @@ export const JoinPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [customData, setCustomData] = useState<Record<string, any>>({});
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
 
   // Fetch branch and active services
   useEffect(() => {
@@ -90,6 +92,32 @@ export const JoinPage: React.FC = () => {
     };
   }, [branchId]);
 
+  // Fetch customer groups
+  useEffect(() => {
+    if (!branch?.tenantId) return;
+
+    const q = query(
+      collection(db, 'customerGroups'),
+      where('tenantId', '==', branch.tenantId)
+    );
+
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list: CustomerGroup[] = [];
+        snap.forEach((docSnap) => {
+          list.push({ id: docSnap.id, ...docSnap.data() } as CustomerGroup);
+        });
+        setCustomerGroups(list.sort((a, b) => b.priorityLevel - a.priorityLevel));
+      },
+      (err) => {
+        console.error('Error fetching customer groups:', err);
+      }
+    );
+
+    return () => unsub();
+  }, [branch?.tenantId]);
+
   const handleCustomFieldChange = (key: string, value: any) => {
     setCustomData((prev) => ({ ...prev, [key]: value }));
   };
@@ -133,11 +161,14 @@ export const JoinPage: React.FC = () => {
     setError(null);
 
     try {
+      const selectedGroup = customerGroups.find((g) => g.id === selectedGroupId);
       const result = await createQueueItem(branchId, selectedService.id, {
         name: name.trim(),
         phone: phone.trim() || undefined,
         email: email.trim() || undefined,
-        customData
+        customData,
+        customerGroupId: selectedGroupId || undefined,
+        priorityLevel: selectedGroup ? selectedGroup.priorityLevel : 1
       });
 
       navigate(`/status/${result.id}`);
@@ -349,6 +380,27 @@ export const JoinPage: React.FC = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Customer Group / VIP Tier Selector */}
+                  {customerGroups.length > 0 && (
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
+                        {t('pages.queues.customerGroupLabel', 'Customer Tier / Group')}
+                      </label>
+                      <select
+                        value={selectedGroupId}
+                        onChange={(e) => setSelectedGroupId(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none cursor-pointer"
+                      >
+                        <option value="">{t('pages.queues.groupNormal', 'Regular Customer')}</option>
+                        {customerGroups.map((g) => (
+                          <option key={g.id} value={g.id}>
+                            {g.name} ({g.badge})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
 

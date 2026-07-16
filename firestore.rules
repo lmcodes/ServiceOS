@@ -217,5 +217,23 @@ service cloud.firestore {
       allow update: if isOwnerOrAdmin(resource.data.tenantId) && isOwnerOrAdmin(request.resource.data.tenantId);
       allow delete: if isOwnerOrAdmin(resource.data.tenantId);
     }
+
+    // 17. Counters (Phase 12) — branch-level counters
+    match /counters/{counterId} {
+      allow read: if true;
+      allow create: if isOwnerOrAdmin(request.resource.data.tenantId) || 
+                    (isAuth() && belongsToTenant(request.resource.data.tenantId) && isManager() && request.resource.data.branchId in userBranches());
+      allow update: if isOwnerOrAdmin(resource.data.tenantId) || 
+                    (isAuth() && belongsToTenant(resource.data.tenantId) && isManager() && resource.data.branchId in userBranches());
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId) || 
+                    (isAuth() && belongsToTenant(resource.data.tenantId) && isManager() && resource.data.branchId in userBranches());
+    }
+
+    // 18. Customer Groups (Phase 12) — tenant-level customer groups
+    match /customerGroups/{groupId} {
+      allow read: if true;
+      allow create, update: if isOwnerOrAdmin(request.resource.data.tenantId);
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId);
+    }
   }
 }

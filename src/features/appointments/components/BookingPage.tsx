@@ -5,12 +5,12 @@ import { doc, onSnapshot, query, collection, where, getDocs } from 'firebase/fir
 import { db } from '@/config/firebase';
 import { Branch, Service, Appointment } from '@/types/firestore';
 import { createAppointment } from '../repository/appointmentRepository';
-import { 
-  MapPin, 
-  Phone as PhoneIcon, 
-  Clock, 
-  User as UserIcon, 
-  Mail, 
+import {
+  MapPin,
+  Phone as PhoneIcon,
+  Clock,
+  User as UserIcon,
+  Mail,
   Calendar as CalendarIcon,
   CheckCircle2,
   ArrowRight,
@@ -53,7 +53,7 @@ export const BookingPage: React.FC = () => {
 
     setLoading(true);
     const branchRef = doc(db, 'branches', branchId);
-    
+
     const unsubBranch = onSnapshot(
       branchRef,
       (snap) => {
@@ -262,7 +262,7 @@ export const BookingPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-slate-50 dark:bg-slate-955">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-slate-50 dark:bg-slate-950">
         <Loader2 className="w-10 h-10 text-brand-600 animate-spin" />
         <p className="mt-4 text-sm text-slate-500 dark:text-slate-400 font-medium animate-pulse">
           {t('common.loading')}
@@ -297,7 +297,7 @@ export const BookingPage: React.FC = () => {
       </div>
 
       <div className="max-w-2xl w-full mx-auto flex-1 flex flex-col justify-center">
-        
+
         {/* Header (hidden on success step) */}
         {step !== 4 && branch && (
           <div className="text-center mb-8">
@@ -382,8 +382,8 @@ export const BookingPage: React.FC = () => {
                 <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">{t('pages.appointments.selectedServiceLabel')}</span>
                 <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{selectedService.name}</h3>
               </div>
-              <button 
-                onClick={() => setStep(1)} 
+              <button
+                onClick={() => setStep(1)}
                 className="text-xs font-bold text-brand-655 hover:underline cursor-pointer"
               >
                 {t('pages.branches.branchCard.edit')}
@@ -405,13 +405,12 @@ export const BookingPage: React.FC = () => {
                       setSelectedDate(d.dateStr);
                       setSelectedTime('');
                     }}
-                    className={`py-3 px-2 border rounded-xl text-center flex flex-col items-center justify-center transition-all ${
-                      d.disabled
+                    className={`py-3 px-2 border rounded-xl text-center flex flex-col items-center justify-center transition-all ${d.disabled
                         ? 'bg-slate-100 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/60 opacity-30 cursor-not-allowed'
                         : selectedDate === d.dateStr
-                        ? 'border-brand-600 bg-brand-50/20 dark:bg-brand-955/10 text-brand-655 font-bold shadow-sm'
-                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer'
-                    }`}
+                          ? 'border-brand-600 bg-brand-50/20 dark:bg-brand-955/10 text-brand-655 font-bold shadow-sm'
+                          : 'border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer'
+                      }`}
                   >
                     <span className="text-[10px] uppercase font-medium tracking-wide text-slate-400">{d.dayOfWeek}</span>
                     <span className="text-xs mt-0.5 font-bold">{d.label.split(',').slice(-1)[0].trim()}</span>
@@ -441,13 +440,12 @@ export const BookingPage: React.FC = () => {
                           type="button"
                           disabled={isFull}
                           onClick={() => setSelectedTime(tStr)}
-                          className={`py-2 px-3 border rounded-xl text-center text-xs font-bold transition-all ${
-                            isFull
+                          className={`py-2 px-3 border rounded-xl text-center text-xs font-bold transition-all ${isFull
                               ? 'bg-red-50/50 dark:bg-red-955/10 border-red-100 dark:border-red-950 text-red-400 opacity-40 cursor-not-allowed'
                               : selectedTime === tStr
-                              ? 'border-brand-600 bg-brand-50/20 dark:bg-brand-955/10 text-brand-655 shadow-sm'
-                              : 'border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer'
-                          }`}
+                                ? 'border-brand-600 bg-brand-50/20 dark:bg-brand-955/10 text-brand-655 shadow-sm'
+                                : 'border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer'
+                            }`}
                         >
                           <span>{tStr}</span>
                           {isFull && <span className="block text-[8px] font-medium text-red-500 uppercase tracking-wide">{t('pages.appointments.slotFull')}</span>}
@@ -484,8 +482,8 @@ export const BookingPage: React.FC = () => {
                   {selectedService.name} on {selectedDate} @ {selectedTime}
                 </h3>
               </div>
-              <button 
-                onClick={() => setStep(2)} 
+              <button
+                onClick={() => setStep(2)}
                 className="text-xs font-bold text-brand-655 hover:underline cursor-pointer"
               >
                 {t('pages.branches.branchCard.edit')}

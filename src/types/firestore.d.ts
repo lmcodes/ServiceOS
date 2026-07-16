@@ -242,6 +242,31 @@ export interface WorkflowHistoryEntry {
   notes?: string;
 }
 
+export interface Counter {
+  id: string; // Document ID
+  branchId: string;
+  name: string;
+  primaryServiceIds: string[];
+  secondaryServiceIds: string[];
+  oneStopServiceIds: string[];
+  isActive: boolean;
+  createdAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+}
+
+export interface CustomerGroup {
+  id: string; // Document ID
+  tenantId: string;
+  name: string;
+  priorityLevel: number; // 1 = normal, 2-10 = VIP levels
+  timeMin: number; // minutes before warning highlight
+  timeMax: number; // minutes before absolute cut-in priority
+  color: string; // hex or tailwind class name
+  badge: string;
+  createdAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+}
+
 export interface QueueItem {
   id: string; // Document ID
   tenantId: string;
@@ -254,6 +279,9 @@ export interface QueueItem {
   customerEmail?: string;
   status: 'WAITING' | 'CALLED' | 'SERVING' | 'COMPLETED' | 'NO_SHOW' | 'CANCELLED';
   priority: number; // default = 0, elevated for appointments = 5
+  customerGroupId?: string;
+  priorityLevel?: number;
+  joinedAt?: FirestoreTimestamp;
   estimatedWaitMinutes?: number;
   workflowId?: string;
   currentStageId?: string;

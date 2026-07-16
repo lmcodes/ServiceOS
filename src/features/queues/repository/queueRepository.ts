@@ -9,7 +9,6 @@ import {
   serverTimestamp,
   getDoc,
   getDocs,
-  limit,
   runTransaction
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
@@ -61,6 +60,8 @@ export async function createQueueItem(
     phone?: string;
     email?: string;
     customData?: Record<string, any>;
+    customerGroupId?: string;
+    priorityLevel?: number;
   }
 ): Promise<{ id: string; queueNumber: string }> {
   const branchRef = doc(db, BRANCHES_COLLECTION, branchId);
@@ -120,6 +121,9 @@ export async function createQueueItem(
         customerEmail: customerData.email || '',
         status: 'WAITING',
         priority: 0,
+        customerGroupId: customerData.customerGroupId || null,
+        priorityLevel: customerData.priorityLevel || 1,
+        joinedAt: serverTimestamp(),
         calledCount: 0,
         customData: customerData.customData || {},
         workflowId,
@@ -207,6 +211,9 @@ export async function createQueueItem(
       customerEmail: customerData.email || '',
       status: 'WAITING',
       priority: 0,
+      customerGroupId: customerData.customerGroupId || null,
+      priorityLevel: customerData.priorityLevel || 1,
+      joinedAt: serverTimestamp(),
       calledCount: 0,
       customData: customerData.customData || {},
       workflowId,
@@ -360,12 +367,40 @@ export async function callNextTicket(
   counter?: string,
   currentStageId?: string | null
 ): Promise<QueueItem | null> {
-  // 1. Find oldest WAITING ticket
+  const branchRef = doc(db, BRANCHES_COLLECTION, branchId);
+  const branchSnap = await getDoc(branchRef);
+  if (!branchSnap.exists()) return null;
+  const branchData = branchSnap.data();
+  const tenantId = branchData.tenantId;
+
+  // 1. Fetch Customer Groups to get escalation rules
+  const cgQuery = query(collection(db, 'customerGroups'), where('tenantId', '==', tenantId));
+  const cgSnap = await getDocs(cgQuery);
+  const customerGroupsMap: Record<string, any> = {};
+  cgSnap.forEach((docSnap) => {
+    customerGroupsMap[docSnap.id] = { id: docSnap.id, ...docSnap.data() };
+  });
+
+  // 2. Fetch Counter configuration if counter name is provided
+  let counterConfig: any = null;
+  if (counter) {
+    const counterQuery = query(
+      collection(db, 'counters'),
+      where('branchId', '==', branchId),
+      where('name', '==', counter.trim()),
+      where('isActive', '==', true)
+    );
+    const counterSnap = await getDocs(counterQuery);
+    if (!counterSnap.empty) {
+      counterConfig = counterSnap.docs[0].data();
+    }
+  }
+
+  // 3. Fetch all WAITING tickets for this branch
   const constraints = [
     where('branchId', '==', branchId),
     where('status', '==', 'WAITING')
   ];
-
   if (currentStageId !== undefined) {
     constraints.push(where('currentStageId', '==', currentStageId));
   }
@@ -373,19 +408,117 @@ export async function callNextTicket(
   const q = query(
     collection(db, QUEUES_COLLECTION),
     ...constraints,
-    orderBy('priority', 'desc'),
-    orderBy('sequenceNumber', 'asc'),
-    limit(1)
+    orderBy('sequenceNumber', 'asc') // Fetch in arrival order first
   );
 
   const snap = await getDocs(q);
   if (snap.empty) return null;
 
-  const targetDoc = snap.docs[0];
-  const targetId = targetDoc.id;
+  const tickets = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
 
-  // 2. Perform transaction to update status
-  const docRef = doc(db, QUEUES_COLLECTION, targetId);
+  // 4. Score and Pool each ticket
+  const now = Date.now();
+  const scoredTickets = tickets.map((t: any) => {
+    const group = t.customerGroupId ? customerGroupsMap[t.customerGroupId] : null;
+    const priorityLevel = t.priorityLevel || 1;
+    const timeMax = group?.timeMax ?? 15;
+
+    // Calculate elapsed time in minutes
+    const joinedTime = getMillisFromTimestamp(t.joinedAt || t.createdAt);
+    const elapsedMinutes = (now - joinedTime) / 60000;
+
+    const isOvertimeVip = priorityLevel > 1 && elapsedMinutes >= timeMax;
+
+    // Determine counter mapping pool
+    let pool: 'primary' | 'secondary' | 'oneStop' | 'ineligible' = 'primary';
+    if (counterConfig) {
+      if (counterConfig.primaryServiceIds?.includes(t.serviceId)) {
+        pool = 'primary';
+      } else if (counterConfig.secondaryServiceIds?.includes(t.serviceId)) {
+        pool = 'secondary';
+      } else if (counterConfig.oneStopServiceIds?.includes(t.serviceId)) {
+        pool = 'oneStop';
+      } else {
+        pool = 'ineligible';
+      }
+    }
+
+    return {
+      ...t,
+      isOvertimeVip,
+      priorityLevel,
+      pool,
+      elapsedMinutes
+    };
+  });
+
+  // Filter out ineligible tickets
+  const eligibleTickets = scoredTickets.filter(t => t.pool !== 'ineligible');
+  if (eligibleTickets.length === 0) return null;
+
+  // 5. Select the best candidate based on the prioritized pools
+  // Priority order:
+  // Pool A: Overtime VIPs (across all eligible pools)
+  // Pool B: Primary Services (sorted by priorityLevel desc, sequenceNumber asc)
+  // Pool C: Secondary Services (sorted by priorityLevel desc, sequenceNumber asc)
+  // Pool D: One-Stop Services (sorted by sequenceNumber asc)
+  
+  let selectedTicket: any = null;
+
+  // Check Pool A: Overtime VIPs
+  const overtimeVips = eligibleTickets.filter(t => t.isOvertimeVip);
+  if (overtimeVips.length > 0) {
+    // Sort by priorityLevel desc, sequenceNumber asc
+    overtimeVips.sort((a, b) => {
+      if (b.priorityLevel !== a.priorityLevel) {
+        return b.priorityLevel - a.priorityLevel;
+      }
+      return a.sequenceNumber - b.sequenceNumber;
+    });
+    selectedTicket = overtimeVips[0];
+  }
+
+  // Check Pool B: Primary Services
+  if (!selectedTicket) {
+    const primaryPool = eligibleTickets.filter(t => t.pool === 'primary');
+    if (primaryPool.length > 0) {
+      primaryPool.sort((a, b) => {
+        if (b.priorityLevel !== a.priorityLevel) {
+          return b.priorityLevel - a.priorityLevel;
+        }
+        return a.sequenceNumber - b.sequenceNumber;
+      });
+      selectedTicket = primaryPool[0];
+    }
+  }
+
+  // Check Pool C: Secondary Services
+  if (!selectedTicket) {
+    const secondaryPool = eligibleTickets.filter(t => t.pool === 'secondary');
+    if (secondaryPool.length > 0) {
+      secondaryPool.sort((a, b) => {
+        if (b.priorityLevel !== a.priorityLevel) {
+          return b.priorityLevel - a.priorityLevel;
+        }
+        return a.sequenceNumber - b.sequenceNumber;
+      });
+      selectedTicket = secondaryPool[0];
+    }
+  }
+
+  // Check Pool D: One-Stop Services
+  if (!selectedTicket) {
+    const oneStopPool = eligibleTickets.filter(t => t.pool === 'oneStop');
+    if (oneStopPool.length > 0) {
+      oneStopPool.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
+      selectedTicket = oneStopPool[0];
+    }
+  }
+
+  if (!selectedTicket) return null;
+
+  // 6. Perform transaction to update status
+  const docRef = doc(db, QUEUES_COLLECTION, selectedTicket.id);
   const updatedItem = await runTransaction(db, async (transaction) => {
     const snapRead = await transaction.get(docRef);
     if (!snapRead.exists()) {
@@ -393,7 +526,6 @@ export async function callNextTicket(
     }
     const currentData = snapRead.data();
     if (currentData.status !== 'WAITING') {
-      // Someone else might have called or cancelled it, throw to retry
       throw new Error('Ticket is no longer WAITING');
     }
 
@@ -408,7 +540,7 @@ export async function callNextTicket(
     };
 
     transaction.update(docRef, updatePayload);
-    return { id: targetId, ...currentData, ...updatePayload } as unknown as QueueItem;
+    return { id: selectedTicket.id, ...currentData, ...updatePayload } as unknown as QueueItem;
   });
 
   return updatedItem;

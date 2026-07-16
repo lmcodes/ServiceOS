@@ -590,36 +590,36 @@ Step 25: WP-01~04  → Web Push Notifications + Service Worker
 > เป้าหมาย: Counter รับหลายบริการ, VIP time-based priority, One-Stop service
 
 ### CG-01 · Counter Data Model
-- [ ] เพิ่ม collection `counters` (branch-level):
-  - [ ] fields: `id`, `branchId`, `name`, `primaryServiceIds[]`, `secondaryServiceIds[]`, `oneStopServiceIds[]`, `isActive`
-- [ ] อัปเดต `Counter` type ใน `firestore.d.ts`
+- [x] เพิ่ม collection `counters` (branch-level):
+  - [x] fields: `id`, `branchId`, `name`, `primaryServiceIds[]`, `secondaryServiceIds[]`, `oneStopServiceIds[]`, `isActive`
+- [x] อัปเดต `Counter` type ใน `firestore.d.ts`
 
 ### CG-02 · Counter Management UI
-- [ ] `CounterManagePage.tsx` (`/dashboard/counters`): ตาราง + ปุ่มเพิ่ม
-- [ ] `CounterForm.tsx` (Modal):
-  - [ ] Input: ชื่อ Counter (เช่น "เค้าเตอร์ A", "โต๊ะ 2 คน", "โต๊ะ 4 คน")
-  - [ ] Primary Services: multi-select (งานหลัก)
-  - [ ] Secondary Services: multi-select (ช่วยงานรองเมื่อว่าง)
-  - [ ] One-Stop Services: multi-select (ใครมาก่อนได้ก่อน ไม่แยกคิว)
+- [x] `CounterManagePage.tsx` (`/dashboard/counters`): ตาราง + ปุ่มเพิ่ม
+- [x] `CounterForm.tsx` (Modal):
+  - [x] Input: ชื่อ Counter (เช่น "เค้าเตอร์ A", "โต๊ะ 2 คน", "โต๊ะ 4 คน")
+  - [x] Primary Services: multi-select (งานหลัก)
+  - [x] Secondary Services: multi-select (ช่วยงานรองเมื่อว่าง)
+  - [x] One-Stop Services: multi-select (ใครมาก่อนได้ก่อน ไม่แยกคิว)
 
 ### CG-03 · VIP Customer Priority System
-- [ ] เพิ่ม collection `customerGroups` (tenant-level):
-  - [ ] fields: `id`, `tenantId`, `name`, `priorityLevel` (1=ปกติ, 2–10=VIP), `timeMin` (นาที), `timeMax` (นาที), `color`, `badge`
-  - [ ] default: ทุกคน `priorityLevel: 1`
-- [ ] `CustomerGroupPage.tsx` (`/dashboard/customer-groups`): ตาราง + ปุ่มเพิ่ม
-- [ ] `CustomerGroupForm.tsx` (Modal): ชื่อ, level, timeMin, timeMax, สี
-- [ ] Logic:
+- [x] เพิ่ม collection `customerGroups` (tenant-level):
+  - [x] fields: `id`, `tenantId`, `name`, `priorityLevel` (1=ปกติ, 2–10=VIP), `timeMin` (นาที), `timeMax` (นาที), `color`, `badge`
+  - [x] default: ทุกคน `priorityLevel: 1`
+- [x] `CustomerGroupPage.tsx` (`/dashboard/customer-groups`): ตาราง + ปุ่มเพิ่ม
+- [x] `CustomerGroupForm.tsx` (Modal): ชื่อ, level, timeMin, timeMax, สี
+- [x] Logic:
   - `elapsed < timeMin` → เข้าคิวปกติ (เหมือนคิวทั่วไป)
   - `timeMin ≤ elapsed < timeMax` → highlight สีในรายการคิวปกติ (เตือน)
   - `elapsed ≥ timeMax` → แทรกคิวทันที (priority สูงสุด)
-- [ ] อัปเดต `QueueItem`: เพิ่ม `customerGroupId?`, `priorityLevel`, `joinedAt`
-- [ ] `queueRepository.ts`: `callNextTicket` คำนวณ effective priority จาก elapsed time + level
+- [x] อัปเดต `QueueItem`: เพิ่ม `customerGroupId?`, `priorityLevel`, `joinedAt`
+- [x] `queueRepository.ts`: `callNextTicket` คำนวณ effective priority จาก elapsed time + level
 
 ### CG-04 · Staff Console อัปเดต
-- [ ] Dropdown "Counter/Station" filter งานที่รับผิดชอบ
-- [ ] Badge VIP บน ticket cards พร้อมสีตาม group
-- [ ] Highlight เมื่ออยู่ใน timeMin~timeMax window
-- [ ] "Call Next" เรียง: VIP overtime > VIP warning > normal (FIFO)
+- [x] Dropdown "Counter/Station" filter งานที่รับผิดชอบ
+- [x] Badge VIP บน ticket cards พร้อมสีตาม group
+- [x] Highlight เมื่ออยู่ใน timeMin~timeMax window
+- [x] "Call Next" เรียง: VIP overtime > VIP warning > normal (FIFO)
 
 **🧪 ทดสอบ:**
 1. Counter "เปิดบัญชี" → Call Next → ดึงคิวเปิดบัญชีก่อน

@@ -151,11 +151,10 @@ export const OnboardingForm: React.FC = () => {
                   value={fields.name}
                   onChange={handleChange}
                   placeholder={t('onboarding.businessNamePlaceholder')}
-                  className={`w-full bg-white dark:bg-slate-900 border ${
-                    fieldErrors.name
+                  className={`w-full bg-white dark:bg-slate-900 border ${fieldErrors.name
                       ? 'border-danger/50 focus:border-danger focus:ring-danger/30'
                       : 'border-slate-200 dark:border-slate-700 focus:border-brand-500 focus:ring-brand-500/30'
-                  } text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm rounded-lg py-2.5 pl-9 pr-3 outline-none transition-all duration-200 focus:ring-1`}
+                    } text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm rounded-lg py-2.5 pl-9 pr-3 outline-none transition-all duration-200 focus:ring-1`}
                 />
               </div>
               {fieldErrors.name && (
@@ -186,7 +185,7 @@ export const OnboardingForm: React.FC = () => {
                   className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-brand-500 focus:ring-brand-500/30 text-slate-900 dark:text-white text-sm rounded-lg py-2.5 pl-9 pr-10 outline-none transition-all duration-200 focus:ring-1 appearance-none cursor-pointer"
                 >
                   {BUSINESS_TYPES.map((type) => (
-                    <option key={type.value} value={type.value} className="bg-white dark:bg-slate-955 text-slate-900 dark:text-white">
+                    <option key={type.value} value={type.value} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-white">
                       {type.label}
                     </option>
                   ))}
@@ -225,11 +224,10 @@ export const OnboardingForm: React.FC = () => {
                   value={fields.phone}
                   onChange={handleChange}
                   placeholder={t('onboarding.phonePlaceholder')}
-                  className={`w-full bg-white dark:bg-slate-900 border ${
-                    fieldErrors.phone
+                  className={`w-full bg-white dark:bg-slate-900 border ${fieldErrors.phone
                       ? 'border-danger/50 focus:border-danger focus:ring-danger/30'
                       : 'border-slate-200 dark:border-slate-700 focus:border-brand-500 focus:ring-brand-500/30'
-                  } text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm rounded-lg py-2.5 pl-9 pr-3 outline-none transition-all duration-200 focus:ring-1`}
+                    } text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 text-sm rounded-lg py-2.5 pl-9 pr-3 outline-none transition-all duration-200 focus:ring-1`}
                 />
               </div>
               {fieldErrors.phone && (

@@ -102,6 +102,8 @@
     "menuServices": "Services",
     "menuQueueRanges": "Queue Ranges",
     "menuSubServices": "Sub-Services",
+    "menuCounters": "Counters",
+    "menuCustomerGroups": "Customer Groups",
     "menuStaff": "Staff Directory",
     "menuAnalytics": "Analytics Dashboard",
     "menuSubscription": "Plan & Billing",
@@ -686,6 +688,64 @@
       "btnCancel": "Cancel",
       "logStatus": "Status Code",
       "logDelivered": "Delivered At"
+    },
+    "counters": {
+      "title": "Counters Management",
+      "subtitle": "Configure branch counters and prioritize service queues.",
+      "addBtn": "Add Counter",
+      "addCounter": "Add Counter",
+      "editCounter": "Edit Counter",
+      "confirmDelete": "Are you sure you want to delete this counter?",
+      "branchSelectLabel": "Select Branch to Configure Counters",
+      "noCounters": "No Counters Defined",
+      "noCountersDesc": "Define counters for this branch to start dispatching tickets.",
+      "table": {
+        "name": "Counter Name",
+        "primary": "Primary Services",
+        "secondary": "Secondary Services",
+        "oneStop": "One-Stop Services",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "form": {
+        "nameLabel": "Counter Name",
+        "servicesGuide": "Assign services to prioritize queue handling. Primary services are handled first, secondary when primary is empty, and One-Stop services are pooled FIFO.",
+        "primaryServices": "Primary Services",
+        "secondaryServices": "Secondary Services",
+        "oneStopServices": "One-Stop Services",
+        "isActive": "Active Status"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    },
+    "customerGroups": {
+      "title": "Customer Groups & Priority",
+      "subtitle": "Configure customer tiers, waiting limits, and queue priorities.",
+      "addBtn": "Add Customer Group",
+      "addGroup": "Add VIP Customer Group",
+      "editGroup": "Edit VIP Customer Group",
+      "confirmDelete": "Are you sure you want to delete this customer priority group?",
+      "noGroups": "No VIP Groups Defined",
+      "noGroupsDesc": "Create priority categories like VIP Gold or Corporate Tiers to prioritize queue service.",
+      "table": {
+        "name": "Group Name",
+        "badge": "Badge Preview",
+        "priority": "Priority Level",
+        "warning": "Warning Threshold",
+        "overtime": "Overtime Bump",
+        "actions": "Actions"
+      },
+      "form": {
+        "nameLabel": "Group Name",
+        "badgeLabel": "Badge Label",
+        "colorLabel": "Theme Color",
+        "priorityLabel": "Priority Level (1 - 10)",
+        "escalationInfo": "VIP customers start waiting normally. Upon warning threshold, they highlight on screen. Upon overtime threshold, they are bumped to the absolute top of the queue.",
+        "timeMinLabel": "Warning Alert Time (Mins)",
+        "timeMaxLabel": "Overtime Bump Time (Mins)"
+      }
     }
   }
 }
