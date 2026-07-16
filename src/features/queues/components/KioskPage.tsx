@@ -1,9 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { doc, onSnapshot, query, collection, where } from 'firebase/firestore';
+import { doc, onSnapshot, query, collection, where, updateDoc } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import { Branch, Service } from '@/types/firestore';
+import { Branch, Service, TicketLayoutElement } from '@/types/firestore';
+
+const DEFAULT_TICKET_LAYOUT: TicketLayoutElement[] = [
+  { id: 'logo', type: 'logo', visible: true, fontSize: 'sm', align: 'center' },
+  { id: 'branchName', type: 'branchName', visible: true, fontSize: 'sm', bold: true, align: 'center' },
+  { id: 'serviceName', type: 'serviceName', visible: true, fontSize: 'xs', bold: true, align: 'center' },
+  { id: 'queueNumber', type: 'queueNumber', visible: true, fontSize: 'xl', bold: true, align: 'center' },
+  { id: 'customerName', type: 'customerName', text: 'Name: ', visible: true, fontSize: 'xs', align: 'center' },
+  { id: 'dateTime', type: 'dateTime', visible: true, fontSize: 'xs', align: 'center' },
+  { id: 'footerText', type: 'text', text: 'Thank you for your visit!', visible: true, fontSize: 'xs', align: 'center' },
+];
+
+const getFontSizeStyle = (size: 'xs' | 'sm' | 'md' | 'lg' | 'xl') => {
+  switch (size) {
+    case 'xs': return { fontSize: '10px' };
+    case 'sm': return { fontSize: '12px' };
+    case 'md': return { fontSize: '14px', fontWeight: 600 };
+    case 'lg': return { fontSize: '18px', fontWeight: 700 };
+    case 'xl': return { fontSize: '28px', fontWeight: 800 };
+    default: return { fontSize: '12px' };
+  }
+};
+
+const getAlignStyle = (align?: 'left' | 'center' | 'right') => {
+  return { textAlign: align || 'center' };
+};
 import { createQueueItem } from '../repository/queueRepository';
+import { QRCodeSVG } from 'qrcode.react';
+import { useAuth } from '@/context/AuthContext';
+import { useTenant } from '@/context/TenantContext';
 import { 
   Loader2, 
   AlertCircle, 
@@ -12,17 +40,36 @@ import {
   Globe,
   CheckCircle,
   HelpCircle,
-  Building
+  Building,
+  QrCode,
+  Edit2,
+  Save,
+  RotateCcw,
+  GripVertical,
+  Move
 } from 'lucide-react';
 
 export const KioskPage: React.FC = () => {
   const { branchId } = useParams<{ branchId: string }>();
+  const { user } = useAuth();
+  const { subscription } = useTenant();
+  const isOwner = user?.role === 'owner';
+  const isNotFree = subscription?.planId && subscription.planId !== 'starter';
+  const canEditLayout = isOwner && isNotFree;
 
   // Branch & Services states
   const [branch, setBranch] = useState<Branch | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Layout customizer states
+  const [isEditingLayout, setIsEditingLayout] = useState(false);
+  const [customLayout, setCustomLayout] = useState<{ id: string; x: number; y: number; w: number; h: number }[]>([]);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [activeResizeId, setActiveResizeId] = useState<string | null>(null);
+  const [dragStart, setDragStart] = useState<{ mouseX: number; mouseY: number; x: number; y: number } | null>(null);
+  const [resizeStart, setResizeStart] = useState<{ mouseX: number; mouseY: number; w: number; h: number } | null>(null);
 
   // Ticketing states
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -52,7 +99,11 @@ export const KioskPage: React.FC = () => {
       branchRef,
       (snap) => {
         if (snap.exists() && snap.data().status === 'active') {
-          setBranch({ id: snap.id, ...snap.data() } as Branch);
+          const data = snap.data();
+          setBranch({ id: snap.id, ...data } as Branch);
+          if (data.kioskSettings?.customLayout) {
+            setCustomLayout(data.kioskSettings.customLayout);
+          }
         } else {
           setBranch(null);
           setError('Branch not found or inactive');
@@ -123,11 +174,232 @@ export const KioskPage: React.FC = () => {
     setIdleCountdown(timeoutLimit);
   };
 
-  // 3. Filter services allowed on Kiosk
+  // 3. Filter and sort services allowed on Kiosk based on allowedServiceIds order
   const allowedServiceIds = branch?.kioskSettings?.allowedServiceIds || [];
-  const kioskServices = services.filter((s) => 
-    allowedServiceIds.length === 0 || allowedServiceIds.includes(s.id)
-  );
+  const kioskServices = services
+    .filter((s) => allowedServiceIds.length === 0 || allowedServiceIds.includes(s.id))
+    .sort((a, b) => {
+      if (allowedServiceIds.length === 0) return 0;
+      const indexA = allowedServiceIds.indexOf(a.id);
+      const indexB = allowedServiceIds.indexOf(b.id);
+      return indexA - indexB;
+    });
+
+  // 3.5 Kiosk Grid Layout Helpers and Mouse/Touch Handlers
+  const getLayoutItems = () => {
+    const items = [
+      ...kioskServices.map((s) => ({ id: `service-${s.id}`, type: 'service' as const, data: s })),
+      { id: 'qr-code', type: 'qr' as const, data: null }
+    ];
+
+    let currentX = 0;
+    let currentY = 0;
+
+    return items.map((item) => {
+      const saved = customLayout.find((l) => l.id === item.id);
+      if (saved) {
+        return { ...item, layout: saved };
+      }
+
+      // Default values
+      const w = item.type === 'qr' ? 4 : 4;
+      const h = item.type === 'qr' ? 3 : 2;
+      const x = currentX;
+      const y = currentY;
+
+      currentX += 4;
+      if (currentX >= 12) {
+        currentX = 0;
+        currentY += 2;
+      }
+
+      return {
+        ...item,
+        layout: { id: item.id, x, y, w, h }
+      };
+    });
+  };
+
+  const handleDragStart = (e: React.MouseEvent, id: string, initialX: number, initialY: number) => {
+    e.preventDefault();
+    setActiveDragId(id);
+    setDragStart({
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      x: initialX,
+      y: initialY
+    });
+  };
+
+  const handleTouchDragStart = (e: React.TouchEvent, id: string, initialX: number, initialY: number) => {
+    const touch = e.touches[0];
+    setActiveDragId(id);
+    setDragStart({
+      mouseX: touch.clientX,
+      mouseY: touch.clientY,
+      x: initialX,
+      y: initialY
+    });
+  };
+
+  const handleResizeStart = (e: React.MouseEvent, id: string, initialW: number, initialH: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveResizeId(id);
+    setResizeStart({
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      w: initialW,
+      h: initialH
+    });
+  };
+
+  const handleTouchResizeStart = (e: React.TouchEvent, id: string, initialW: number, initialH: number) => {
+    e.stopPropagation();
+    const touch = e.touches[0];
+    setActiveResizeId(id);
+    setResizeStart({
+      mouseX: touch.clientX,
+      mouseY: touch.clientY,
+      w: initialW,
+      h: initialH
+    });
+  };
+
+  // Mouse drag & resize listener
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      const colWidthPx = window.innerWidth * 0.85 / 12;
+      const rowHeightPx = 130;
+
+      if (activeDragId && dragStart) {
+        const dx = Math.round((e.clientX - dragStart.mouseX) / colWidthPx);
+        const dy = Math.round((e.clientY - dragStart.mouseY) / rowHeightPx);
+        
+        setCustomLayout((prev) => {
+          const currentItem = getLayoutItems().find(item => item.id === activeDragId);
+          const w = currentItem?.layout.w || 4;
+          const h = currentItem?.layout.h || 2;
+          const newX = Math.max(0, Math.min(12 - w, dragStart.x + dx));
+          const newY = Math.max(0, dragStart.y + dy);
+          
+          const filtered = prev.filter((l) => l.id !== activeDragId);
+          return [...filtered, { id: activeDragId, x: newX, y: newY, w, h }];
+        });
+      }
+
+      if (activeResizeId && resizeStart) {
+        const dw = Math.round((e.clientX - resizeStart.mouseX) / colWidthPx);
+        const dh = Math.round((e.clientY - resizeStart.mouseY) / rowHeightPx);
+
+        setCustomLayout((prev) => {
+          const currentItem = getLayoutItems().find(item => item.id === activeResizeId);
+          const x = currentItem?.layout.x || 0;
+          const y = currentItem?.layout.y || 0;
+          const newW = Math.max(2, Math.min(12 - x, resizeStart.w + dw));
+          const newH = Math.max(1, resizeStart.h + dh);
+
+          const filtered = prev.filter((l) => l.id !== activeResizeId);
+          return [...filtered, { id: activeResizeId, x, y, w: newW, h: newH }];
+        });
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      setActiveDragId(null);
+      setActiveResizeId(null);
+      setDragStart(null);
+      setResizeStart(null);
+    };
+
+    if (activeDragId || activeResizeId) {
+      window.addEventListener('mousemove', handleGlobalMouseMove);
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [activeDragId, activeResizeId, dragStart, resizeStart, customLayout]);
+
+  // Touch drag & resize listener
+  useEffect(() => {
+    const handleGlobalTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const colWidthPx = window.innerWidth * 0.85 / 12;
+      const rowHeightPx = 130;
+
+      if (activeDragId && dragStart) {
+        const dx = Math.round((touch.clientX - dragStart.mouseX) / colWidthPx);
+        const dy = Math.round((touch.clientY - dragStart.mouseY) / rowHeightPx);
+        
+        setCustomLayout((prev) => {
+          const currentItem = getLayoutItems().find(item => item.id === activeDragId);
+          const w = currentItem?.layout.w || 4;
+          const h = currentItem?.layout.h || 2;
+          const newX = Math.max(0, Math.min(12 - w, dragStart.x + dx));
+          const newY = Math.max(0, dragStart.y + dy);
+          
+          const filtered = prev.filter((l) => l.id !== activeDragId);
+          return [...filtered, { id: activeDragId, x: newX, y: newY, w, h }];
+        });
+      }
+
+      if (activeResizeId && resizeStart) {
+        const dw = Math.round((touch.clientX - resizeStart.mouseX) / colWidthPx);
+        const dh = Math.round((touch.clientY - resizeStart.mouseY) / rowHeightPx);
+
+        setCustomLayout((prev) => {
+          const currentItem = getLayoutItems().find(item => item.id === activeResizeId);
+          const x = currentItem?.layout.x || 0;
+          const y = currentItem?.layout.y || 0;
+          const newW = Math.max(2, Math.min(12 - x, resizeStart.w + dw));
+          const newH = Math.max(1, resizeStart.h + dh);
+
+          const filtered = prev.filter((l) => l.id !== activeResizeId);
+          return [...filtered, { id: activeResizeId, x, y, w: newW, h: newH }];
+        });
+      }
+    };
+
+    const handleGlobalTouchEnd = () => {
+      setActiveDragId(null);
+      setActiveResizeId(null);
+      setDragStart(null);
+      setResizeStart(null);
+    };
+
+    if (activeDragId || activeResizeId) {
+      window.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+      window.addEventListener('touchend', handleGlobalTouchEnd);
+    }
+
+    return () => {
+      window.removeEventListener('touchmove', handleGlobalTouchMove);
+      window.removeEventListener('touchend', handleGlobalTouchEnd);
+    };
+  }, [activeDragId, activeResizeId, dragStart, resizeStart, customLayout]);
+
+  const handleSaveLayout = async () => {
+    if (!branchId) return;
+    try {
+      const branchRef = doc(db, 'branches', branchId);
+      const currentItemIds = getLayoutItems().map(item => item.id);
+      const filteredLayout = customLayout.filter(l => currentItemIds.includes(l.id));
+
+      await updateDoc(branchRef, {
+        'kioskSettings.customLayout': filteredLayout
+      });
+      setIsEditingLayout(false);
+    } catch (err) {
+      console.error('Failed to save kiosk layout:', err);
+    }
+  };
+
+  const handleResetLayout = () => {
+    setCustomLayout([]);
+  };
 
   // 4. Color theme mapper
   const themeColor = branch?.kioskSettings?.themeColor || 'brand';
@@ -277,6 +549,10 @@ export const KioskPage: React.FC = () => {
     );
   }
 
+  const layoutItems = getLayoutItems();
+  const maxH = layoutItems.reduce((max, item) => Math.max(max, item.layout.y + item.layout.h), 0);
+  const containerHeight = Math.max(480, maxH * 130);
+
   return (
     <div className="flex-1 flex flex-col justify-between h-full select-none" onClick={resetInactivityTimer}>
       {/* Top Header */}
@@ -299,10 +575,54 @@ export const KioskPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2.5">
           <span className="text-xs bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700/60 font-bold uppercase tracking-wider">
             Branch Code: {branch.code}
           </span>
+
+          {canEditLayout && (
+            <div className="flex items-center space-x-2 border-l border-slate-200 dark:border-slate-800 pl-3 py-1">
+              {!isEditingLayout ? (
+                <button
+                  onClick={() => setIsEditingLayout(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/30 text-brand-655 dark:text-brand-400 font-extrabold text-[11px] rounded-full border border-brand-500/20 transition-all cursor-pointer uppercase tracking-wider"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Edit Layout</span>
+                </button>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleSaveLayout}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] rounded-full shadow-md shadow-emerald-600/10 transition-all cursor-pointer uppercase tracking-wider animate-pulse"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save Layout</span>
+                  </button>
+                  <button
+                    onClick={handleResetLayout}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-455 font-extrabold text-[11px] rounded-full border border-rose-500/25 transition-all cursor-pointer uppercase tracking-wider"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset Grid</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditingLayout(false);
+                      if (branch?.kioskSettings?.customLayout) {
+                        setCustomLayout(branch.kioskSettings.customLayout);
+                      } else {
+                        setCustomLayout([]);
+                      }
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 font-extrabold text-[11px] rounded-full transition-all cursor-pointer uppercase tracking-wider"
+                  >
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -318,39 +638,119 @@ export const KioskPage: React.FC = () => {
             </p>
           </div>
 
-          {kioskServices.length === 0 ? (
-            <div className="text-center p-8 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-slate-400 italic">
-              No kiosk services configured. Please update settings in the dashboard.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto pr-2">
-              {kioskServices.map((service) => (
-                <button
-                  key={service.id}
-                  onClick={() => handleSelectService(service)}
-                  className="flex flex-col items-center justify-between p-8 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[32px] text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:border-brand-500/30 group active:scale-[0.98] min-h-[190px] shadow-sm relative cursor-pointer"
-                >
-                  <div className={`p-4 rounded-2xl ${theme.accent} mb-4`}>
-                    <HelpCircle className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-brand-600 transition-colors">
-                      {service.name}
-                    </h3>
-                    {service.description && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 max-w-[200px] mx-auto">
-                        {service.description}
-                      </p>
+          <div className="relative w-full overflow-x-hidden" style={{ height: `${containerHeight}px` }}>
+            {layoutItems.map((item) => {
+              const isQr = item.type === 'qr';
+              
+              return (
+                <div key={item.id} style={{
+                  position: 'absolute',
+                  left: `${(item.layout.x / 12) * 100}%`,
+                  top: `${item.layout.y * 130}px`,
+                  width: `${(item.layout.w / 12) * 100}%`,
+                  height: `${item.layout.h * 130}px`,
+                  padding: '8px',
+                  transition: activeDragId || activeResizeId ? 'none' : 'all 0.15s ease-out',
+                  zIndex: activeDragId === item.id || activeResizeId === item.id ? 50 : 10,
+                }}>
+                  {/* Outer container card wrapper to allow drag header overlays */}
+                  <div className="relative w-full h-full group">
+                    
+                    {/* Drag Header overlay when editing */}
+                    {isEditingLayout && (
+                      <>
+                        <div
+                          onMouseDown={(e) => handleDragStart(e, item.id, item.layout.x, item.layout.y)}
+                          onTouchStart={(e) => handleTouchDragStart(e, item.id, item.layout.x, item.layout.y)}
+                          className="absolute top-2 left-2 right-2 h-7 bg-slate-800/90 hover:bg-slate-800 text-white rounded-lg flex items-center justify-between px-2.5 cursor-move z-30 select-none text-[9px] font-extrabold uppercase tracking-wider shadow-md"
+                        >
+                          <div className="flex items-center gap-1">
+                            <GripVertical className="w-3 h-3 text-slate-400" />
+                            <span>Move Widget</span>
+                          </div>
+                          <span>Grid: {item.layout.x},{item.layout.y} ({item.layout.w}x{item.layout.h})</span>
+                        </div>
+                        
+                        {/* Resize handle overlay */}
+                        <div
+                          onMouseDown={(e) => handleResizeStart(e, item.id, item.layout.w, item.layout.h)}
+                          onTouchStart={(e) => handleTouchResizeStart(e, item.id, item.layout.w, item.layout.h)}
+                          className="absolute bottom-2 right-2 w-5.5 h-5.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg flex items-center justify-center cursor-se-resize z-30 shadow-md border border-brand-500/20 active:scale-95"
+                          title="Resize"
+                        >
+                          <Move className="w-3 h-3 rotate-45" />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Widget Content */}
+                    {isQr ? (
+                      <div className="w-full h-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[32px] p-6 shadow-md text-center flex flex-col items-center justify-center space-y-3 overflow-hidden select-none">
+                        <div className={`p-3.5 rounded-2xl ${theme.accent} text-slate-900 dark:text-white`}>
+                          <QrCode className="w-7 h-7" />
+                        </div>
+                        <div className="min-h-0 shrink">
+                          <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+                            Scan to Join on Mobile
+                          </h3>
+                          {item.layout.h >= 3 && (
+                            <p className="text-[10px] font-bold text-slate-555 dark:text-slate-455 mt-0.5 uppercase tracking-wider">
+                              สแกนรับคิวผ่านมือถือ (งดใช้กระดาษ)
+                            </p>
+                          )}
+                        </div>
+
+                        {/* QR Container */}
+                        <div className="p-2.5 bg-white border border-slate-100 rounded-2xl shadow-inner flex items-center justify-center shrink-0">
+                          <QRCodeSVG
+                            value={`${window.location.origin}/join/${branchId}`}
+                            size={Math.min(160, Math.max(70, item.layout.h * 110 - 130))}
+                            level="M"
+                            includeMargin={false}
+                          />
+                        </div>
+
+                        {item.layout.h >= 3 && (
+                          <div className="text-[10px] text-slate-400 dark:text-slate-500 max-w-[240px] leading-snug truncate-3-lines">
+                            Skip paper receipts and track queue updates in real-time.
+                            <p className="mt-0.5 font-bold text-slate-450">สแกนติดตามสถานะผ่านมือถือ</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        disabled={isEditingLayout}
+                        onClick={() => handleSelectService(item.data as Service)}
+                        className={`w-full h-full flex flex-col items-center justify-between p-6 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[32px] text-center transition-all duration-200 group relative shadow-sm overflow-hidden select-none ${
+                          isEditingLayout 
+                            ? 'opacity-80 cursor-default' 
+                            : 'hover:-translate-y-1 hover:shadow-xl hover:border-brand-500/30 active:scale-[0.98] cursor-pointer'
+                        }`}
+                      >
+                        <div className={`p-3 rounded-2xl ${theme.accent} mb-2`}>
+                          <HelpCircle className="w-7 h-7" />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center min-h-0">
+                          <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-brand-600 transition-colors">
+                            {item.data?.name}
+                          </h3>
+                          {item.layout.h >= 2 && item.data?.description && (
+                            <p className="text-[10px] text-slate-550 dark:text-slate-400 mt-1 line-clamp-2 max-w-[200px] mx-auto leading-relaxed">
+                              {item.data.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-455 mt-2 block">
+                          {item.data?.estimatedDurationMinutes} Mins est.
+                        </span>
+                      </button>
                     )}
                   </div>
-
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-450 mt-4 block">
-                    {service.estimatedDurationMinutes} Mins est.
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
+                </div>
+              );
+            })}
+          </div>
         </main>
       )}
 
@@ -519,18 +919,71 @@ export const KioskPage: React.FC = () => {
 
       {/* Hidden Thermal Slip for Printing */}
       {createdTicket && selectedService && (
-        <div id="kiosk-print-slip" className="hidden text-slate-900 text-center font-mono text-xs w-[80mm] p-4 bg-white">
-          <h3 className="font-bold text-sm">{branch.name}</h3>
-          <p className="text-[10px]">Daily Ticket Receipt</p>
-          <div className="border-t border-b border-black border-dashed my-2 py-1">
-            <p className="font-bold text-xs uppercase">{selectedService.name}</p>
-            <h1 className="text-4xl font-extrabold my-2">{createdTicket.queueNumber}</h1>
-            <p className="text-[10px]">Name: {customerName || 'Walk-in Guest'}</p>
-          </div>
-          <div className="text-[9px] space-y-0.5">
-            <p>Date: {new Date().toLocaleDateString()}</p>
-            <p>Time: {new Date().toLocaleTimeString()}</p>
-            <p className="font-bold mt-2">Thank you for your visit!</p>
+        <div 
+          id="kiosk-print-slip" 
+          className="hidden text-slate-900 text-center font-mono text-xs p-4 bg-white"
+          style={{ width: branch?.kioskSettings?.pageSize || '80mm' }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+            {(branch?.kioskSettings?.ticketLayout || DEFAULT_TICKET_LAYOUT)
+              .filter((el) => el.visible)
+              .map((el) => {
+                const alignStyle = getAlignStyle(el.align);
+                const sizeStyle = getFontSizeStyle(el.fontSize);
+                const boldStyle = el.bold ? { fontWeight: 'bold' } : {};
+                const combinedStyle = { ...alignStyle, ...sizeStyle, ...boldStyle };
+
+                switch (el.type) {
+                  case 'logo':
+                    return (
+                      <div 
+                        key={el.id} 
+                        style={{ display: 'flex', justifyContent: el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center', margin: '4px 0' }}
+                      >
+                        <div style={{ width: '36px', height: '36px', border: '1.5px solid #000', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '9px' }}>
+                          LOGO
+                        </div>
+                      </div>
+                    );
+                  case 'branchName':
+                    return (
+                      <div key={el.id} style={combinedStyle}>
+                        {branch.name}
+                      </div>
+                    );
+                  case 'serviceName':
+                    return (
+                      <div key={el.id} style={combinedStyle}>
+                        {selectedService.name}
+                      </div>
+                    );
+                  case 'queueNumber':
+                    return (
+                      <div key={el.id} style={{ ...combinedStyle, margin: '6px 0', lineHeight: 1.1 }}>
+                        {createdTicket.queueNumber}
+                      </div>
+                    );
+                  case 'customerName':
+                    return (
+                      <div key={el.id} style={combinedStyle}>
+                        {el.text || 'Name: '}{customerName || 'Walk-in Guest'}
+                      </div>
+                    );
+                  case 'dateTime':
+                    return (
+                      <div key={el.id} style={combinedStyle}>
+                        {new Date().toLocaleDateString()} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    );
+                  case 'text':
+                  default:
+                    return (
+                      <div key={el.id} style={combinedStyle}>
+                        {el.text || ''}
+                      </div>
+                    );
+                }
+              })}
           </div>
         </div>
       )}
@@ -551,7 +1004,7 @@ export const KioskPage: React.FC = () => {
             left: 50% !important;
             top: 50% !important;
             transform: translate(-50%, -50%) !important;
-            width: 80mm !important;
+            width: ${branch?.kioskSettings?.pageSize || '80mm'} !important;
             height: auto !important;
             padding: 10mm 5mm !important;
             border: none !important;

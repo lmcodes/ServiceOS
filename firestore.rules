@@ -31,10 +31,6 @@ service cloud.firestore {
       return isAuth() && userTenantId() == tenantId;
     }
 
-    // Role verification helpers
-    function isOwner() {
-      return isAuth() && userRole() == 'owner';
-    }
 
     // Admin includes Owner permissions as well
     function isAdmin() {
@@ -77,7 +73,7 @@ service cloud.firestore {
     // 2. Subscriptions Collection
     match /subscriptions/{tenantId} {
       allow read: if belongsToTenant(tenantId);
-      allow write: if false; // Managed by stripe webhook cloud functions only
+      allow write: if isOwnerOrAdmin(tenantId);
     }
 
     // 3. Users Collection

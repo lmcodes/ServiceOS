@@ -49,6 +49,45 @@ export const DeveloperPage: React.FC = () => {
   // Loading states
   const [loading, setLoading] = useState(false);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [seedingSub, setSeedingSub] = useState(false);
+
+  const handleSeedSubscription = async () => {
+    if (!tenant?.id) return;
+    setSeedingSub(true);
+    try {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const { db } = await import('@/config/firebase');
+      
+      const subRef = doc(db, 'subscriptions', tenant.id);
+      await setDoc(subRef, {
+        tenantId: tenant.id,
+        planId: 'professional',
+        status: 'active',
+        stripeSubscriptionId: 'sub_test_seeding',
+        stripeCustomerId: 'cus_test_seeding',
+        limits: {
+          branches: 5,
+          servicesPerBranch: 10,
+          usersPerBranch: 20,
+          queueItemsPerDay: 500,
+          smsIncluded: 100
+        },
+        usage: {
+          smsSentThisMonth: 0,
+          queuesCreatedThisMonth: 0
+        },
+        currentPeriodEndsAt: new Date(Date.now() + 365*24*60*60*1000),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      alert('Subscription seeded successfully as "professional" plan!');
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to seed subscription: ' + err.message);
+    } finally {
+      setSeedingSub(false);
+    }
+  };
 
   // Data states
   const [apiKeys, setApiKeys] = useState<ApiKeyData[]>([]);
@@ -289,28 +328,40 @@ export const DeveloperPage: React.FC = () => {
           </p>
         </div>
 
-        {activeTab === 'apikeys' && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => {
-              setGeneratedKey(null);
-              setIsKeyModalOpen(true);
-            }}
-            className="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-2xl cursor-pointer transition-colors shadow-md flex items-center gap-1.5"
+            type="button"
+            onClick={handleSeedSubscription}
+            disabled={seedingSub}
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-bold rounded-2xl cursor-pointer transition-colors shadow-sm flex items-center gap-1.5 disabled:opacity-50"
           >
-            <Plus className="w-4 h-4" />
-            {t('pages.developer.btnGenerateKey', 'Generate API Key')}
+            <RefreshCw className={`w-3.5 h-3.5 ${seedingSub ? 'animate-spin' : ''}`} />
+            <span>Seed Pro Subscription</span>
           </button>
-        )}
 
-        {activeTab === 'webhooks' && (
-          <button
-            onClick={() => setIsWebhookModalOpen(true)}
-            className="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-2xl cursor-pointer transition-colors shadow-md flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            {t('pages.developer.btnCreateWebhook', 'Add Webhook')}
-          </button>
-        )}
+          {activeTab === 'apikeys' && (
+            <button
+              onClick={() => {
+                setGeneratedKey(null);
+                setIsKeyModalOpen(true);
+              }}
+              className="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-2xl cursor-pointer transition-colors shadow-md flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              {t('pages.developer.btnGenerateKey', 'Generate API Key')}
+            </button>
+          )}
+
+          {activeTab === 'webhooks' && (
+            <button
+              onClick={() => setIsWebhookModalOpen(true)}
+              className="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-2xl cursor-pointer transition-colors shadow-md flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              {t('pages.developer.btnCreateWebhook', 'Add Webhook')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}

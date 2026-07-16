@@ -1,4 +1,4 @@
-import { OperatingHours, Address } from '@/types/firestore';
+import { OperatingHours, Address, TicketLayoutElement } from '@/types/firestore';
 
 export interface CreateBranchInput {
   name: string;
@@ -28,6 +28,8 @@ export interface CreateBranchInput {
     idleTimeoutSeconds: number;
     themeColor: 'brand' | 'blue' | 'emerald' | 'violet' | 'amber';
     allowedServiceIds: string[];
+    pageSize?: '58mm' | '80mm';
+    ticketLayout?: TicketLayoutElement[];
   };
 }
 

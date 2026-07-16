@@ -43,6 +43,16 @@ export interface Tenant {
   updatedAt: FirestoreTimestamp;
 }
 
+export interface TicketLayoutElement {
+  id: string;
+  type: 'logo' | 'branchName' | 'serviceName' | 'queueNumber' | 'customerName' | 'dateTime' | 'text';
+  text?: string;
+  visible: boolean;
+  fontSize: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  bold?: boolean;
+  align?: 'left' | 'center' | 'right';
+}
+
 export interface Branch {
   id: string; // Document ID
   tenantId: string;
@@ -76,6 +86,15 @@ export interface Branch {
     idleTimeoutSeconds: number;
     themeColor: 'brand' | 'blue' | 'emerald' | 'violet' | 'amber';
     allowedServiceIds: string[];
+    pageSize?: '58mm' | '80mm';
+    ticketLayout?: TicketLayoutElement[];
+    customLayout?: {
+      id: string;
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    }[];
   };
   status: 'active' | 'inactive';
   createdAt: FirestoreTimestamp;
