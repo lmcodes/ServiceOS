@@ -35,6 +35,10 @@ ServiceOS uses a mix of root-level collections and subcollections. Subcollection
    └── {tenantId} (document - shared key)
 /auditLogs (root collection)
    └── {logId} (document)
+/mediaLibrary (root collection)
+   └── {mediaId} (document)
+/displayTemplates (root collection)
+   └── {templateId} (document)
 ```
 
 ---
@@ -227,6 +231,39 @@ interface QueueItem {
   noShowAt?: firebase.firestore.Timestamp;
   cancelledAt?: firebase.firestore.Timestamp;
   customData: Record<string, any>;
+  createdAt: firebase.firestore.Timestamp;
+  updatedAt: firebase.firestore.Timestamp;
+}
+```
+
+### 2.6 Collection: `mediaLibrary`
+```typescript
+interface MediaItem {
+  id: string; // matches document ID
+  tenantId: string;
+  name: string;
+  type: 'image' | 'video' | 'url';
+  storageUrl: string;
+  duration: number; // default display time in seconds
+  createdAt: firebase.firestore.Timestamp;
+  updatedAt: firebase.firestore.Timestamp;
+}
+```
+
+### 2.7 Collection: `displayTemplates`
+```typescript
+interface DisplayTemplate {
+  id: string; // matches document ID
+  branchId: string;
+  name: string;
+  layout: 'queue-only' | 'split-media' | 'fullscreen-media-with-ticker';
+  mediaPlaylist: Array<{
+    mediaId: string;
+    duration: number; // custom duration for this item
+  }>;
+  queuePosition?: 'left' | 'right' | 'none';
+  transitionSeconds: number; // fallback duration in seconds
+  isActive: boolean;
   createdAt: firebase.firestore.Timestamp;
   updatedAt: firebase.firestore.Timestamp;
 }
