@@ -351,10 +351,14 @@
         "noneStandard": "None (Standard)"
       },
       "form": {
-        "nameLabel": "Service Name",
-        "namePlaceholder": "e.g. Consultation, Service Counter",
-        "descriptionLabel": "Service Description",
-        "descriptionPlaceholder": "Short instructions for customers seeking this service",
+        "nameLabel": "Service Name (Default/Thai)",
+        "nameEnLabel": "Service Name (English)",
+        "namePlaceholder": "e.g. พบแพทย์ทั่วไป, ชำระค่าบริการ",
+        "nameEnPlaceholder": "e.g. General Consultation, Payment",
+        "descriptionLabel": "Service Description (Default/Thai)",
+        "descriptionEnLabel": "Service Description (English)",
+        "descriptionPlaceholder": "Short instructions in Default/Thai",
+        "descriptionEnPlaceholder": "Short instructions in English",
         "categoryLabel": "Service Category",
         "categoryPlaceholder": "e.g. Consultation, Finance",
         "durationLabel": "Estimated Service Duration (minutes)",

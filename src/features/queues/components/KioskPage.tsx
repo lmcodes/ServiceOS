@@ -65,6 +65,16 @@ export const KioskPage: React.FC = () => {
     return t(`kiosk.${key}`, { param });
   };
 
+  const getServiceName = (s?: Service | null) => {
+    if (!s) return '';
+    return selectedLang === 'en' && s.nameEn ? s.nameEn : s.name;
+  };
+
+  const getServiceDesc = (s?: Service | null) => {
+    if (!s) return '';
+    return selectedLang === 'en' && s.descriptionEn ? s.descriptionEn : s.description || '';
+  };
+
   // Branch & Services states
   const [branch, setBranch] = useState<Branch | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -782,11 +792,11 @@ export const KioskPage: React.FC = () => {
                         </div>
                         <div className="flex-1 flex flex-col justify-center min-h-0">
                           <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-brand-600 transition-colors">
-                            {item.data?.name}
+                            {getServiceName(item.data as Service)}
                           </h3>
-                          {item.layout.h >= 2 && item.data?.description && (
+                          {item.layout.h >= 2 && getServiceDesc(item.data as Service) && (
                             <p className="text-[10px] text-slate-550 dark:text-slate-400 mt-1 line-clamp-2 max-w-[200px] mx-auto leading-relaxed">
-                              {item.data.description}
+                              {getServiceDesc(item.data as Service)}
                             </p>
                           )}
                         </div>
@@ -821,8 +831,8 @@ export const KioskPage: React.FC = () => {
             <h2 className="text-2xl font-black text-slate-900 dark:text-white">
               {translate('enterName')}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-450 mt-1 font-semibold uppercase tracking-wider">
-              {translate('serviceOptional', selectedService.name)}
+            <p className="text-xs text-slate-500 dark:text-slate-455 mt-1 font-semibold uppercase tracking-wider">
+              {translate('serviceOptional', getServiceName(selectedService))}
             </p>
           </div>
 
@@ -922,7 +932,7 @@ export const KioskPage: React.FC = () => {
               </span>
 
               <span className="text-[11px] font-bold text-slate-655 dark:text-brand-400 block mb-1">
-                {selectedService.name}
+                {getServiceName(selectedService)}
               </span>
 
               <h1 className="text-5xl font-black tracking-wider text-slate-950 dark:text-white font-mono my-2 animate-pulse">
@@ -1004,7 +1014,7 @@ export const KioskPage: React.FC = () => {
                   case 'serviceName':
                     return (
                       <div key={el.id} style={combinedStyle}>
-                        {selectedService.name}
+                        {getServiceName(selectedService)}
                       </div>
                     );
                   case 'queueNumber':

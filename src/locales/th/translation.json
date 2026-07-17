@@ -351,10 +351,14 @@
         "noneStandard": "ไม่มี (คิวมาตรฐาน)"
       },
       "form": {
-        "nameLabel": "ชื่อบริการ",
+        "nameLabel": "ชื่อบริการ (ภาษาไทย/เริ่มต้น)",
+        "nameEnLabel": "ชื่อบริการ (ภาษาอังกฤษ)",
         "namePlaceholder": "เช่น พบแพทย์ทั่วไป, ชำระค่าบริการ",
-        "descriptionLabel": "คำอธิบายบริการ",
+        "nameEnPlaceholder": "เช่น General Consultation, Payment",
+        "descriptionLabel": "คำอธิบายบริการ (ภาษาไทย/เริ่มต้น)",
+        "descriptionEnLabel": "คำอธิบายบริการ (ภาษาอังกฤษ)",
         "descriptionPlaceholder": "คำแนะนำเพิ่มเติมสั้นๆ สำหรับบริการนี้",
+        "descriptionEnPlaceholder": "เช่น English instructions for this service",
         "categoryLabel": "หมวดหมู่บริการ",
         "categoryPlaceholder": "เช่น ตรวจโรค, การเงิน",
         "durationLabel": "เวลาให้บริการโดยประมาณ (นาที)",

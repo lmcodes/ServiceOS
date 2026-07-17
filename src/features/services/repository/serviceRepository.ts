@@ -83,7 +83,9 @@ export async function createService(
     tenantId,
     branchId,
     name: input.name,
+    nameEn: input.nameEn || '',
     description: input.description || '',
+    descriptionEn: input.descriptionEn || '',
     category: input.category || '',
     estimatedDurationMinutes: input.estimatedDurationMinutes,
     requiresResource: input.requiresResource,
@@ -110,7 +112,9 @@ export async function updateService(serviceId: string, input: UpdateServiceInput
   };
 
   if (input.name !== undefined) updateData.name = input.name;
+  if (input.nameEn !== undefined) updateData.nameEn = input.nameEn;
   if (input.description !== undefined) updateData.description = input.description;
+  if (input.descriptionEn !== undefined) updateData.descriptionEn = input.descriptionEn;
   if (input.category !== undefined) updateData.category = input.category;
   if (input.estimatedDurationMinutes !== undefined) updateData.estimatedDurationMinutes = input.estimatedDurationMinutes;
   if (input.requiresResource !== undefined) updateData.requiresResource = input.requiresResource;

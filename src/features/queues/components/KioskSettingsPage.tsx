@@ -466,7 +466,7 @@ export const KioskSettingsPage: React.FC = () => {
                               />
                               <div className="flex-1 min-w-0">
                                 <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                                  {service.name}
+                                  {service.nameEn ? `${service.name} / ${service.nameEn}` : service.name}
                                 </h5>
                                 <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
                                   {service.category || 'Standard'}
@@ -516,7 +516,7 @@ export const KioskSettingsPage: React.FC = () => {
                                 <GripVertical className="w-4.5 h-4.5 text-slate-450 cursor-grab active:cursor-grabbing" />
                                 <div>
                                   <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                                    {service.name}
+                                    {service.nameEn ? `${service.name} / ${service.nameEn}` : service.name}
                                   </h5>
                                   <span className="text-[10px] text-slate-450 uppercase tracking-wider block">
                                     {service.category || 'Standard'}

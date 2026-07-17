@@ -311,11 +311,11 @@ export const ServiceListPage: React.FC = () => {
                       >
                         <td className="py-4 px-6">
                           <div className="font-extrabold text-slate-950 dark:text-white">
-                            {service.name}
+                            {service.nameEn ? `${service.name} / ${service.nameEn}` : service.name}
                           </div>
-                          {service.description && (
-                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 max-w-sm">
-                              {service.description}
+                          {(service.description || service.descriptionEn) && (
+                            <div className="text-xs text-slate-500 dark:text-slate-450 mt-0.5 line-clamp-1 max-w-sm">
+                              {service.description || ''} {service.descriptionEn ? `(${service.descriptionEn})` : ''}
                             </div>
                           )}
                           {service.customFields.length > 0 && (

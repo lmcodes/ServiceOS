@@ -27,7 +27,9 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
 
   // Form states
   const [name, setName] = useState(initialData?.name || '');
+  const [nameEn, setNameEn] = useState(initialData?.nameEn || '');
   const [description, setDescription] = useState(initialData?.description || '');
+  const [descriptionEn, setDescriptionEn] = useState(initialData?.descriptionEn || '');
   const [category, setCategory] = useState(initialData?.category || '');
   const [estimatedDuration, setEstimatedDuration] = useState(initialData?.estimatedDurationMinutes || 15);
   const [requiresResource, setRequiresResource] = useState(initialData?.requiresResource ?? false);
@@ -113,7 +115,9 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
     try {
       const payload: CreateServiceInput = {
         name,
+        nameEn,
         description,
+        descriptionEn,
         category,
         estimatedDurationMinutes: Number(estimatedDuration),
         requiresResource,
@@ -182,6 +186,19 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
+                  {t('pages.services.form.nameEnLabel')}
+                </label>
+                <input
+                  type="text"
+                  value={nameEn}
+                  onChange={(e) => setNameEn(e.target.value)}
+                  placeholder={t('pages.services.form.nameEnPlaceholder')}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
                   {t('pages.services.form.categoryLabel')}
                 </label>
                 <input
@@ -201,6 +218,19 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={t('pages.services.form.descriptionPlaceholder')}
+                  rows={2}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none resize-none"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-350 mb-1.5">
+                  {t('pages.services.form.descriptionEnLabel')}
+                </label>
+                <textarea
+                  value={descriptionEn}
+                  onChange={(e) => setDescriptionEn(e.target.value)}
+                  placeholder={t('pages.services.form.descriptionEnPlaceholder')}
                   rows={2}
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none resize-none"
                 />

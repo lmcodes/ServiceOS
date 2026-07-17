@@ -39,6 +39,11 @@ export const TicketStatusPage: React.FC = () => {
 
   const prevStatusRef = useRef<string | null>(null);
 
+  const getServiceName = (s?: Service | null) => {
+    if (!s) return '';
+    return i18n.language?.startsWith('th') ? s.name : (s.nameEn || s.name);
+  };
+
   // Subscribe to ticket details
   useEffect(() => {
     if (!ticketId) return;
@@ -288,10 +293,9 @@ export const TicketStatusPage: React.FC = () => {
             </div>
           )}
 
-          <span className="text-xs font-bold tracking-widest text-slate-450 dark:text-slate-500 uppercase">
-            {service ? service.name : t('pages.queues.yourTicket')}
+          <span className="text-xs font-bold tracking-widest text-slate-455 dark:text-slate-500 uppercase">
+            {service ? getServiceName(service) : t('pages.queues.yourTicket')}
           </span>
-
           {/* Ticket Number */}
           <h1 className="text-6xl font-black text-slate-900 dark:text-white my-6 tracking-tight font-outfit select-all bg-gradient-to-tr from-brand-655 to-indigo-650 bg-clip-text text-transparent">
             {ticket.queueNumber}
@@ -320,11 +324,11 @@ export const TicketStatusPage: React.FC = () => {
                   {i18n.language === 'th' ? 'กำลังรอรับบริการ: ' : 'Waiting for: '}
                 </span>
                 <span className="text-brand-655 dark:text-brand-400 font-bold">
-                  {currentStageName || (service ? service.name : '')}
+                  {currentStageName || getServiceName(service)}
                 </span>
                 {currentStageName && (
                   <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">
-                    ({i18n.language === 'th' ? 'บริการหลัก: ' : 'Main service: '}{service?.name})
+                    ({i18n.language === 'th' ? 'บริการหลัก: ' : 'Main service: '}{getServiceName(service)})
                   </span>
                 )}
               </div>

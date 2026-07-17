@@ -159,7 +159,9 @@ export interface Service {
   tenantId: string;
   branchId: string;
   name: string;
+  nameEn?: string;
   description?: string;
+  descriptionEn?: string;
   category?: string;
   estimatedDurationMinutes: number;
   price?: number;
