@@ -12,13 +12,12 @@ export const PublicLayout: React.FC = () => {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-64 rounded-full bg-brand-500/10 dark:bg-brand-500/5 blur-[80px] pointer-events-none" />
 
       {/* Main Container */}
-      <div className="w-full max-w-md flex flex-col flex-1 py-4 sm:py-8 z-10">
+      <div className="w-full max-w-md flex flex-col flex-1 py-2 sm:py-2 z-10">
         {/* Simple Brand Header */}
-        <div className="flex items-center space-x-2.5 justify-center mb-8">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-brand-500 dark:from-brand-500 dark:to-brand-400 flex items-center justify-center shadow-md border border-brand-400/10 dark:border-white/20">
-            <span className="font-extrabold text-white text-base">S</span>
+        <div className="flex justify-center mb-8">
+          <div className="h-16 px-4 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-slate-200/60 dark:border-slate-800/80 overflow-hidden">
+            <img src="/logo_full_hor_2.png" alt="ServiceOS Logo" className="h-10 object-contain" />
           </div>
-          <span className="font-bold text-slate-800 dark:text-slate-200 tracking-wide text-sm uppercase">ServiceOS</span>
         </div>
 
         {/* Content Outlet */}

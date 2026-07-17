@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Globe, 
-  Image as ImageIcon, 
-  Trash2, 
-  CreditCard, 
-  ShieldAlert, 
-  Loader2, 
-  CheckCircle2, 
+import {
+  Globe,
+  Image as ImageIcon,
+  Trash2,
+  CreditCard,
+  ShieldAlert,
+  Loader2,
+  CheckCircle2,
   AlertTriangle,
   Upload,
   Info
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTenant } from '@/context/TenantContext';
-import { 
-  updateTenantProfile, 
-  uploadTenantLogo, 
-  cancelTenantSubscription, 
-  getTenantResourceUsage 
+import {
+  updateTenantProfile,
+  uploadTenantLogo,
+  cancelTenantSubscription,
+  getTenantResourceUsage
 } from '../repository/tenantRepository';
 
 const COMMON_TIMEZONES = [
@@ -53,7 +53,7 @@ export const SettingsPage: React.FC = () => {
   const [businessName, setBusinessName] = useState('');
   const [timezone, setTimezone] = useState('Asia/Bangkok');
   const [logoUrl, setLogoUrl] = useState('');
-  
+
   // File upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
@@ -225,31 +225,28 @@ export const SettingsPage: React.FC = () => {
       <div className="flex border-b border-slate-200 dark:border-slate-800 gap-6">
         <button
           onClick={() => setActiveTab('profile')}
-          className={`pb-4 text-sm font-bold transition-all border-b-2 outline-none cursor-pointer ${
-            activeTab === 'profile'
+          className={`pb-4 text-sm font-bold transition-all border-b-2 outline-none cursor-pointer ${activeTab === 'profile'
               ? 'border-brand-600 text-brand-600 dark:text-brand-400'
               : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-905'
-          }`}
+            }`}
         >
           {t('pages.settings.tabProfile')}
         </button>
         <button
           onClick={() => setActiveTab('subscription')}
-          className={`pb-4 text-sm font-bold transition-all border-b-2 outline-none cursor-pointer ${
-            activeTab === 'subscription'
+          className={`pb-4 text-sm font-bold transition-all border-b-2 outline-none cursor-pointer ${activeTab === 'subscription'
               ? 'border-brand-600 text-brand-600 dark:text-brand-400'
               : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-905'
-          }`}
+            }`}
         >
           {t('pages.settings.tabSubscription')}
         </button>
         <button
           onClick={() => setActiveTab('danger')}
-          className={`pb-4 text-sm font-bold transition-all border-b-2 outline-none cursor-pointer ${
-            activeTab === 'danger'
+          className={`pb-4 text-sm font-bold transition-all border-b-2 outline-none cursor-pointer ${activeTab === 'danger'
               ? 'border-red-500 text-red-500'
               : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-905'
-          }`}
+            }`}
         >
           {t('pages.settings.tabDangerZone')}
         </button>
@@ -258,7 +255,7 @@ export const SettingsPage: React.FC = () => {
       {/* Profile Form Tab */}
       {activeTab === 'profile' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-8">
-          
+
           {/* Logo Uploader Section */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -267,7 +264,7 @@ export const SettingsPage: React.FC = () => {
             </h3>
 
             <div className="flex flex-col sm:flex-row items-center gap-6 p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl bg-white dark:bg-slate-900/40 shadow-sm">
-              
+
               {/* Logo Preview */}
               <div className="relative w-24 h-24 rounded-2xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-850 flex items-center justify-center overflow-hidden shadow-inner flex-shrink-0">
                 {filePreview ? (
@@ -275,7 +272,7 @@ export const SettingsPage: React.FC = () => {
                 ) : !isFreePlan && logoUrl ? (
                   <img src={logoUrl} alt="Business Logo" className="w-full h-full object-contain" />
                 ) : (
-                  <img src="/logo_mono_1.png" alt="System Default Logo" className="w-full h-full object-contain p-2" />
+                  <img src="/logo_mono_2.png" alt="System Default Logo" className="w-full h-full object-contain p-2" />
                 )}
               </div>
 
@@ -292,11 +289,11 @@ export const SettingsPage: React.FC = () => {
                       <label className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer transition-colors shadow-sm flex items-center gap-2">
                         <Upload className="w-3.5 h-3.5" />
                         Browse file...
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={handleFileChange} 
-                          className="hidden" 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="hidden"
                         />
                       </label>
 
@@ -341,7 +338,7 @@ export const SettingsPage: React.FC = () => {
 
           {/* Form details */}
           <form onSubmit={handleSaveProfile} className="space-y-6">
-            
+
             {/* Business Name Field */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-wider">
@@ -411,7 +408,7 @@ export const SettingsPage: React.FC = () => {
       {/* Subscription & Usage Tab */}
       {activeTab === 'subscription' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-8">
-          
+
           {/* Card Info Plan */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/30 dark:bg-slate-950/10 gap-4">
             <div className="space-y-1">
@@ -426,7 +423,7 @@ export const SettingsPage: React.FC = () => {
                 Premium multi-branch access, queue logs, and TV dashboard display system.
               </p>
             </div>
-            
+
             <div className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-250 dark:border-emerald-900 text-emerald-650 dark:text-emerald-400 text-xs font-bold rounded-full">
               {t('pages.settings.planStatus')}: Active
             </div>
@@ -447,7 +444,7 @@ export const SettingsPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* Branches limit */}
                 <div className="p-5 border border-slate-150 dark:border-slate-800 rounded-2xl space-y-3">
                   <div className="flex justify-between items-center text-xs font-bold">
@@ -460,7 +457,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
 
                   <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-brand-500 rounded-full transition-all duration-500"
                       style={{ width: `${Math.min((branchesCount / 5) * 100, 100)}%` }}
                     />
@@ -482,7 +479,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
 
                   <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-brand-500 rounded-full transition-all duration-500"
                       style={{ width: `${Math.min((staffCount / 10) * 100, 100)}%` }}
                     />
@@ -529,7 +526,7 @@ export const SettingsPage: React.FC = () => {
       {isCancelModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 max-w-md w-full rounded-3xl p-6 shadow-2xl space-y-6">
-            
+
             <div className="flex items-start gap-4">
               <div className="p-3 bg-red-50 dark:bg-red-950/20 text-red-650 rounded-2xl flex-shrink-0">
                 <AlertTriangle className="w-6 h-6" />
@@ -548,7 +545,7 @@ export const SettingsPage: React.FC = () => {
               <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-wider block">
                 {t('pages.settings.confirmCancelPhrase')}
               </label>
-              
+
               <input
                 type="text"
                 value={cancelPhraseInput}

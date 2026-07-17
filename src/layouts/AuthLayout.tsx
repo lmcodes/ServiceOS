@@ -29,13 +29,10 @@ export const AuthLayout: React.FC = () => {
       {/* Main card box */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10 px-4">
         <div className="flex justify-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-500 dark:from-brand-500 dark:to-brand-400 flex items-center justify-center shadow-lg shadow-brand-500/20 dark:shadow-brand-400/10 border border-brand-400/10 dark:border-white/20">
-            <span className="font-extrabold text-white text-2xl tracking-wider">S</span>
+          <div className="h-16 px-6 bg-white rounded-2xl flex items-center justify-center shadow-md border border-slate-200/60 dark:border-slate-800/80 overflow-hidden">
+            <img src="/logo_full_hor_2.png" alt="ServiceOS Logo" className="h-10 object-contain" />
           </div>
         </div>
-        <h2 className="text-center text-3xl font-extrabold tracking-tight">
-          ServiceOS
-        </h2>
         <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
           {t('login.layoutSubtitle')}
         </p>

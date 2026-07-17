@@ -4,16 +4,16 @@ import { useAuth } from '@/context/AuthContext';
 import { useTenant } from '@/context/TenantContext';
 import { useTranslation } from 'react-i18next';
 import { SettingsSwitcher } from '@/shared/components/SettingsSwitcher';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Settings, 
-  MapPin, 
-  ConciergeBell, 
-  Calendar, 
-  LogOut, 
-  Menu, 
-  X, 
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  MapPin,
+  ConciergeBell,
+  Calendar,
+  LogOut,
+  Menu,
+  X,
   User as UserIcon,
   ShieldCheck,
   BarChart3,
@@ -39,11 +39,10 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon, label, active, onCl
   <Link
     to={to}
     onClick={onClick}
-    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-      active 
-        ? 'bg-brand-600 text-white shadow-md' 
+    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
+        ? 'bg-brand-600 text-white shadow-md'
         : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-    }`}
+      }`}
   >
     {icon}
     <span className="font-medium text-sm">{label}</span>
@@ -88,7 +87,7 @@ export const DashboardLayout: React.FC = () => {
   const activePath = location.pathname;
 
   // Filter menu items by user role
-  const allowedMenuItems = menuItems.filter(item => 
+  const allowedMenuItems = menuItems.filter(item =>
     !item.roles || (user?.role && item.roles.includes(user.role))
   );
 
@@ -96,17 +95,16 @@ export const DashboardLayout: React.FC = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex transition-colors duration-200">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/60 md:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar Navigation */}
-      <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-transform duration-300 md:static md:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-transform duration-300 md:static md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex flex-col flex-1 overflow-y-auto px-4 py-6">
           {/* Logo & Header */}
@@ -116,7 +114,7 @@ export const DashboardLayout: React.FC = () => {
                 {subscription?.planId && subscription.planId !== 'starter' && tenant?.logo ? (
                   <img src={tenant.logo} alt="Logo" className="w-full h-full object-contain p-0.5" />
                 ) : (
-                  <img src="/logo_mono_1.png" alt="Logo" className="w-full h-full object-contain p-0.5" />
+                  <img src="/logo_mono_2.png" alt="Logo" className="w-full h-full object-contain p-0.5" />
                 )}
               </div>
               <div>
@@ -126,7 +124,7 @@ export const DashboardLayout: React.FC = () => {
                 </span>
               </div>
             </div>
-            <button 
+            <button
               className="md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
               onClick={() => setSidebarOpen(false)}
             >
@@ -181,7 +179,7 @@ export const DashboardLayout: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header Bar */}
         <header className="h-16 bg-white/70 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800/80 px-6 flex items-center justify-between md:justify-end backdrop-blur-md sticky top-0 z-30">
-          <button 
+          <button
             className="md:hidden text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 cursor-pointer"
             onClick={() => setSidebarOpen(true)}
           >
