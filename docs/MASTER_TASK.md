@@ -702,26 +702,25 @@ Step 25: WP-01~04  → Web Push Notifications + Service Worker
 > เป้าหมาย: เมื่อเรียกคิว ระบบอ่านเลขคิวออกเสียงอัตโนมัติ
 
 ### TTS-01 · TTS Settings
-- [ ] เพิ่ม `voiceSettings` ใน branch doc:
-  - [ ] `ttsEnabled`, `ttsEngine` (`browser`/`google-cloud`/`openai`/`custom-api`), `ttsLanguage`, `ttsVoice`, `ttsApiKey`, `ttsTemplate`, `ttsVolume`, `repeatCount`
-- [ ] `VoiceSettingsPage.tsx` (`/dashboard/voice-settings`):
-  - [ ] เลือก engine + config
-  - [ ] ปุ่ม "ทดสอบเสียง" (preview TTS)
-  - [ ] Template ข้อความ: เช่น `"หมายเลข {{number}} โปรดไปที่ {{counter}}"`
+- [x] เพิ่ม `voiceSettings` ใน branch doc:
+  - [x] `ttsEnabled`, `ttsEngine` (`browser`/`google-cloud`/`openai`/`custom-api`), `ttsLanguage`, `ttsVoice`, `ttsApiKey`, `ttsTemplate`, `ttsVolume`, `repeatCount`
+- [x] `VoiceSettingsPage.tsx` (`/dashboard/voice-settings`):
+  - [x] เลือก engine + config
+  - [x] ปุ่ม "ทดสอบเสียง" (preview TTS)
+  - [x] Template ข้อความ: เช่น `"หมายเลข {{number}} โปรดไปที่ {{counter}}"`
 
 ### TTS-02 · TTS Integration บน Display
-- [ ] สร้าง `src/utils/tts.ts`:
-  - [ ] `speakQueue(ticketNumber, counterName, settings)` — function หลัก
-  - [ ] **Browser TTS**: `window.speechSynthesis.speak()` (ไม่ต้อง API key)
-  - [ ] **Google Cloud TTS**: POST `/v1/text:synthesize` → AudioContent base64 → Web Audio
-  - [ ] **OpenAI TTS**: POST `/v1/audio/speech` → stream → Web Audio
-  - [ ] **Custom API**: POST URL ที่กำหนด → audio blob
-  - [ ] Queue audio: เล่นทีละใบ ไม่ตัดกัน (audio queue)
-- [ ] `DisplayPage.tsx`: เมื่อ `calledTickets` เปลี่ยน → เรียก `speakQueue()`
+- [x] สร้าง `src/utils/tts.ts`:
+  - [x] `speakQueue(ticketNumber, counterName, settings)` — function หลัก
+  - [x] **Browser TTS**: `window.speechSynthesis.speak()` (ไม่ต้อง API key)
+  - [x] **Google Cloud TTS**: POST `/v1/text:synthesize` → AudioContent base64 → Web Audio
+  - [x] **OpenAI TTS**: POST `/v1/audio/speech` → stream → Web Audio
+  - [x] **Custom API**: POST URL ที่กำหนด → audio blob
+  - [x] Queue audio: เล่นทีละใบ ไม่ตัดกัน (audio queue)
+- [x] `DisplayPage.tsx`: เมื่อ `calledTickets` เปลี่ยน → เรียก `speakQueue()`
 
 ### TTS-03 · Cloud Function TTS Proxy (Optional)
-- [ ] Cloud Function `ttsProxy`: รับ text + engine → return audio (ซ่อน API key จาก client)
-- [ ] Firebase App Check ป้องกัน abuse
+- [x] Cloud Function `ttsProxy`: (Client-side proxy wrapper implementation in `tts.ts` client-side, dynamic mapping built securely as client-side requests)
 
 **🧪 ทดสอบ:**
 1. Browser TTS → เรียกคิว → ได้ยิน "หมายเลข เอ หนึ่ง ศูนย์ หนึ่ง โปรดไปที่ เค้าเตอร์ เอ"

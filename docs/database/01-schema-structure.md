@@ -112,6 +112,17 @@ interface Branch {
     maxQueueSize: number; // 0 = unlimited
     requirePhone: boolean;
   };
+  voiceSettings?: {
+    ttsEnabled: boolean;
+    ttsEngine: 'browser' | 'google-cloud' | 'openai' | 'custom-api';
+    ttsLanguage: string;
+    ttsVoice: string;
+    ttsApiKey?: string;
+    ttsCustomUrl?: string;
+    ttsTemplate: string;
+    ttsVolume: number;
+    repeatCount: number;
+  };
   status: 'active' | 'inactive';
   createdAt: firebase.firestore.Timestamp;
   updatedAt: firebase.firestore.Timestamp;

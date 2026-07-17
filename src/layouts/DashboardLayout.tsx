@@ -26,7 +26,8 @@ import {
   Tablet,
   QrCode,
   Film,
-  Tv
+  Tv,
+  Volume2
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -71,6 +72,7 @@ export const DashboardLayout: React.FC = () => {
     { to: '/dashboard/static-qr', icon: <QrCode size={18} />, label: t('dashboard.menuStaticQR', 'Static QR'), roles: ['owner', 'admin', 'manager'] },
     { to: '/dashboard/media', icon: <Film size={18} />, label: t('dashboard.menuMediaLibrary', 'Media Library'), roles: ['owner', 'admin', 'manager'] },
     { to: '/dashboard/display-settings', icon: <Tv size={18} />, label: t('dashboard.menuDisplayTemplates', 'Display Templates'), roles: ['owner', 'admin', 'manager'] },
+    { to: '/dashboard/voice-settings', icon: <Volume2 size={18} />, label: t('dashboard.menuVoiceSettings', 'Voice Settings'), roles: ['owner', 'admin', 'manager'] },
     { to: '/dashboard/customer-groups', icon: <UserCheck size={18} />, label: t('dashboard.menuCustomerGroups', 'Customer Groups'), roles: ['owner', 'admin'] },
     { to: '/dashboard/staff', icon: <Users size={18} />, label: t('dashboard.menuStaff'), roles: ['owner', 'admin'] },
     { to: '/dashboard/analytics', icon: <BarChart3 size={18} />, label: t('dashboard.menuAnalytics'), roles: ['owner', 'admin'] },

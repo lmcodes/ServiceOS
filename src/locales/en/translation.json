@@ -107,6 +107,7 @@
     "menuStaticQR": "Static QR Labels",
     "menuMediaLibrary": "Media Library",
     "menuDisplayTemplates": "Display Settings",
+    "menuVoiceSettings": "Voice Announcements",
     "menuCustomerGroups": "Customer Groups",
     "menuStaff": "Staff Directory",
     "menuAnalytics": "Analytics Dashboard",
@@ -151,6 +152,24 @@
       "noActiveCallsDesc": "When staff call a ticket, it will appear here with sound alert.",
       "noWaitingTickets": "No Waiting Tickets",
       "proceedInstruction": "Please proceed to your assigned service counter when called."
+    },
+    "voiceSettings": {
+      "title": "Voice Announcement Settings",
+      "selectBranch": "Select Branch",
+      "enableTts": "Enable Voice Announcement",
+      "ttsEngine": "TTS Engine",
+      "ttsLanguage": "Language",
+      "ttsVoice": "Voice Name / Model",
+      "ttsApiKey": "API Key",
+      "ttsCustomUrl": "Custom Endpoint URL",
+      "ttsTemplate": "Announcement Template",
+      "ttsTemplateHelp": "Use {{number}} for ticket number and {{counter}} for counter name.",
+      "ttsVolume": "Volume",
+      "repeatCount": "Repeat Count",
+      "saveBtn": "Save Settings",
+      "testBtn": "Test Sound",
+      "testSuccess": "Synthesizing test audio...",
+      "successMsg": "Voice settings saved successfully!"
     },
     "queueRanges": {
       "title": "Queue Ranges",

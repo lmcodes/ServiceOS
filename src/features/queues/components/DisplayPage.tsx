@@ -7,6 +7,7 @@ import { subscribeDisplayQueues } from '../repository/queueRepository';
 import { getWorkflows, getWorkflowWithStages } from '@/features/workflows/repository/workflowRepository';
 import { Branch, Service, QueueItem, WorkflowStage, DisplayTemplate, MediaItem } from '@/types/firestore';
 import { playCallingChime } from '@/shared/utils/audio';
+import { speakQueue } from '@/utils/tts';
 import { 
   Volume2, 
   VolumeX, 
@@ -46,6 +47,11 @@ export const DisplayPage: React.FC = () => {
   const lastCalledTicketIdRef = useRef<string | null>(null);
   const lastCalledTimeRef = useRef<number | null>(null);
   const flashTimeoutRef = useRef<any>(null);
+
+  const voiceSettingsRef = useRef<any>(undefined);
+  useEffect(() => {
+    voiceSettingsRef.current = branch?.voiceSettings;
+  }, [branch?.voiceSettings]);
 
   // Real-time Clock
   useEffect(() => {
@@ -201,6 +207,21 @@ export const DisplayPage: React.FC = () => {
             // Play audio alert if enabled
             if (isAudioEnabled) {
               playCallingChime();
+
+              const vSettings = voiceSettingsRef.current;
+              if (vSettings && vSettings.ttsEnabled) {
+                // Delay voice announcement slightly to let the chime sound finish first
+                setTimeout(() => {
+                  const currentSettings = voiceSettingsRef.current;
+                  if (currentSettings) {
+                    speakQueue(
+                      latestCalled.queueNumber,
+                      latestCalled.calledByCounter || '1',
+                      currentSettings
+                    );
+                  }
+                }, 1200);
+              }
             }
           }
         }

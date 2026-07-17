@@ -25,6 +25,7 @@ import { DisplayPage } from '@/features/queues/components/DisplayPage';
 import { KioskPage } from '@/features/queues/components/KioskPage';
 import { KioskSettingsPage } from '@/features/queues/components/KioskSettingsPage';
 import { StaticQRPage } from '@/features/queues/components/StaticQRPage';
+import { VoiceSettingsPage } from '@/features/queues/components/VoiceSettingsPage';
 import StaffListPage from '@/features/staff/components/StaffListPage';
 import QueueRangePage from '@/features/queueRanges/components/QueueRangePage';
 import { SubServicePage } from '@/features/workflows/components/SubServicePage';
@@ -183,6 +184,14 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
               <DisplayTemplatePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="voice-settings" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
+              <VoiceSettingsPage />
             </ProtectedRoute>
           } 
         />

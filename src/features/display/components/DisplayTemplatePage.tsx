@@ -144,19 +144,20 @@ export const DisplayTemplatePage: React.FC = () => {
     };
 
     try {
+      if (!tenant?.id) throw new Error('Tenant ID is missing');
       if (selectedTemplate) {
         // Update existing template
         await updateDisplayTemplate(selectedTemplate.id, templateData);
         if (formIsActive) {
           // Deactivate others
-          await setActiveTemplate(selectedBranchId, selectedTemplate.id);
+          await setActiveTemplate(tenant.id, selectedBranchId, selectedTemplate.id);
         }
         showSuccess('Template updated successfully');
       } else {
         // Create new template
-        const newId = await addDisplayTemplate(selectedBranchId, templateData);
+        const newId = await addDisplayTemplate(tenant.id, selectedBranchId, templateData);
         if (formIsActive) {
-          await setActiveTemplate(selectedBranchId, newId);
+          await setActiveTemplate(tenant.id, selectedBranchId, newId);
         }
         showSuccess('Template created successfully');
       }
@@ -181,9 +182,13 @@ export const DisplayTemplatePage: React.FC = () => {
   };
 
   const handleToggleActive = async (template: DisplayTemplate) => {
+    if (!tenant?.id) {
+      setError('Tenant ID is missing');
+      return;
+    }
     try {
       const nextState = !template.isActive;
-      await setActiveTemplate(selectedBranchId, nextState ? template.id : null);
+      await setActiveTemplate(tenant.id, selectedBranchId, nextState ? template.id : null);
       showSuccess(nextState ? 'Template activated' : 'Template deactivated');
     } catch (err) {
       console.error(err);

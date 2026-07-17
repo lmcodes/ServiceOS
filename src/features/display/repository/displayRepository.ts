@@ -181,11 +181,13 @@ export function subscribeActiveDisplayTemplate(
  * Add a new display template
  */
 export async function addDisplayTemplate(
+  tenantId: string,
   branchId: string,
-  template: Omit<DisplayTemplate, 'id' | 'branchId' | 'createdAt' | 'updatedAt'>
+  template: Omit<DisplayTemplate, 'id' | 'tenantId' | 'branchId' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
   const docRef = await addDoc(collection(db, TEMPLATE_COLLECTION), {
     ...template,
+    tenantId,
     branchId,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
@@ -217,7 +219,7 @@ export async function deleteDisplayTemplate(templateId: string): Promise<void> {
 /**
  * Set a template as active and deactivate all others for this branch atomically
  */
-export async function setActiveTemplate(branchId: string, templateId: string | null): Promise<void> {
+export async function setActiveTemplate(tenantId: string, branchId: string, templateId: string | null): Promise<void> {
   const q = query(
     collection(db, TEMPLATE_COLLECTION),
     where('branchId', '==', branchId)
@@ -228,6 +230,7 @@ export async function setActiveTemplate(branchId: string, templateId: string | n
   snapshot.forEach((docSnap) => {
     const docRef = doc(db, TEMPLATE_COLLECTION, docSnap.id);
     batch.update(docRef, {
+      tenantId,
       isActive: docSnap.id === templateId,
       updatedAt: serverTimestamp()
     });

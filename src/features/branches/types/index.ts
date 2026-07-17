@@ -1,4 +1,4 @@
-import { OperatingHours, Address, TicketLayoutElement } from '@/types/firestore';
+import { OperatingHours, Address, TicketLayoutElement, VoiceSettings } from '@/types/firestore';
 
 export interface CreateBranchInput {
   name: string;
@@ -31,6 +31,7 @@ export interface CreateBranchInput {
     pageSize?: '58mm' | '80mm';
     ticketLayout?: TicketLayoutElement[];
   };
+  voiceSettings?: VoiceSettings;
 }
 
 export type UpdateBranchInput = Partial<CreateBranchInput> & {

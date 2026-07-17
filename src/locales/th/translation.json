@@ -107,6 +107,7 @@
     "menuStaticQR": "ป้าย Static QR คิว",
     "menuMediaLibrary": "คลังสื่อโฆษณา",
     "menuDisplayTemplates": "ตั้งค่าหน้าจอทีวี",
+    "menuVoiceSettings": "ตั้งค่าเสียงเรียกคิว",
     "menuCustomerGroups": "กลุ่มลูกค้าและลำดับความสำคัญ",
     "menuStaff": "รายชื่อพนักงาน",
     "menuAnalytics": "แดชบอร์ดวิเคราะห์ผล",
@@ -151,6 +152,24 @@
       "noActiveCallsDesc": "เมื่อเจ้าหน้าที่กดเรียกคิว ข้อมูลจะแสดงผลที่หน้าจอนี้ทันที",
       "noWaitingTickets": "ไม่มีคิวรอรับบริการ",
       "proceedInstruction": "กรุณาตรวจสอบหน้าจอเพื่อเข้าพบเจ้าหน้าที่ช่องบริการที่กำหนด"
+    },
+    "voiceSettings": {
+      "title": "ตั้งค่าเสียงประกาศคิว",
+      "selectBranch": "เลือกสาขา",
+      "enableTts": "เปิดใช้งานเสียงประกาศคิว",
+      "ttsEngine": "ระบบเสียงเรียก (Engine)",
+      "ttsLanguage": "ภาษา",
+      "ttsVoice": "ประเภทเสียงพากย์ / โมเดล",
+      "ttsApiKey": "รหัส API Key",
+      "ttsCustomUrl": "ลิงก์เชื่อมต่อ API (Custom URL)",
+      "ttsTemplate": "เทมเพลตข้อความประกาศ",
+      "ttsTemplateHelp": "ใช้ {{number}} แทนหมายเลขคิว และ {{counter}} แทนช่องบริการ",
+      "ttsVolume": "ระดับความดังเสียง",
+      "repeatCount": "จำนวนรอบการประกาศ",
+      "saveBtn": "บันทึกการตั้งค่า",
+      "testBtn": "ทดสอบเสียง",
+      "testSuccess": "กำลังประมวลผลเสียงทดสอบ...",
+      "successMsg": "บันทึกการตั้งค่าเสียงเรียบร้อยแล้ว!"
     },
     "queueRanges": {
       "title": "ช่วงหมายเลขคิว",

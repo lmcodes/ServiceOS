@@ -53,6 +53,18 @@ export interface TicketLayoutElement {
   align?: 'left' | 'center' | 'right';
 }
 
+export interface VoiceSettings {
+  ttsEnabled: boolean;
+  ttsEngine: 'browser' | 'google-cloud' | 'openai' | 'custom-api';
+  ttsLanguage: string;
+  ttsVoice: string;
+  ttsApiKey?: string;
+  ttsCustomUrl?: string;
+  ttsTemplate: string;
+  ttsVolume: number;
+  repeatCount: number;
+}
+
 export interface Branch {
   id: string; // Document ID
   tenantId: string;
@@ -96,6 +108,7 @@ export interface Branch {
       h: number;
     }[];
   };
+  voiceSettings?: VoiceSettings;
   status: 'active' | 'inactive';
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
@@ -419,6 +432,7 @@ export interface PlaylistMediaItem {
 
 export interface DisplayTemplate {
   id: string;
+  tenantId: string;
   branchId: string;
   name: string;
   layout: 'queue-only' | 'split-media' | 'fullscreen-media-with-ticker';
