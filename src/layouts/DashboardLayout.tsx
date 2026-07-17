@@ -52,7 +52,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon, label, active, onCl
 
 export const DashboardLayout: React.FC = () => {
   const { user, logout } = useAuth();
-  const { tenant } = useTenant();
+  const { tenant, subscription } = useTenant();
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
@@ -112,11 +112,11 @@ export const DashboardLayout: React.FC = () => {
           {/* Logo & Header */}
           <div className="flex items-center justify-between mb-8 px-2">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-brand-600 to-brand-500 dark:from-brand-500 dark:to-brand-400 flex items-center justify-center shadow-lg shadow-brand-500/20 dark:shadow-brand-400/10 overflow-hidden border border-brand-400/10 dark:border-white/20">
-                {tenant?.logo ? (
-                  <img src={tenant.logo} alt="Logo" className="w-full h-full object-cover" />
+              <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center shadow-lg overflow-hidden border border-slate-100 dark:border-white/10">
+                {subscription?.planId && subscription.planId !== 'starter' && tenant?.logo ? (
+                  <img src={tenant.logo} alt="Logo" className="w-full h-full object-contain p-0.5" />
                 ) : (
-                  <span className="font-extrabold text-white text-lg tracking-wider">S</span>
+                  <img src="/logo_mono_1.png" alt="Logo" className="w-full h-full object-contain p-0.5" />
                 )}
               </div>
               <div>

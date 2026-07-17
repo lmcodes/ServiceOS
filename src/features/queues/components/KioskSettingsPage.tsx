@@ -72,7 +72,7 @@ export const KioskSettingsPage: React.FC = () => {
   const { data: branches = [], isLoading: isLoadingBranches } = useBranches();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
 
-  const { subscription } = useTenant();
+  const { tenant, subscription } = useTenant();
   const isFreePlan = !subscription || subscription.planId === 'starter';
 
   // Selected Branch Object
@@ -930,9 +930,11 @@ export const KioskSettingsPage: React.FC = () => {
                             case 'logo':
                               return (
                                 <div key={el.id} className={`flex ${el.align === 'left' ? 'justify-start' : el.align === 'right' ? 'justify-end' : 'justify-center'} my-1`}>
-                                  <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-350/80 flex items-center justify-center text-slate-500 font-bold text-[9px] uppercase">
-                                    Logo
-                                  </div>
+                                  {!isFreePlan && tenant?.logo ? (
+                                    <img src={tenant.logo} alt="Logo" className="w-8 h-8 object-contain" />
+                                  ) : (
+                                    <img src="/logo_mono_1.png" alt="Logo" className="w-8 h-8 object-contain" />
+                                  )}
                                 </div>
                               );
                             case 'branchName':

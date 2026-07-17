@@ -52,7 +52,7 @@ import {
 export const KioskPage: React.FC = () => {
   const { branchId } = useParams<{ branchId: string }>();
   const { user } = useAuth();
-  const { subscription } = useTenant();
+  const { tenant, subscription } = useTenant();
   const { t, i18n } = useTranslation();
 
   const isOwner = user?.role === 'owner';
@@ -579,9 +579,17 @@ export const KioskPage: React.FC = () => {
       {/* Top Header */}
       <header className="flex justify-between items-center pb-6 border-b border-slate-100 dark:border-slate-800/80">
         <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center shadow-lg border border-brand-400/20 overflow-hidden">
-            {branch?.kioskSettings?.showLogo && branch.qrCodeUrl ? (
-              <img src={branch.qrCodeUrl} alt="Logo" className="w-full h-full object-cover" />
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg border overflow-hidden ${
+            branch?.kioskSettings?.showLogo 
+              ? 'bg-white border-slate-100 dark:border-slate-800' 
+              : 'bg-gradient-to-tr from-brand-600 to-brand-500 border-brand-400/20'
+          }`}>
+            {branch?.kioskSettings?.showLogo ? (
+              isNotFree && tenant?.logo ? (
+                <img src={tenant.logo} alt="Logo" className="w-full h-full object-contain p-1.5" />
+              ) : (
+                <img src="/logo_mono_1.png" alt="Logo" className="w-full h-full object-contain p-1.5" />
+              )
             ) : (
               <Building className="w-6 h-6 text-white" />
             )}
@@ -1000,9 +1008,11 @@ export const KioskPage: React.FC = () => {
                         key={el.id}
                         style={{ display: 'flex', justifyContent: el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center', margin: '4px 0' }}
                       >
-                        <div style={{ width: '36px', height: '36px', border: '1.5px solid #000', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '9px' }}>
-                          LOGO
-                        </div>
+                        {isNotFree && tenant?.logo ? (
+                          <img src={tenant.logo} alt="Logo" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+                        ) : (
+                          <img src="/logo_mono_1.png" alt="Logo" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+                        )}
                       </div>
                     );
                   case 'branchName':

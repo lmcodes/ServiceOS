@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Building2, 
   Globe, 
   Image as ImageIcon, 
   Trash2, 
@@ -44,7 +43,8 @@ export const SettingsPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { tenant } = useTenant();
+  const { tenant, subscription } = useTenant();
+  const isFreePlan = !subscription || subscription.planId === 'starter';
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'profile' | 'subscription' | 'danger'>('profile');
@@ -272,46 +272,55 @@ export const SettingsPage: React.FC = () => {
               <div className="relative w-24 h-24 rounded-2xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-850 flex items-center justify-center overflow-hidden shadow-inner flex-shrink-0">
                 {filePreview ? (
                   <img src={filePreview} alt="New Preview" className="w-full h-full object-contain" />
-                ) : logoUrl ? (
+                ) : !isFreePlan && logoUrl ? (
                   <img src={logoUrl} alt="Business Logo" className="w-full h-full object-contain" />
                 ) : (
-                  <Building2 className="w-10 h-10 text-slate-350 dark:text-slate-600" />
+                  <img src="/logo_mono_1.png" alt="System Default Logo" className="w-full h-full object-contain p-2" />
                 )}
               </div>
 
               {/* Upload controls */}
               <div className="flex-1 w-full text-center sm:text-left space-y-2">
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
-                  <label className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer transition-colors shadow-sm flex items-center gap-2">
-                    <Upload className="w-3.5 h-3.5" />
-                    Browse file...
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleFileChange} 
-                      className="hidden" 
-                    />
-                  </label>
+                {isFreePlan ? (
+                  <div className="text-xs text-amber-600 dark:text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20 px-3.5 py-2.5 rounded-xl inline-flex items-center gap-2 max-w-md">
+                    <Info size={16} className="shrink-0" />
+                    <span>Custom logo upload is only available on paid subscription plans.</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                      <label className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer transition-colors shadow-sm flex items-center gap-2">
+                        <Upload className="w-3.5 h-3.5" />
+                        Browse file...
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleFileChange} 
+                          className="hidden" 
+                        />
+                      </label>
 
-                  {selectedFile && (
-                    <button
-                      onClick={handleUploadLogo}
-                      disabled={isUploadingLogo}
-                      className="px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-colors flex items-center gap-1.5"
-                    >
-                      {isUploadingLogo ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      {selectedFile && (
+                        <button
+                          onClick={handleUploadLogo}
+                          disabled={isUploadingLogo}
+                          className="px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-colors flex items-center gap-1.5"
+                        >
+                          {isUploadingLogo ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          )}
+                          {t('pages.settings.logoUploadBtn')}
+                        </button>
                       )}
-                      {t('pages.settings.logoUploadBtn')}
-                    </button>
-                  )}
-                </div>
+                    </div>
 
-                <p className="text-[10px] text-slate-450 dark:text-slate-500">
-                  PNG, JPG or WEBP formats up to 2MB allowed.
-                </p>
+                    <p className="text-[10px] text-slate-450 dark:text-slate-500">
+                      PNG, JPG or WEBP formats up to 2MB allowed.
+                    </p>
+                  </>
+                )}
 
                 {logoUploadSuccess && (
                   <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1">
