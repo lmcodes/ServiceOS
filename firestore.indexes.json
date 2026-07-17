@@ -146,6 +146,22 @@
         { "fieldPath": "tenantId", "order": "ASCENDING" },
         { "fieldPath": "deliveredAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "counters",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "branchId", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "customerGroups",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId", "order": "ASCENDING" },
+        { "fieldPath": "priorityLevel", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
