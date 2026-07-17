@@ -136,20 +136,34 @@ async function playSpeech(text: string, settings: VoiceSettings): Promise<void> 
     }
   }
   
-  switch (engine) {
-    case 'google-cloud':
-      await playSpeechGoogle(text, settings);
-      break;
-    case 'openai':
-      await playSpeechOpenAI(text, settings);
-      break;
-    case 'custom-api':
-      await playSpeechCustom(text, settings);
-      break;
-    case 'browser':
-    default:
-      await playSpeechBrowser(text, settings);
-      break;
+  try {
+    switch (engine) {
+      case 'google-cloud':
+        await playSpeechGoogle(text, settings);
+        break;
+      case 'openai':
+        await playSpeechOpenAI(text, settings);
+        break;
+      case 'custom-api':
+        await playSpeechCustom(text, settings);
+        break;
+      case 'browser':
+      default:
+        await playSpeechBrowser(text, settings);
+        break;
+    }
+  } catch (error) {
+    if (engine !== 'browser') {
+      console.warn(`[TTS] Engine "${engine}" failed. Falling back to browser SpeechSynthesis.`, error);
+      try {
+        await playSpeechBrowser(text, settings);
+      } catch (browserError) {
+        console.error('[TTS] Browser fallback failed:', browserError);
+        throw browserError;
+      }
+    } else {
+      throw error;
+    }
   }
 }
 

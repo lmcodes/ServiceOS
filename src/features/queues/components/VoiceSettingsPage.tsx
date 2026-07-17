@@ -22,14 +22,6 @@ export const VoiceSettingsPage: React.FC = () => {
   
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
 
-  if (isLoadingBranches) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
-      </div>
-    );
-  }
-  
   // Selected Branch Object
   const selectedBranch = branches.find((b) => b.id === selectedBranchId) || null;
 
@@ -80,6 +72,14 @@ export const VoiceSettingsPage: React.FC = () => {
       setSelectedBranchId('');
     }
   }, [selectedBranch]);
+
+  if (isLoadingBranches) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+      </div>
+    );
+  }
 
   // Handle Save
   const handleSave = async (e: React.FormEvent) => {
