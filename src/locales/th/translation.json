@@ -105,6 +105,8 @@
     "menuCounters": "ช่องบริการ (Counters)",
     "menuKioskSettings": "ตั้งค่าเครื่อง Kiosk",
     "menuStaticQR": "ป้าย Static QR คิว",
+    "menuMediaLibrary": "คลังสื่อโฆษณา",
+    "menuDisplayTemplates": "ตั้งค่าหน้าจอทีวี",
     "menuCustomerGroups": "กลุ่มลูกค้าและลำดับความสำคัญ",
     "menuStaff": "รายชื่อพนักงาน",
     "menuAnalytics": "แดชบอร์ดวิเคราะห์ผล",
@@ -752,6 +754,33 @@
         "timeMinLabel": "เวลาเตือนสีส้ม (นาที)",
         "timeMaxLabel": "เวลาด่วนพิเศษลัดคิว (นาที)"
       }
+    },
+    "media": {
+      "title": "คลังสื่อโฆษณา (Media Library)",
+      "subtitle": "อัปโหลดภาพ วิดีโอ หรือลิงก์ช่องสตรีมมิ่งภายนอก (YouTube) เพื่อแสดงบนจอทีวีคิว",
+      "uploadBtn": "อัปโหลดสื่อใหม่",
+      "dragDropText": "ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์สำหรับอัปโหลด",
+      "uploading": "กำลังอัปโหลดไฟล์...",
+      "addUrlBtn": "เพิ่มลิงก์ URL / YouTube",
+      "noMedia": "ไม่พบไฟล์สื่อในคลังระบบ",
+      "urlPlaceholder": "วางที่อยู่ URL (เช่น วิดีโอ YouTube หรือไฟล์วิดีโอบนเว็บ)",
+      "durationLabel": "เวลาแสดงผลเริ่มต้น (วินาที)",
+      "mediaName": "ชื่อเรียกไฟล์สื่อ",
+      "mediaType": "ประเภทไฟล์"
+    },
+    "displaySettings": {
+      "title": "ตั้งค่าหน้าจอทีวี (TV Templates)",
+      "subtitle": "ออกแบบรูปแบบการแสดงผลคิวและระบบเพลย์ลิสต์ประจำสาขา",
+      "addBtn": "สร้างเทมเพลตใหม่",
+      "noTemplates": "ยังไม่มีการสร้างเทมเพลตประจำสาขานี้",
+      "layoutLabel": "รูปแบบการจัดหน้าจอ (Layout)",
+      "queueOnly": "แสดงคิวเต็มจอ (Classic)",
+      "splitMedia": "แบ่งหน้าจอโฆษณา + คิว (60/40)",
+      "fullscreenMedia": "แสดงสื่อโฆษณาเต็มจอ + ข้อมูลวิ่งด้านล่าง",
+      "playlistBuilder": "ระบบจัดลำดับเพลย์ลิสต์ (Playlist)",
+      "addMediaBtn": "เลือกสื่อเข้าเพลย์ลิสต์",
+      "activeTemplate": "เปิดใช้งานเทมเพลตนี้ประจำสาขา",
+      "transitionTime": "ช่วงเวลาสลับสื่อ (วินาที)"
     }
   },
   "kiosk": {

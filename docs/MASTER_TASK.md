@@ -667,28 +667,28 @@ Step 25: WP-01~04  → Web Push Notifications + Service Worker
 > เป้าหมาย: TV Display แสดงสื่อ (รูป/วิดีโอ) สลับกับเลขคิว ตาม template
 
 ### DM-01 · Media Library
-- [ ] เพิ่ม collection `mediaLibrary` (tenant-level):
-  - [ ] fields: `id`, `tenantId`, `name`, `type` (`image`/`video`/`url`), `storageUrl`, `duration` (วินาที)
-- [ ] `MediaLibraryPage.tsx` (`/dashboard/media`):
-  - [ ] Grid แสดง media + ปุ่ม Upload
-  - [ ] รองรับ รูปภาพ, วิดีโอ (Firebase Storage), URL/YouTube embed
+- [x] เพิ่ม collection `mediaLibrary` (tenant-level):
+  - [x] fields: `id`, `tenantId`, `name`, `type` (`image`/`video`/`url`), `storageUrl`, `duration` (วินาที)
+- [x] `MediaLibraryPage.tsx` (`/dashboard/media-library`):
+  - [x] Grid แสดง media + ปุ่ม Upload
+  - [x] รองรับ รูปภาพ, วิดีโอ (Firebase Storage), URL/YouTube embed
 
 ### DM-02 · Display Template System
-- [ ] เพิ่ม collection `displayTemplates` (branch-level):
-  - [ ] fields: `id`, `branchId`, `name`, `layout`, `mediaPlaylist[]`, `queuePosition`, `transitionSeconds`
-  - [ ] layouts: `queue-only` / `split-media` (60/40) / `fullscreen-media-with-ticker`
-- [ ] `DisplayTemplatePage.tsx` (`/dashboard/display-settings`):
-  - [ ] Preset layout cards พร้อม preview
-  - [ ] Playlist builder: เพิ่ม/เรียง media + กำหนดเวลาแต่ละชิ้น
-  - [ ] บันทึก + ตั้งเป็น active template
+- [x] เพิ่ม collection `displayTemplates` (branch-level):
+  - [x] fields: `id`, `branchId`, `name`, `layout`, `mediaPlaylist[]`, `queuePosition`, `transitionSeconds`
+  - [x] layouts: `queue-only` / `split-media` (60/40) / `fullscreen-media-with-ticker`
+- [x] `DisplayTemplatePage.tsx` (`/dashboard/display-templates`):
+  - [x] Preset layout cards พร้อม preview
+  - [x] Playlist builder: เพิ่ม/เรียง media + กำหนดเวลาแต่ละชิ้น
+  - [x] บันทึก + ตั้งเป็น active template
 
 ### DM-03 · DisplayPage อัปเดต
-- [ ] อ่าน active `displayTemplate` (real-time) → render ตาม layout
-  - `queue-only` → เหมือนเดิม
-  - `split-media` → media ซ้าย, คิวขวา
-  - `fullscreen-media-with-ticker` → media เต็มจอ, ticker ล่าง
-- [ ] Media player: image slideshow + video loop
-- [ ] เมื่อมีคิวใหม่ → overlay ใหญ่แสดงเลขคิว 5 วิ → กลับ media
+- [x] อ่าน active `displayTemplate` (real-time) → render ตาม layout
+  - [x] `queue-only` → เหมือนเดิม
+  - [x] `split-media` → media ซ้าย, คิวขวา
+  - [x] `fullscreen-media-with-ticker` → media เต็มจอ, ticker ล่าง
+- [x] Media player: image slideshow + video loop
+- [x] เมื่อมีคิวใหม่ → overlay ใหญ่แสดงเลขคิว 5 วิ → กลับ media
 
 **🧪 ทดสอบ:**
 1. Template "split-media" + รูปโปรโมชั่น 3 รูป → TV สไลด์ซ้าย+คิวขวา

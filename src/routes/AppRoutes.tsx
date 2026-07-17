@@ -28,6 +28,8 @@ import { StaticQRPage } from '@/features/queues/components/StaticQRPage';
 import StaffListPage from '@/features/staff/components/StaffListPage';
 import QueueRangePage from '@/features/queueRanges/components/QueueRangePage';
 import { SubServicePage } from '@/features/workflows/components/SubServicePage';
+import MediaLibraryPage from '@/features/display/components/MediaLibraryPage';
+import DisplayTemplatePage from '@/features/display/components/DisplayTemplatePage';
 
 
 import { SettingsPage } from '@/features/settings/components/SettingsPage';
@@ -165,6 +167,22 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
               <StaticQRPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="media" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
+              <MediaLibraryPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="display-settings" 
+          element={
+            <ProtectedRoute allowedRoles={['owner', 'admin', 'manager']}>
+              <DisplayTemplatePage />
             </ProtectedRoute>
           } 
         />

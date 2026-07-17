@@ -231,5 +231,27 @@ service cloud.firestore {
       allow create, update: if isOwnerOrAdmin(request.resource.data.tenantId);
       allow delete: if isOwnerOrAdmin(resource.data.tenantId);
     }
+
+    // 19. Media Library (tenant-level)
+    match /mediaLibrary/{mediaId} {
+      allow read: if true; // Public displays need to read media metadata
+      allow create: if isOwnerOrAdmin(request.resource.data.tenantId) ||
+                    (isAuth() && belongsToTenant(request.resource.data.tenantId) && isManager());
+      allow update: if isOwnerOrAdmin(resource.data.tenantId) ||
+                    (isAuth() && belongsToTenant(resource.data.tenantId) && isManager());
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId) ||
+                    (isAuth() && belongsToTenant(resource.data.tenantId) && isManager());
+    }
+
+    // 20. Display Templates (branch-level)
+    match /displayTemplates/{templateId} {
+      allow read: if true; // Public displays read template configurations
+      allow create: if isOwnerOrAdmin(request.resource.data.tenantId) ||
+                    (isAuth() && belongsToTenant(request.resource.data.tenantId) && isManager() && request.resource.data.branchId in userBranches());
+      allow update: if isOwnerOrAdmin(resource.data.tenantId) ||
+                    (isAuth() && belongsToTenant(resource.data.tenantId) && isManager() && resource.data.branchId in userBranches());
+      allow delete: if isOwnerOrAdmin(resource.data.tenantId) ||
+                    (isAuth() && belongsToTenant(resource.data.tenantId) && isManager() && resource.data.branchId in userBranches());
+    }
   }
 }

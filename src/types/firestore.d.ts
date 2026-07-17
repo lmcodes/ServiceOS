@@ -397,3 +397,35 @@ export interface AuditLog {
   after: Record<string, unknown> | null;
   timestamp: FirestoreTimestamp;
 }
+
+/**
+ * Media Library & Templates — Phase 14
+ */
+export interface MediaItem {
+  id: string;
+  tenantId: string;
+  name: string;
+  type: 'image' | 'video' | 'url';
+  storageUrl: string;
+  duration: number; // default duration in seconds
+  createdAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+}
+
+export interface PlaylistMediaItem {
+  mediaId: string;
+  duration: number; // slide duration in seconds
+}
+
+export interface DisplayTemplate {
+  id: string;
+  branchId: string;
+  name: string;
+  layout: 'queue-only' | 'split-media' | 'fullscreen-media-with-ticker';
+  mediaPlaylist: PlaylistMediaItem[];
+  queuePosition: 'left' | 'right' | 'none';
+  transitionSeconds: number; // default fallback transition seconds
+  isActive: boolean;
+  createdAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+}

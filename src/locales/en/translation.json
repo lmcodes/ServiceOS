@@ -105,6 +105,8 @@
     "menuCounters": "Counters",
     "menuKioskSettings": "Kiosk Settings",
     "menuStaticQR": "Static QR Labels",
+    "menuMediaLibrary": "Media Library",
+    "menuDisplayTemplates": "Display Settings",
     "menuCustomerGroups": "Customer Groups",
     "menuStaff": "Staff Directory",
     "menuAnalytics": "Analytics Dashboard",
@@ -752,6 +754,33 @@
         "timeMinLabel": "Warning Alert Time (Mins)",
         "timeMaxLabel": "Overtime Bump Time (Mins)"
       }
+    },
+    "media": {
+      "title": "Media Library",
+      "subtitle": "Upload assets and external media streams for TV Displays",
+      "uploadBtn": "Upload Media",
+      "dragDropText": "Drag and drop media files here, or click to upload",
+      "uploading": "Uploading file...",
+      "addUrlBtn": "Add URL / Youtube Link",
+      "noMedia": "No media items found",
+      "urlPlaceholder": "Paste URL (e.g. YouTube stream or web media)",
+      "durationLabel": "Default Duration (seconds)",
+      "mediaName": "Media Name",
+      "mediaType": "Media Type"
+    },
+    "displaySettings": {
+      "title": "Display Settings",
+      "subtitle": "Configure TV screen layouts and playlist templates",
+      "addBtn": "Create Template",
+      "noTemplates": "No templates defined for this branch",
+      "layoutLabel": "Display Layout",
+      "queueOnly": "Queue Only (Classic)",
+      "splitMedia": "Split Media (60/40)",
+      "fullscreenMedia": "Fullscreen Media + Ticker",
+      "playlistBuilder": "Playlist Builder",
+      "addMediaBtn": "Add Media from Library",
+      "activeTemplate": "Active Template",
+      "transitionTime": "Slide Time (seconds)"
     }
   },
   "kiosk": {
