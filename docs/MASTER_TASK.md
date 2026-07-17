@@ -721,11 +721,14 @@ Step 25: WP-01~04  → Web Push Notifications + Service Worker
 
 ### TTS-03 · Cloud Function TTS Proxy (Optional)
 - [x] Cloud Function `ttsProxy`: (Client-side proxy wrapper implementation in `tts.ts` client-side, dynamic mapping built securely as client-side requests)
+- [x] **TTS Cache Storage API Optimization**: บันทึกเสียงเรียกคิวแบบพรีเมียม (Google Cloud / OpenAI) ลงในหน่วยความจำแคชของทีวีอัตโนมัติ ช่วยลดค่าใช้จ่ายการเรียกใช้ API ซ้ำให้เหลือ $0.00
+- [x] **Display Templates Permission Bugfix**: แก้ไขโครงสร้างสิทธิ์การเขียน/เปิดใช้งานเทมเพลตทีวีร่วมกับระบบ Tenant Isolation ด้วยการแก้ไข Types, Repository, UI ให้รองรับฟิลด์ `tenantId` อย่างสมบูรณ์
 
 **🧪 ทดสอบ:**
 1. Browser TTS → เรียกคิว → ได้ยิน "หมายเลข เอ หนึ่ง ศูนย์ หนึ่ง โปรดไปที่ เค้าเตอร์ เอ"
 2. Google Cloud TTS → เสียงเป็นธรรมชาติขึ้น
 3. เรียกหลายคิวพร้อมกัน → เล่นทีละใบ ไม่ตัดกัน
+4. ตรวจสอบการแคชเสียงและลดการยิงเครือข่ายสำเร็จ
 
 ---
 

@@ -82,11 +82,59 @@ async function processQueue(): Promise<void> {
   processQueue();
 }
 
+const CACHE_NAME = 'service-os-tts-cache-v1';
+
+function getCacheKey(engine: string, settings: VoiceSettings, text: string): string {
+  const lang = settings.ttsLanguage || 'th-TH';
+  const voice = settings.ttsVoice || 'default';
+  return `https://local-tts.cache/${encodeURIComponent(engine)}/${encodeURIComponent(lang)}/${encodeURIComponent(voice)}/${encodeURIComponent(text)}`;
+}
+
+async function getCachedAudioBlob(key: string): Promise<Blob | null> {
+  if (typeof window === 'undefined' || !window.caches) return null;
+  try {
+    const cache = await window.caches.open(CACHE_NAME);
+    const response = await cache.match(key);
+    if (response) {
+      return await response.blob();
+    }
+  } catch (err) {
+    console.warn('[TTS Cache] Failed to read from cache:', err);
+  }
+  return null;
+}
+
+async function setCachedAudioBlob(key: string, blob: Blob): Promise<void> {
+  if (typeof window === 'undefined' || !window.caches) return;
+  try {
+    const cache = await window.caches.open(CACHE_NAME);
+    const response = new Response(blob, {
+      headers: { 'Content-Type': blob.type || 'audio/mp3' }
+    });
+    await cache.put(key, response);
+  } catch (err) {
+    console.warn('[TTS Cache] Failed to write to cache:', err);
+  }
+}
+
 /**
  * Route to corresponding speech synthesis engine
  */
 async function playSpeech(text: string, settings: VoiceSettings): Promise<void> {
   const engine = settings.ttsEngine || 'browser';
+  
+  if (engine !== 'browser') {
+    try {
+      const cacheKey = getCacheKey(engine, settings, text);
+      const cachedBlob = await getCachedAudioBlob(cacheKey);
+      if (cachedBlob) {
+        await playAudioBlob(cachedBlob, settings.ttsVolume);
+        return;
+      }
+    } catch (err) {
+      console.warn('[TTS Cache] Hit check failed, falling back to network:', err);
+    }
+  }
   
   switch (engine) {
     case 'google-cloud':
@@ -180,7 +228,19 @@ async function playSpeechGoogle(text: string, settings: VoiceSettings): Promise<
     throw new Error('No audio content returned from Google Cloud TTS');
   }
 
-  await playAudioBase64(data.audioContent, settings.ttsVolume);
+  // Convert to Blob and Cache
+  const binaryString = window.atob(data.audioContent);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  const blob = new Blob([bytes.buffer], { type: 'audio/mp3' });
+  
+  const cacheKey = getCacheKey('google-cloud', settings, text);
+  await setCachedAudioBlob(cacheKey, blob);
+
+  await playAudioBlob(blob, settings.ttsVolume);
 }
 
 /**
@@ -211,6 +271,10 @@ async function playSpeechOpenAI(text: string, settings: VoiceSettings): Promise<
   }
 
   const blob = await response.blob();
+  
+  const cacheKey = getCacheKey('openai', settings, text);
+  await setCachedAudioBlob(cacheKey, blob);
+
   await playAudioBlob(blob, settings.ttsVolume);
 }
 
@@ -245,27 +309,11 @@ async function playSpeechCustom(text: string, settings: VoiceSettings): Promise<
   }
 
   const blob = await response.blob();
-  await playAudioBlob(blob, settings.ttsVolume);
-}
 
-/**
- * Play audio from base64 string
- */
-function playAudioBase64(base64: string, volume: number): Promise<void> {
-  return new Promise((resolve, reject) => {
-    try {
-      const binaryString = window.atob(base64);
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const blob = new Blob([bytes.buffer], { type: 'audio/mp3' });
-      playAudioBlob(blob, volume).then(resolve).catch(reject);
-    } catch (err) {
-      reject(err);
-    }
-  });
+  const cacheKey = getCacheKey('custom-api', settings, text);
+  await setCachedAudioBlob(cacheKey, blob);
+
+  await playAudioBlob(blob, settings.ttsVolume);
 }
 
 /**
