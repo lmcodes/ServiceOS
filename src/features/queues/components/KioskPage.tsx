@@ -496,6 +496,9 @@ export const KioskPage: React.FC = () => {
       const result = await createQueueItem(branchId, service.id, {
         name: nameVal.trim() || translate('guestWalkIn'),
         priorityLevel: 1,
+        customData: {
+          language: i18n.language?.startsWith('th') ? 'th' : 'en'
+        }
       });
       setCreatedTicket(result);
       setShowSuccessModal(true);

@@ -53,6 +53,17 @@ export interface TicketLayoutElement {
   align?: 'left' | 'center' | 'right';
 }
 
+export interface VoiceStyleConfig {
+  ttsLanguage: string;
+  ttsVoice: string;
+  ttsTemplate: string;
+}
+
+export interface VoiceStyle {
+  name: string;
+  languages: Record<string, VoiceStyleConfig>;
+}
+
 export interface VoiceSettings {
   ttsEnabled: boolean;
   ttsEngine: 'browser' | 'google-cloud' | 'openai' | 'custom-api';
@@ -63,6 +74,11 @@ export interface VoiceSettings {
   ttsTemplate: string;
   ttsVolume: number;
   repeatCount: number;
+  ttsTemplateEn?: string;
+  ttsLanguageEn?: string;
+  ttsVoiceEn?: string;
+  styles?: Record<string, VoiceStyle>;
+  activeStyleId?: string;
 }
 
 export interface Branch {
@@ -190,6 +206,10 @@ export interface Service {
   color?: string;
   customFields: ServiceCustomField[];
   requireName?: boolean; // Phase 13
+  announcementTemplate?: string | null;
+  announcementTemplateEn?: string | null;
+  announcementStyleId?: string;
+  announcementTemplates?: Record<string, string>;
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }
@@ -291,6 +311,9 @@ export interface Counter {
   secondaryServiceIds: string[];
   oneStopServiceIds: string[];
   isActive: boolean;
+  soundStatus?: 'enabled' | 'muted';
+  announcementStyleId?: string | null;
+  announcementTemplates?: Record<string, string> | null;
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }

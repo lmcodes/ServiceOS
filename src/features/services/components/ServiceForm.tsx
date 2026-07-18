@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-import { X, Plus, Trash2, Save, Sliders } from 'lucide-react';
+import { X, Plus, Trash2, Save, Sliders, Volume2 } from 'lucide-react';
 import { Service, ServiceCustomField, Workflow, QueueRange } from '@/types/firestore';
 import { CreateServiceInput } from '../types';
 
@@ -12,6 +12,7 @@ interface ServiceFormProps {
   isLoading: boolean;
   workflows: Workflow[];
   queueRanges: QueueRange[];
+  voiceSettings?: any;
 }
 
 export const ServiceForm: React.FC<ServiceFormProps> = ({
@@ -21,6 +22,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   isLoading,
   workflows,
   queueRanges,
+  voiceSettings,
 }) => {
   const { t } = useTranslation();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -38,6 +40,9 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   const [workflowId, setWorkflowId] = useState<string | null>(initialData?.workflowId || null);
   const [queueRangeId, setQueueRangeId] = useState<string | null>(initialData?.queueRangeId || null);
   const [requireName, setRequireName] = useState(initialData?.requireName ?? false);
+  const [announcementTemplate, setAnnouncementTemplate] = useState(initialData?.announcementTemplate || '');
+  const [announcementTemplateEn, setAnnouncementTemplateEn] = useState(initialData?.announcementTemplateEn || '');
+  const [announcementStyleId, setAnnouncementStyleId] = useState(initialData?.announcementStyleId || '');
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -129,6 +134,15 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
         workflowId,
         queueRangeId,
         requireName,
+        announcementTemplate: announcementTemplate.trim() || null,
+        announcementTemplateEn: announcementTemplateEn.trim() || null,
+        announcementStyleId: announcementStyleId || null,
+        announcementTemplates: (announcementTemplate.trim() || announcementTemplateEn.trim())
+          ? {
+              ...(announcementTemplate.trim() && { th: announcementTemplate.trim() }),
+              ...(announcementTemplateEn.trim() && { en: announcementTemplateEn.trim() })
+            }
+          : null,
       };
       await onSubmit(payload);
     } catch (err: any) {
@@ -334,6 +348,69 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                   />
                   <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:height-4 after:w-4 after:h-4 after:transition-all dark:border-slate-600 peer-checked:bg-brand-655 cursor-pointer"></div>
                 </label>
+              </div>
+            </div>
+
+            {/* Custom Announcement Templates */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/20 border border-slate-205 dark:border-slate-800 rounded-2xl space-y-4">
+              <h4 className="text-xs font-bold text-slate-850 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Volume2 className="w-4 h-4 text-brand-500" />
+                Custom Announcement Templates
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Configure service-specific announcement messages. Leave empty to fallback to system/branch defaults.
+              </p>
+
+              {voiceSettings?.styles && Object.keys(voiceSettings.styles).length > 0 && (
+                <div className="pb-2">
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-405 mb-1">
+                    Announcement Style Override
+                  </label>
+                  <select
+                    value={announcementStyleId}
+                    onChange={(e) => setAnnouncementStyleId(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none cursor-pointer"
+                  >
+                    <option value="">Use Default ({voiceSettings.styles[voiceSettings.activeStyleId || '']?.name || 'Default Settings'})</option>
+                    {Object.entries(voiceSettings.styles).map(([id, s]: [string, any]) => (
+                      <option key={id} value={id}>{s.name} ({id})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                    Announcement Template (Thai)
+                  </label>
+                  <input
+                    type="text"
+                    value={announcementTemplate}
+                    onChange={(e) => setAnnouncementTemplate(e.target.value)}
+                    placeholder="e.g. หมายเลข {{number}} เชิญที่ช่องบริการ {{counter}}"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-855 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
+                  />
+                  <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-1">
+                    Use <code className="text-brand-500 font-bold">{"{{number}}"}</code> and <code className="text-brand-500 font-bold">{"{{counter}}"}</code> as placeholders.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                    Announcement Template (English)
+                  </label>
+                  <input
+                    type="text"
+                    value={announcementTemplateEn}
+                    onChange={(e) => setAnnouncementTemplateEn(e.target.value)}
+                    placeholder="e.g. Number {{number}}, please proceed to counter {{counter}}"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-855 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
+                  />
+                  <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-1">
+                    Use <code className="text-brand-500 font-bold">{"{{number}}"}</code> and <code className="text-brand-500 font-bold">{"{{counter}}"}</code> as placeholders.
+                  </p>
+                </div>
               </div>
             </div>
 

@@ -486,6 +486,7 @@ export const ServiceListPage: React.FC = () => {
           isLoading={createMutation.isPending || updateMutation.isPending}
           workflows={workflows}
           queueRanges={queueRanges}
+          voiceSettings={branches.find((b) => b.id === selectedBranchId)?.voiceSettings}
         />
       )}
     </div>

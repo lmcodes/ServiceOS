@@ -13,6 +13,10 @@ export interface CreateServiceInput {
   workflowId?: string | null;
   queueRangeId?: string | null;
   requireName?: boolean;
+  announcementTemplate?: string | null;
+  announcementTemplateEn?: string | null;
+  announcementStyleId?: string | null;
+  announcementTemplates?: Record<string, string> | null;
 }
 
 export interface UpdateServiceInput {
@@ -29,4 +33,8 @@ export interface UpdateServiceInput {
   workflowId?: string | null;
   queueRangeId?: string | null;
   requireName?: boolean;
+  announcementTemplate?: string | null;
+  announcementTemplateEn?: string | null;
+  announcementStyleId?: string | null;
+  announcementTemplates?: Record<string, string> | null;
 }

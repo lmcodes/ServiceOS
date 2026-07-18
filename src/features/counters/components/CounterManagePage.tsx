@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2, ToggleLeft, ToggleRight, Building2, Sparkles } from 'lucide-react';
+import { Plus, Edit2, Trash2, ToggleLeft, ToggleRight, Building2, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { useBranches } from '@/features/branches/hooks/useBranches';
 import { useServices } from '@/features/services/hooks/useServices';
 import { Counter } from '@/types/firestore';
@@ -74,6 +74,15 @@ export const CounterManagePage: React.FC = () => {
       await updateCounter(counter.id, { isActive: !counter.isActive });
     } catch (err) {
       console.error('Failed to toggle counter status:', err);
+    }
+  };
+
+  const handleToggleSound = async (counter: Counter) => {
+    try {
+      const nextSound = counter.soundStatus === 'muted' ? 'enabled' : 'muted';
+      await updateCounter(counter.id, { soundStatus: nextSound });
+    } catch (err) {
+      console.error('Failed to toggle counter sound status:', err);
     }
   };
 
@@ -242,6 +251,7 @@ export const CounterManagePage: React.FC = () => {
                   <th className="py-4 px-6">{t('pages.counters.table.primary', 'Primary Services')}</th>
                   <th className="py-4 px-6">{t('pages.counters.table.secondary', 'Secondary Services')}</th>
                   <th className="py-4 px-6">{t('pages.counters.table.oneStop', 'One-Stop Services')}</th>
+                  <th className="py-4 px-6 text-center">{t('pages.counters.table.sound', 'Sound')}</th>
                   <th className="py-4 px-6 text-center">{t('pages.counters.table.status', 'Status')}</th>
                   <th className="py-4 px-6 text-right">{t('pages.counters.table.actions', 'Actions')}</th>
                 </tr>
@@ -263,6 +273,19 @@ export const CounterManagePage: React.FC = () => {
                     </td>
                     <td className="py-4 px-6">
                       {renderServiceBadgeList(c.oneStopServiceIds)}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      <button
+                        onClick={() => handleToggleSound(c)}
+                        className="inline-flex p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        title={c.soundStatus === 'muted' ? t('pages.counters.sound.muted', 'Muted') : t('pages.counters.sound.enabled', 'Enabled')}
+                      >
+                        {c.soundStatus === 'muted' ? (
+                          <VolumeX className="w-5 h-5 text-red-500" />
+                        ) : (
+                          <Volume2 className="w-5 h-5 text-emerald-500" />
+                        )}
+                      </button>
                     </td>
                     <td className="py-4 px-6 text-center">
                       <button
@@ -312,6 +335,7 @@ export const CounterManagePage: React.FC = () => {
           onSubmit={handleFormSubmit}
           services={services}
           counter={selectedCounter}
+          voiceSettings={branches.find((b) => b.id === selectedBranchId)?.voiceSettings}
         />
       )}
     </div>

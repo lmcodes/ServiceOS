@@ -24,6 +24,9 @@ export interface CreateCounterInput {
   oneStopServiceIds: string[];
   isActive: boolean;
   tenantId: string; // added to ease security rule check
+  soundStatus?: 'enabled' | 'muted';
+  announcementStyleId?: string | null;
+  announcementTemplates?: Record<string, string> | null;
 }
 
 export async function createCounter(input: CreateCounterInput): Promise<string> {

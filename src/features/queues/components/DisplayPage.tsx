@@ -22,7 +22,7 @@ import {
   subscribeActiveDisplayTemplate, 
   subscribeMediaItems 
 } from '@/features/display/repository/displayRepository';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, query, collection, where } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 
 export const DisplayPage: React.FC = () => {
@@ -45,6 +45,9 @@ export const DisplayPage: React.FC = () => {
   const [mediaLibrary, setMediaLibrary] = useState<MediaItem[]>([]);
   const [currentPlayIndex, setCurrentPlayIndex] = useState(0);
 
+  // Counters Map State
+  const [counters, setCounters] = useState<Record<string, any>>({});
+
   // Refs for tracking changes
   const lastCalledTicketIdRef = useRef<string | null>(null);
   const lastCalledTimeRef = useRef<number | null>(null);
@@ -52,6 +55,16 @@ export const DisplayPage: React.FC = () => {
 
   const voiceSettingsRef = useRef<any>(undefined);
   const systemVoiceSettingsRef = useRef<any>(undefined);
+  const countersRef = useRef<Record<string, any>>({});
+  const servicesRef = useRef<Record<string, Service>>({});
+
+  useEffect(() => {
+    countersRef.current = counters;
+  }, [counters]);
+
+  useEffect(() => {
+    servicesRef.current = services;
+  }, [services]);
 
   useEffect(() => {
     voiceSettingsRef.current = branch?.voiceSettings;
@@ -68,6 +81,25 @@ export const DisplayPage: React.FC = () => {
     });
     return () => unsubscribe();
   }, []);
+
+  // Subscribe to counters to track soundStatus
+  useEffect(() => {
+    if (!branchId) return;
+    const q = query(collection(db, 'counters'), where('branchId', '==', branchId));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const map: Record<string, any> = {};
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.name) {
+          map[data.name.toLowerCase().trim()] = { id: docSnap.id, ...data };
+        }
+      });
+      setCounters(map);
+    }, (err) => {
+      console.error('[DisplayPage] Error subscribing to counters:', err);
+    });
+    return () => unsubscribe();
+  }, [branchId]);
 
   // Real-time Clock
   useEffect(() => {
@@ -222,22 +254,134 @@ export const DisplayPage: React.FC = () => {
 
             // Play audio alert if enabled
             if (isAudioEnabled) {
-              playCallingChime();
+              // Check counter soundStatus (mute/unmute)
+              const counterNameKey = (latestCalled.calledByCounter || '').toLowerCase().trim();
+              const targetCounter = countersRef.current[counterNameKey];
+              const isMuted = targetCounter && targetCounter.soundStatus === 'muted';
 
-              // Determine active settings: branch settings take priority if enabled, otherwise fall back to system settings
-              const activeVoiceSettings = (voiceSettingsRef.current && voiceSettingsRef.current.ttsEnabled)
-                ? voiceSettingsRef.current
-                : systemVoiceSettingsRef.current;
+              if (!isMuted) {
+                playCallingChime();
 
-              if (activeVoiceSettings && activeVoiceSettings.ttsEnabled) {
-                // Delay voice announcement slightly to let the chime sound finish first
-                setTimeout(() => {
-                  speakQueue(
-                    latestCalled.queueNumber,
-                    latestCalled.calledByCounter || '1',
-                    activeVoiceSettings
-                  );
-                }, 1200);
+                // Determine active settings: branch settings take priority if enabled, otherwise fall back to system settings
+                const activeVoiceSettings = (voiceSettingsRef.current && voiceSettingsRef.current.ttsEnabled)
+                  ? voiceSettingsRef.current
+                  : systemVoiceSettingsRef.current;
+
+                if (activeVoiceSettings && activeVoiceSettings.ttsEnabled) {
+                  // Get ticket language
+                  const ticketLang = (latestCalled.customData?.language as string) || 'th';
+                  const isEng = ticketLang === 'en';
+
+                  const targetService = servicesRef.current[latestCalled.serviceId];
+
+                  // Resolve Style ID, Template, Language, and Voice step-by-step
+                  let resolvedTemplate = '';
+                  let ttsLanguageOverride = '';
+                  let ttsVoiceOverride = '';
+                  let resolvedStyleId = '';
+
+                  // Helper to check and resolve voice settings from a style ID
+                  const getStyleConfig = (styleId: string) => {
+                    if (!styleId) return null;
+                    return activeVoiceSettings?.styles?.[styleId]?.languages?.[ticketLang] || null;
+                  };
+
+                  // 1. Check Counter-Level (Highest Priority)
+                  if (targetCounter) {
+                    // Direct template override
+                    if (targetCounter.announcementTemplates?.[ticketLang]) {
+                      resolvedTemplate = targetCounter.announcementTemplates[ticketLang];
+                    }
+                    // Announcement style
+                    if (targetCounter.announcementStyleId) {
+                      resolvedStyleId = targetCounter.announcementStyleId;
+                      const styleConfig = getStyleConfig(resolvedStyleId);
+                      if (styleConfig) {
+                        if (!resolvedTemplate && styleConfig.ttsTemplate) {
+                          resolvedTemplate = styleConfig.ttsTemplate;
+                        }
+                        if (styleConfig.ttsLanguage) {
+                          ttsLanguageOverride = styleConfig.ttsLanguage;
+                          ttsVoiceOverride = styleConfig.ttsVoice || '';
+                        }
+                      }
+                    }
+                  }
+
+                  // 2. Check Service-Level (Secondary Priority)
+                  if (!resolvedTemplate || !ttsLanguageOverride) {
+                    if (targetService) {
+                      // Direct template override
+                      if (!resolvedTemplate && targetService.announcementTemplates?.[ticketLang]) {
+                        resolvedTemplate = targetService.announcementTemplates[ticketLang];
+                      }
+                      // Announcement style
+                      if (targetService.announcementStyleId) {
+                        const serviceStyleId = targetService.announcementStyleId;
+                        const styleConfig = getStyleConfig(serviceStyleId);
+                        if (styleConfig) {
+                          if (!resolvedStyleId) resolvedStyleId = serviceStyleId;
+                          if (!resolvedTemplate && styleConfig.ttsTemplate) {
+                            resolvedTemplate = styleConfig.ttsTemplate;
+                          }
+                          if (!ttsLanguageOverride && styleConfig.ttsLanguage) {
+                            ttsLanguageOverride = styleConfig.ttsLanguage;
+                            ttsVoiceOverride = styleConfig.ttsVoice || '';
+                          }
+                        }
+                      }
+                    }
+                  }
+
+                  // 3. Check Branch/System Default Level (Lowest Priority)
+                  if (!resolvedTemplate || !ttsLanguageOverride) {
+                    const defaultStyleId = activeVoiceSettings?.activeStyleId;
+                    if (defaultStyleId) {
+                      const styleConfig = getStyleConfig(defaultStyleId);
+                      if (styleConfig) {
+                        if (!resolvedStyleId) resolvedStyleId = defaultStyleId;
+                        if (!resolvedTemplate && styleConfig.ttsTemplate) {
+                          resolvedTemplate = styleConfig.ttsTemplate;
+                        }
+                        if (!ttsLanguageOverride && styleConfig.ttsLanguage) {
+                          ttsLanguageOverride = styleConfig.ttsLanguage;
+                          ttsVoiceOverride = styleConfig.ttsVoice || '';
+                        }
+                      }
+                    }
+                  }
+
+                  // Final fallback to branch default values
+                  if (!resolvedTemplate) {
+                    resolvedTemplate = isEng
+                      ? (activeVoiceSettings.ttsTemplateEn || 'Number {{number}}, please proceed to counter {{counter}}')
+                      : (activeVoiceSettings.ttsTemplate || 'หมายเลข {{number}} เชิญที่ช่องบริการ {{counter}}');
+                  }
+                  if (!ttsLanguageOverride) {
+                    ttsLanguageOverride = isEng
+                      ? (activeVoiceSettings.ttsLanguageEn || 'en-US')
+                      : (activeVoiceSettings.ttsLanguage || 'th-TH');
+                    ttsVoiceOverride = isEng
+                      ? (activeVoiceSettings.ttsVoiceEn || '')
+                      : (activeVoiceSettings.ttsVoice || '');
+                  }
+
+                  const resolvedSettings = {
+                    ...activeVoiceSettings,
+                    ttsTemplate: resolvedTemplate,
+                    ttsLanguage: ttsLanguageOverride,
+                    ttsVoice: ttsVoiceOverride,
+                  };
+
+                  // Delay voice announcement slightly to let the chime sound finish first
+                  setTimeout(() => {
+                    speakQueue(
+                      latestCalled.queueNumber,
+                      latestCalled.calledByCounter || '1',
+                      resolvedSettings
+                    );
+                  }, 1200);
+                }
               }
             }
           }

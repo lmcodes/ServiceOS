@@ -22,7 +22,7 @@ import { SettingsSwitcher } from '@/shared/components/SettingsSwitcher';
 export const JoinPage: React.FC = () => {
   const { branchId } = useParams<{ branchId: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const autoJoin = searchParams.get('autoJoin') === 'true';
   const serviceParamId = searchParams.get('service');
@@ -141,7 +141,10 @@ export const JoinPage: React.FC = () => {
         try {
           const result = await createQueueItem(branchId!, targetService.id, {
             name: 'Walk-in Guest',
-            priorityLevel: 1
+            priorityLevel: 1,
+            customData: {
+              language: i18n.language?.startsWith('th') ? 'th' : 'en'
+            }
           });
           navigate(`/status/${result.id}`);
         } catch (err: any) {
@@ -203,7 +206,10 @@ export const JoinPage: React.FC = () => {
         name: name.trim(),
         phone: phone.trim() || undefined,
         email: email.trim() || undefined,
-        customData,
+        customData: {
+          ...customData,
+          language: i18n.language?.startsWith('th') ? 'th' : 'en'
+        },
         customerGroupId: selectedGroupId || undefined,
         priorityLevel: selectedGroup ? selectedGroup.priorityLevel : 1
       });
