@@ -114,11 +114,16 @@
     "menuSubscription": "แพ็คเกจและการเรียกเก็บเงิน",
     "menuDeveloper": "พอร์ทัลนักพัฒนา",
     "menuSettings": "ตั้งค่าโปรไฟล์",
+    "menuSuperAdmin": "ระบบจัดการหลังบ้าน (Super Admin)",
     "logoutButton": "ออกจากระบบ",
     "timezonePrefix": "เขตเวลา",
     "rolePrefix": "สิทธิ์"
   },
   "pages": {
+    "superAdmin": {
+      "title": "ระบบจัดการหลังบ้าน (Super Admin)",
+      "subtitle": "กำหนดค่าแพ็คเกจผู้ใช้, ทรัพยากรกองกลาง, สิทธิ์เข้าถึงของแต่ละสาขาในเครือข่ายแอป"
+    },
     "landing": {
       "title": "ยินดีต้อนรับสู่ ServiceOS",
       "subtitle": "โครงสร้างพื้นฐานระบบและระบบตรวจคิวบริการอัจฉริยะ",

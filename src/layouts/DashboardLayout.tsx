@@ -79,6 +79,7 @@ export const DashboardLayout: React.FC = () => {
     { to: '/dashboard/subscription', icon: <CreditCard size={18} />, label: t('dashboard.menuSubscription'), roles: ['owner'] },
     { to: '/dashboard/developer', icon: <Code size={18} />, label: t('dashboard.menuDeveloper', 'Developer Portal'), roles: ['owner', 'admin'] },
     { to: '/dashboard/settings', icon: <LayoutDashboard size={18} />, label: t('dashboard.menuSettings'), roles: ['owner'] },
+    { to: '/dashboard/super-admin', icon: <ShieldCheck size={18} />, label: t('dashboard.menuSuperAdmin', 'Super Admin Portal'), roles: ['super_admin'] },
   ];
 
   const handleLogout = async () => {
@@ -94,7 +95,9 @@ export const DashboardLayout: React.FC = () => {
 
   // Filter menu items by user role
   const allowedMenuItems = menuItems.filter(item =>
-    !item.roles || (user?.role && item.roles.includes(user.role))
+    !item.roles || 
+    user?.role === 'super_admin' || 
+    (user?.role && item.roles.includes(user.role as any))
   );
 
   return (

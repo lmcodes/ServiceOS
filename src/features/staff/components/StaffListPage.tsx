@@ -57,10 +57,10 @@ export const StaffListPage: React.FC = () => {
     const unsubscribe = subscribeStaffMembers(
       currentUser.tenantId,
       (users) => {
-        // Sort: Owner first, then Admin, then Manager, then Staff
-        const roleOrder = { owner: 0, admin: 1, manager: 2, staff: 3 };
+        // Sort: Super Admin first, then Owner, then Admin, then Manager, then Staff
+        const roleOrder = { super_admin: 0, owner: 1, admin: 2, manager: 3, staff: 4 };
         const sorted = [...users].sort((a, b) => {
-          return (roleOrder[a.role] ?? 4) - (roleOrder[b.role] ?? 4);
+          return (roleOrder[a.role] ?? 5) - (roleOrder[b.role] ?? 5);
         });
         setStaffList(sorted);
         setIsFetching(false);

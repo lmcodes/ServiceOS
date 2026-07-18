@@ -137,7 +137,7 @@ export interface User {
   displayName: string;
   photoUrl?: string;
   phone?: string;
-  role: 'owner' | 'admin' | 'manager' | 'staff';
+  role: 'super_admin' | 'owner' | 'admin' | 'manager' | 'staff';
   branchIds: string[]; // Branches assigned to
   status: 'active' | 'inactive' | 'invited' | 'suspended';
   lastLoginAt?: FirestoreTimestamp;

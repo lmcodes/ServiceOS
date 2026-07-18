@@ -47,6 +47,7 @@ import { SubscriptionPage } from '@/features/billing/components/SubscriptionPage
 
 // Developer Portal Feature
 import { DeveloperPage } from '@/features/developer/components/DeveloperPage';
+import { SuperAdminPortal } from '@/features/superAdmin/components/SuperAdminPortal';
 
 
 // Mock Landing Page
@@ -248,6 +249,16 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['owner', 'admin']}>
               <DeveloperPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Super Admin Portal (super_admin only) */}
+        <Route 
+          path="super-admin" 
+          element={
+            <ProtectedRoute allowedRoles={['super_admin']}>
+              <SuperAdminPortal />
             </ProtectedRoute>
           } 
         />

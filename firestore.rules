@@ -26,15 +26,24 @@ service cloud.firestore {
       return request.auth.token.branchIds;
     }
 
+    // Checks if the user has a super admin role (either via Custom Claims token or direct Firestore check)
+    function isSuperAdmin() {
+      return isAuth() && (
+        userRole() == 'super_admin' || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin')
+      );
+    }
+
     // Verifies the user belongs to the specified tenant
     function belongsToTenant(tenantId) {
-      return isAuth() && userTenantId() == tenantId;
+      return isAuth() && (userTenantId() == tenantId || isSuperAdmin());
     }
 
 
     // Admin includes Owner permissions as well
     function isAdmin() {
-      return isAuth() && (userRole() == 'admin' || userRole() == 'owner');
+      return isAuth() && (userRole() == 'admin' || userRole() == 'owner' || isSuperAdmin());
     }
 
     function isManager() {
@@ -78,10 +87,10 @@ service cloud.firestore {
 
     // 3. Users Collection
     match /users/{userId} {
-      allow read: if belongsToTenant(resource.data.tenantId);
+      allow read: if isAuth() && (request.auth.uid == userId || belongsToTenant(resource.data.tenantId));
       allow create: if isAuth() && request.resource.data.id == request.auth.uid; // users can initialize their own profile
-      allow update: if belongsToTenant(resource.data.tenantId) && (
-        isOwnerOrAdmin(resource.data.tenantId) || 
+      allow update: if isAuth() && (
+        (belongsToTenant(resource.data.tenantId) && isOwnerOrAdmin(resource.data.tenantId)) || 
         request.auth.uid == userId
       );
       allow delete: if isOwnerOrAdmin(resource.data.tenantId);
@@ -254,6 +263,18 @@ service cloud.firestore {
       allow delete: if isOwnerOrAdmin(resource.data.tenantId) ||
                     (isAuth() && belongsToTenant(resource.data.tenantId) && isManager() && resource.data.branchId in userBranches()) ||
                     (!('tenantId' in resource.data) && isAuth());
+    }
+
+    // 21. Global System Media (system-wide repository)
+    match /systemMedia/{mediaId} {
+      allow read: if isAuth();
+      allow write: if isSuperAdmin();
+    }
+
+    // 22. Global System Settings (system-wide configurations)
+    match /systemSettings/{settingId} {
+      allow read: if isAuth();
+      allow write: if isSuperAdmin();
     }
   }
 }

@@ -31,8 +31,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     return <Navigate to="/login" replace />;
   }
 
-  // Check if user's role satisfies page permissions
-  if (allowedRoles && (!user.role || !allowedRoles.includes(user.role))) {
+  // Check if user's role satisfies page permissions (super_admin bypasses all role restrictions)
+  if (allowedRoles && (!user.role || (!allowedRoles.includes(user.role) && user.role !== 'super_admin'))) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 rounded-full bg-danger/10 text-danger flex items-center justify-center mb-4">

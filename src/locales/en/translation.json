@@ -114,11 +114,16 @@
     "menuSubscription": "Plan & Billing",
     "menuDeveloper": "Developer Portal",
     "menuSettings": "Tenant Profile",
+    "menuSuperAdmin": "Super Admin Portal",
     "logoutButton": "Log out",
     "timezonePrefix": "Timezone",
     "rolePrefix": "Role"
   },
   "pages": {
+    "superAdmin": {
+      "title": "Super Admin Portal",
+      "subtitle": "Configure system-wide subscriptions, central resources and tenant plan levels"
+    },
     "landing": {
       "title": "Welcome to ServiceOS",
       "subtitle": "Scaffolding and smart service check-in queue system.",

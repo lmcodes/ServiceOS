@@ -9,15 +9,19 @@ import {
   Eye,
   EyeOff,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from 'lucide-react';
 import { useBranches } from '@/features/branches/hooks/useBranches';
+import { useAuth } from '@/context/AuthContext';
 import { updateBranch } from '@/features/branches/repository/branchRepository';
 import { speakQueue } from '@/utils/tts';
 import { VoiceSettings } from '@/types/firestore';
 
 export const VoiceSettingsPage: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
   const { data: branches = [], isLoading: isLoadingBranches } = useBranches();
   
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
@@ -205,6 +209,15 @@ export const VoiceSettingsPage: React.FC = () => {
                 TTS Engine Config
               </h3>
 
+              {!isSuperAdmin && (
+                <div className="flex items-start gap-2 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800 text-xs text-slate-500 mb-4">
+                  <Lock className="w-4 h-4 text-brand-500 shrink-0 mt-0.5" />
+                  <span>
+                    Premium TTS Engine select and API Keys configuration are restricted to System Super Administrators. You can configure voice names, templates, and volume.
+                  </span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Engine Select */}
                 <div>
@@ -213,8 +226,9 @@ export const VoiceSettingsPage: React.FC = () => {
                   </label>
                   <select
                     value={ttsEngine}
+                    disabled={!isSuperAdmin}
                     onChange={(e) => setTtsEngine(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <option value="browser">Browser Synthesis (Free / Native)</option>
                     <option value="google-cloud">Google Cloud TTS (Premium)</option>
@@ -276,10 +290,11 @@ export const VoiceSettingsPage: React.FC = () => {
                     <div className="relative">
                       <input
                         type={showApiKey ? 'text' : 'password'}
+                        disabled={!isSuperAdmin}
                         value={ttsApiKey}
                         onChange={(e) => setTtsApiKey(e.target.value)}
-                        placeholder="Enter API credentials key"
-                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 pr-10"
+                        placeholder={isSuperAdmin ? "Enter API credentials key" : "••••••••••••••••"}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 pr-10 disabled:opacity-60 disabled:cursor-not-allowed"
                       />
                       <button
                         type="button"
@@ -300,10 +315,11 @@ export const VoiceSettingsPage: React.FC = () => {
                     </label>
                     <input
                       type="url"
+                      disabled={!isSuperAdmin}
                       value={ttsCustomUrl}
                       onChange={(e) => setTtsCustomUrl(e.target.value)}
                       placeholder="https://your-custom-tts.api/synthesize"
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
                       required={ttsEngine === 'custom-api'}
                     />
                   </div>

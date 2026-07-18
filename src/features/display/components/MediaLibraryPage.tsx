@@ -15,6 +15,8 @@ import {
   Clock
 } from 'lucide-react';
 import { MediaItem } from '@/types/firestore';
+import { db } from '@/config/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { 
   subscribeMediaItems, 
   addMediaItem, 
@@ -24,7 +26,8 @@ import {
 
 export const MediaLibraryPage: React.FC = () => {
   const { t } = useTranslation();
-  const { tenant } = useTenant();
+  const { tenant, subscription } = useTenant();
+  const isFreePlan = subscription?.planId === 'starter' || !subscription?.planId;
 
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,21 +54,40 @@ export const MediaLibraryPage: React.FC = () => {
     if (!tenant?.id) return;
 
     setLoading(true);
-    const unsubscribe = subscribeMediaItems(
-      tenant.id,
-      (items) => {
+    
+    if (isFreePlan) {
+      // Free plan: Read global system media library
+      const q = collection(db, 'systemMedia');
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const items: MediaItem[] = [];
+        snapshot.forEach((docSnap) => {
+          items.push({ id: docSnap.id, ...docSnap.data() } as MediaItem);
+        });
         setMediaItems(items);
         setLoading(false);
-      },
-      (err) => {
-        console.error('Error subscribing to media library:', err);
-        setError('Failed to load media items');
+      }, (err) => {
+        console.error('Error fetching global system media:', err);
+        setError('Failed to load system media items');
         setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [tenant?.id]);
+      });
+      return () => unsubscribe();
+    } else {
+      // Paid plan: Read tenant-specific media
+      const unsubscribe = subscribeMediaItems(
+        tenant.id,
+        (items) => {
+          setMediaItems(items);
+          setLoading(false);
+        },
+        (err) => {
+          console.error('Error subscribing to media library:', err);
+          setError('Failed to load media items');
+          setLoading(false);
+        }
+      );
+      return () => unsubscribe();
+    }
+  }, [tenant?.id, isFreePlan]);
 
   const showSuccess = (msg: string) => {
     setSuccessMsg(msg);
@@ -168,15 +190,16 @@ export const MediaLibraryPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsUrlModalOpen(true)}
-            className="flex items-center gap-1.5 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-semibold text-sm rounded-xl transition-all cursor-pointer"
+            disabled={isFreePlan}
+            className="flex items-center gap-1.5 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-semibold text-sm rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Link2 className="w-4.5 h-4.5" />
             <span>{t('pages.media.addUrlBtn', 'Add URL / YouTube')}</span>
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="flex items-center gap-1.5 py-2.5 px-4 bg-brand-655 hover:bg-brand-600 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-655/10 transition-all cursor-pointer disabled:opacity-50"
+            disabled={isUploading || isFreePlan}
+            className="flex items-center gap-1.5 py-2.5 px-4 bg-brand-655 hover:bg-brand-600 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-655/10 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload className="w-4.5 h-4.5" />
             <span>{isUploading ? t('pages.media.uploading', 'Uploading...') : t('pages.media.uploadBtn', 'Upload File')}</span>
@@ -206,35 +229,47 @@ export const MediaLibraryPage: React.FC = () => {
         </div>
       )}
 
-      {/* Drag & Drop Zone */}
-      <div 
-        onClick={() => fileInputRef.current?.click()}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={async (e) => {
-          e.preventDefault();
-          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            await processFile(e.dataTransfer.files[0]);
-          }
-        }}
-        className="border-2 border-dashed border-slate-350 dark:border-slate-800 hover:border-brand-500 dark:hover:border-brand-500 rounded-3xl p-8 text-center cursor-pointer bg-white dark:bg-slate-900 transition-all group shadow-sm"
-      >
-        <Upload className="w-10 h-10 text-slate-400 group-hover:text-brand-500 mx-auto mb-3 transition-colors" />
-        <span className="font-semibold text-slate-805 dark:text-white text-sm block">
-          {t('pages.media.dragDropText', 'Drag and drop media files here, or click to upload')}
-        </span>
-        <span className="text-xs text-slate-400 mt-1 block">Supports JPG, PNG, WEBP, MP4, MOV up to 50MB</span>
-        {isUploading && (
-          <div className="mt-4 max-w-xs mx-auto">
-            <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-850 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-brand-500 transition-all duration-300" 
-                style={{ width: `${uploadProgress || 10}%` }}
-              ></div>
-            </div>
-            <span className="text-[10px] text-slate-450 mt-1 block">Uploading... {uploadProgress || 10}%</span>
+      {/* Drag & Drop Zone vs Plan Alert Notice */}
+      {isFreePlan ? (
+        <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/25 p-4 rounded-2xl text-xs text-amber-700 dark:text-amber-400">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-brand-500 animate-pulse" />
+          <div>
+            <span className="font-bold block mb-1">Starter (Free Plan) Restrictions</span>
+            <span>
+              Your current subscription plan only permits selecting from the System-Wide Curated Media Library. To upload custom images, videos, or external streaming URLs, please upgrade to a paid plan tier in the Subscription portal.
+            </span>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div 
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={async (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+              await processFile(e.dataTransfer.files[0]);
+            }
+          }}
+          className="border-2 border-dashed border-slate-350 dark:border-slate-800 hover:border-brand-500 dark:hover:border-brand-500 rounded-3xl p-8 text-center cursor-pointer bg-white dark:bg-slate-900 transition-all group shadow-sm"
+        >
+          <Upload className="w-10 h-10 text-slate-400 group-hover:text-brand-500 mx-auto mb-3 transition-colors" />
+          <span className="font-semibold text-slate-805 dark:text-white text-sm block">
+            {t('pages.media.dragDropText', 'Drag and drop media files here, or click to upload')}
+          </span>
+          <span className="text-xs text-slate-400 mt-1 block">Supports JPG, PNG, WEBP, MP4, MOV up to 50MB</span>
+          {isUploading && (
+            <div className="mt-4 max-w-xs mx-auto">
+              <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-850 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-brand-500 transition-all duration-300" 
+                  style={{ width: `${uploadProgress || 10}%` }}
+                ></div>
+              </div>
+              <span className="text-[10px] text-slate-450 mt-1 block">Uploading... {uploadProgress || 10}%</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Filters & Grid */}
       <div className="space-y-4">
@@ -317,13 +352,15 @@ export const MediaLibraryPage: React.FC = () => {
                       >
                         <Eye className="w-4.5 h-4.5" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(item)}
-                        className="p-2 bg-red-600/80 hover:bg-red-655 text-white rounded-xl cursor-pointer backdrop-blur-md transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4.5 h-4.5" />
-                      </button>
+                      {!isFreePlan && (
+                        <button
+                          onClick={() => handleDelete(item)}
+                          className="p-2 bg-red-600/80 hover:bg-red-655 text-white rounded-xl cursor-pointer backdrop-blur-md transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4.5 h-4.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
 

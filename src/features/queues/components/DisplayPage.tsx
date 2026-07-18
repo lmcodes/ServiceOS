@@ -22,6 +22,8 @@ import {
   subscribeActiveDisplayTemplate, 
   subscribeMediaItems 
 } from '@/features/display/repository/displayRepository';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/config/firebase';
 
 export const DisplayPage: React.FC = () => {
   const { branchId } = useParams<{ branchId: string }>();
@@ -49,9 +51,23 @@ export const DisplayPage: React.FC = () => {
   const flashTimeoutRef = useRef<any>(null);
 
   const voiceSettingsRef = useRef<any>(undefined);
+  const systemVoiceSettingsRef = useRef<any>(undefined);
+
   useEffect(() => {
     voiceSettingsRef.current = branch?.voiceSettings;
   }, [branch?.voiceSettings]);
+
+  // Load system fallback voice settings
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'systemSettings', 'voice'), (docSnap) => {
+      if (docSnap.exists()) {
+        systemVoiceSettingsRef.current = docSnap.data();
+      }
+    }, (err) => {
+      console.warn('[DisplayPage] Failed to fetch system voice settings:', err);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Real-time Clock
   useEffect(() => {
@@ -208,18 +224,19 @@ export const DisplayPage: React.FC = () => {
             if (isAudioEnabled) {
               playCallingChime();
 
-              const vSettings = voiceSettingsRef.current;
-              if (vSettings && vSettings.ttsEnabled) {
+              // Determine active settings: branch settings take priority if enabled, otherwise fall back to system settings
+              const activeVoiceSettings = (voiceSettingsRef.current && voiceSettingsRef.current.ttsEnabled)
+                ? voiceSettingsRef.current
+                : systemVoiceSettingsRef.current;
+
+              if (activeVoiceSettings && activeVoiceSettings.ttsEnabled) {
                 // Delay voice announcement slightly to let the chime sound finish first
                 setTimeout(() => {
-                  const currentSettings = voiceSettingsRef.current;
-                  if (currentSettings) {
-                    speakQueue(
-                      latestCalled.queueNumber,
-                      latestCalled.calledByCounter || '1',
-                      currentSettings
-                    );
-                  }
+                  speakQueue(
+                    latestCalled.queueNumber,
+                    latestCalled.calledByCounter || '1',
+                    activeVoiceSettings
+                  );
                 }, 1200);
               }
             }
