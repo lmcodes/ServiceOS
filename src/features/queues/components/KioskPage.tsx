@@ -9,9 +9,9 @@ const DEFAULT_TICKET_LAYOUT: TicketLayoutElement[] = [
   { id: 'branchName', type: 'branchName', visible: true, fontSize: 'sm', bold: true, align: 'center' },
   { id: 'serviceName', type: 'serviceName', visible: true, fontSize: 'xs', bold: true, align: 'center' },
   { id: 'queueNumber', type: 'queueNumber', visible: true, fontSize: 'xl', bold: true, align: 'center' },
-  { id: 'customerName', type: 'customerName', text: 'Name: ', visible: true, fontSize: 'xs', align: 'center' },
+  { id: 'customerName', type: 'customerName', text: 'ชื่อ: ', textEn: 'Name: ', visible: true, fontSize: 'xs', align: 'center' },
   { id: 'dateTime', type: 'dateTime', visible: true, fontSize: 'xs', align: 'center' },
-  { id: 'footerText', type: 'text', text: 'Thank you for your visit!', visible: true, fontSize: 'xs', align: 'center' },
+  { id: 'footerText', type: 'text', text: 'ขอบคุณที่ใช้บริการ', textEn: 'Thank you for your visit!', visible: true, fontSize: 'xs', align: 'center' },
 ];
 
 const getFontSizeStyle = (size: 'xs' | 'sm' | 'md' | 'lg' | 'xl') => {
@@ -1038,7 +1038,7 @@ export const KioskPage: React.FC = () => {
                   case 'customerName':
                     return (
                       <div key={el.id} style={combinedStyle}>
-                        {el.text || (selectedLang === 'th' ? 'ชื่อ: ' : 'Name: ')}{customerName || translate('guestWalkIn')}
+                        {selectedLang === 'en' ? (el.textEn || el.text || 'Name: ') : (el.text || 'ชื่อ: ')}{customerName || translate('guestWalkIn')}
                       </div>
                     );
                   case 'dateTime':
@@ -1051,7 +1051,7 @@ export const KioskPage: React.FC = () => {
                   default:
                     return (
                       <div key={el.id} style={combinedStyle}>
-                        {el.text || ''}
+                        {selectedLang === 'en' ? (el.textEn || el.text || '') : (el.text || '')}
                       </div>
                     );
                 }

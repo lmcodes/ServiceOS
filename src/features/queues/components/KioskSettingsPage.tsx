@@ -43,9 +43,9 @@ const DEFAULT_TICKET_LAYOUT: TicketLayoutElement[] = [
   { id: 'branchName', type: 'branchName', visible: true, fontSize: 'sm', bold: true, align: 'center' },
   { id: 'serviceName', type: 'serviceName', visible: true, fontSize: 'xs', bold: true, align: 'center' },
   { id: 'queueNumber', type: 'queueNumber', visible: true, fontSize: 'xl', bold: true, align: 'center' },
-  { id: 'customerName', type: 'customerName', text: 'Name: ', visible: true, fontSize: 'xs', align: 'center' },
+  { id: 'customerName', type: 'customerName', text: 'ชื่อ: ', textEn: 'Name: ', visible: true, fontSize: 'xs', align: 'center' },
   { id: 'dateTime', type: 'dateTime', visible: true, fontSize: 'xs', align: 'center' },
-  { id: 'footerText', type: 'text', text: 'Thank you for your visit!', visible: true, fontSize: 'xs', align: 'center' },
+  { id: 'footerText', type: 'text', text: 'ขอบคุณที่ใช้บริการ', textEn: 'Thank you for your visit!', visible: true, fontSize: 'xs', align: 'center' },
 ];
 
 const getFontSizeClass = (size: 'xs' | 'sm' | 'md' | 'lg' | 'xl') => {
@@ -88,6 +88,7 @@ export const KioskSettingsPage: React.FC = () => {
   const [allowedServiceIds, setAllowedServiceIds] = useState<string[]>([]);
   const [pageSize, setPageSize] = useState<'58mm' | '80mm'>('80mm');
   const [ticketLayout, setTicketLayout] = useState<TicketLayoutElement[]>([]);
+  const [previewLang, setPreviewLang] = useState<'th' | 'en'>('th');
 
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [draggedTicketIndex, setDraggedTicketIndex] = useState<number | null>(null);
@@ -154,7 +155,8 @@ export const KioskSettingsPage: React.FC = () => {
     const newEl: TicketLayoutElement = {
       id: `text-${Date.now()}`,
       type: 'text',
-      text: 'Custom Text Line',
+      text: 'ข้อความเพิ่มเติม',
+      textEn: 'Custom Text Line',
       visible: true,
       fontSize: 'xs',
       align: 'center',
@@ -779,22 +781,52 @@ export const KioskSettingsPage: React.FC = () => {
                                 {/* Text Value/Prefix input */}
                                 <div className="sm:col-span-6">
                                   {el.type === 'text' && (
-                                    <input
-                                      type="text"
-                                      value={el.text || ''}
-                                      onChange={(e) => handleUpdateElement(el.id, { text: e.target.value })}
-                                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all outline-none"
-                                      placeholder="Custom text..."
-                                    />
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 min-w-[24px] text-center select-none">TH</span>
+                                        <input
+                                          type="text"
+                                          value={el.text || ''}
+                                          onChange={(e) => handleUpdateElement(el.id, { text: e.target.value })}
+                                          className="flex-1 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all outline-none"
+                                          placeholder="ข้อความภาษาไทย..."
+                                        />
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 min-w-[24px] text-center select-none">EN</span>
+                                        <input
+                                          type="text"
+                                          value={el.textEn || ''}
+                                          onChange={(e) => handleUpdateElement(el.id, { textEn: e.target.value })}
+                                          className="flex-1 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all outline-none"
+                                          placeholder="English text..."
+                                        />
+                                      </div>
+                                    </div>
                                   )}
                                   {el.type === 'customerName' && (
-                                    <input
-                                      type="text"
-                                      value={el.text || ''}
-                                      onChange={(e) => handleUpdateElement(el.id, { text: e.target.value })}
-                                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all outline-none"
-                                      placeholder="Prefix e.g. Name: "
-                                    />
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 min-w-[24px] text-center select-none">TH</span>
+                                        <input
+                                          type="text"
+                                          value={el.text || ''}
+                                          onChange={(e) => handleUpdateElement(el.id, { text: e.target.value })}
+                                          className="flex-1 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all outline-none"
+                                          placeholder="คำนำหน้าภาษาไทย (เช่น ชื่อ: )..."
+                                        />
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 min-w-[24px] text-center select-none">EN</span>
+                                        <input
+                                          type="text"
+                                          value={el.textEn || ''}
+                                          onChange={(e) => handleUpdateElement(el.id, { textEn: e.target.value })}
+                                          className="flex-1 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all outline-none"
+                                          placeholder="English prefix (e.g. Name: )..."
+                                        />
+                                      </div>
+                                    </div>
                                   )}
                                   {el.type !== 'text' && el.type !== 'customerName' && (
                                     <span className="text-[10px] text-slate-400 italic">
@@ -887,9 +919,33 @@ export const KioskSettingsPage: React.FC = () => {
               {/* LIVE TICKET PRINT PREVIEW COLUMN */}
               <div className="lg:col-span-5 space-y-6">
                 <div className="bg-slate-50 dark:bg-slate-950/20 border border-slate-200/60 dark:border-slate-800 rounded-3xl p-6 shadow-inner text-center flex flex-col items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-450 dark:text-slate-400 mb-4 block">
-                    Real-time Print Preview
-                  </span>
+                  <div className="flex items-center justify-between w-full mb-4">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-450 dark:text-slate-400">
+                      Real-time Print Preview
+                    </span>
+                    <div className="flex rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewLang('th')}
+                        className={`px-2.5 py-1 font-bold transition-all cursor-pointer ${previewLang === 'th'
+                          ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white'
+                          : 'bg-white dark:bg-slate-900 text-slate-405 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        TH
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewLang('en')}
+                        className={`px-2.5 py-1 font-bold transition-all cursor-pointer ${previewLang === 'en'
+                          ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white'
+                          : 'bg-white dark:bg-slate-900 text-slate-405 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        EN
+                      </button>
+                    </div>
+                  </div>
 
                   {/* Thermal Paper Container */}
                   <div
@@ -935,7 +991,7 @@ export const KioskSettingsPage: React.FC = () => {
                             case 'serviceName':
                               return (
                                 <div key={el.id} className={`${alignClass} ${sizeClass} ${boldClass} break-words leading-tight text-slate-800`}>
-                                  Mobile Top-up Service
+                                  {previewLang === 'en' ? 'Mobile Top-up Service' : 'บริการเติมเงินมือถือ'}
                                 </div>
                               );
                             case 'queueNumber':
@@ -947,20 +1003,23 @@ export const KioskSettingsPage: React.FC = () => {
                             case 'customerName':
                               return (
                                 <div key={el.id} className={`${alignClass} ${sizeClass} ${boldClass} break-words leading-tight text-slate-700`}>
-                                  {el.text || 'Name: '}John Doe
+                                  {previewLang === 'en' ? (el.textEn || el.text || 'Name: ') : (el.text || 'ชื่อ: ')}
+                                  {previewLang === 'en' ? 'John Doe' : 'สมชาย ใจดี'}
                                 </div>
                               );
                             case 'dateTime':
                               return (
                                 <div key={el.id} className={`${alignClass} ${sizeClass} ${boldClass} leading-tight text-slate-655`}>
-                                  {new Date().toLocaleDateString()} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {previewLang === 'th'
+                                    ? `${new Date().toLocaleDateString('th-TH')} ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`
+                                    : `${new Date().toLocaleDateString('en-US')} ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`}
                                 </div>
                               );
                             case 'text':
                             default:
                               return (
                                 <div key={el.id} className={`${alignClass} ${sizeClass} ${boldClass} break-words leading-normal text-slate-700`}>
-                                  {el.text || 'Custom text line'}
+                                  {previewLang === 'en' ? (el.textEn || el.text || 'Custom text line') : (el.text || 'ข้อความเพิ่มเติม')}
                                 </div>
                               );
                           }

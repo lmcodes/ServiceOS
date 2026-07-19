@@ -47,6 +47,7 @@ export interface TicketLayoutElement {
   id: string;
   type: 'logo' | 'branchName' | 'serviceName' | 'queueNumber' | 'customerName' | 'dateTime' | 'text';
   text?: string;
+  textEn?: string;
   visible: boolean;
   fontSize: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   bold?: boolean;
